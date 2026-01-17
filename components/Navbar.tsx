@@ -43,6 +43,12 @@ export function Navbar() {
                             <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />
                         </Link>
                     ))}
+                    <Link
+                        href="/login"
+                        className="px-6 py-2 border border-white/20 hover:border-white text-white text-[11px] font-bold uppercase tracking-[0.2em] transition-all bg-white/5"
+                    >
+                        Portal
+                    </Link>
                     <button className="px-6 py-2 border border-accent/20 hover:border-accent text-accent text-[11px] font-bold uppercase tracking-[0.2em] transition-all bg-accent/5">
                         Start Project
                     </button>
@@ -94,6 +100,13 @@ export function Navbar() {
                                     {item.name}
                                 </Link>
                             ))}
+                            <Link
+                                href="/login"
+                                className="text-4xl font-black tracking-tighter uppercase text-accent"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                Portal
+                            </Link>
                         </div>
                     </motion.div>
                 )}
