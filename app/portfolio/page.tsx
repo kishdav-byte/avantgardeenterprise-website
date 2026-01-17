@@ -5,10 +5,10 @@ import { Footer } from "@/components/Footer"
 import { motion } from "framer-motion"
 
 const projects = [
-    { title: "Neuro-Sync Platform", category: "AI Engineering", year: "2024" },
-    { title: "Vortex Data Engine", category: "Big Data", year: "2023" },
-    { title: "Lumina Interface", category: "UX/UI Design", year: "2024" },
-    { title: "Ghost Protocol Security", category: "Cybersecurity", year: "2023" },
+    { title: "Neuro-Sync Platform", category: "AI Engineering", year: "2024", link: "#" },
+    { title: "Total Package Interview", category: "AI Career Coach", year: "2025", link: "https://totalpackageinterview.com" },
+    { title: "Lumina Interface", category: "UX/UI Design", year: "2024", link: "#" },
+    { title: "Ghost Protocol Security", category: "Cybersecurity", year: "2023", link: "#" },
 ]
 
 export default function PortfolioPage() {
@@ -31,23 +31,29 @@ export default function PortfolioPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         {projects.map((project, index) => (
-                            <motion.div
+                            <a
+                                href={project.link}
                                 key={project.title}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="group relative aspect-video bg-white/5 border border-white/10 p-8 flex flex-col justify-end overflow-hidden"
+                                target={project.link.startsWith('http') ? "_blank" : "_self"}
+                                rel="noopener noreferrer"
                             >
-                                <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative z-10">
-                                    <p className="text-accent text-xs font-bold tracking-widest uppercase mb-2">{project.category}</p>
-                                    <h3 className="text-3xl font-bold uppercase tracking-tighter group-hover:text-accent transition-colors">{project.title}</h3>
-                                    <p className="text-white/20 text-xs mt-4 uppercase tracking-widest">— {project.year}</p>
-                                </div>
-                                <div className="absolute top-8 right-8 w-12 h-12 border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                    <span className="text-xl">↗</span>
-                                </div>
-                            </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="group relative aspect-video bg-white/5 border border-white/10 p-8 flex flex-col justify-end overflow-hidden hover:border-accent/50 transition-colors"
+                                >
+                                    <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative z-10">
+                                        <p className="text-accent text-xs font-bold tracking-widest uppercase mb-2">{project.category}</p>
+                                        <h3 className="text-3xl font-bold uppercase tracking-tighter group-hover:text-accent transition-colors">{project.title}</h3>
+                                        <p className="text-white/20 text-xs mt-4 uppercase tracking-widest">— {project.year}</p>
+                                    </div>
+                                    <div className="absolute top-8 right-8 w-12 h-12 border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                        <span className="text-xl">↗</span>
+                                    </div>
+                                </motion.div>
+                            </a>
                         ))}
                     </div>
 

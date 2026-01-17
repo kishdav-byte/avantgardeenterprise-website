@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
 import { motion } from "framer-motion"
@@ -71,24 +72,8 @@ export default function DashboardPage() {
 
             <div className="pt-24 flex min-h-screen">
                 {/* Sidebar Navigation */}
-                <aside className="w-64 border-r border-white/10 hidden md:flex flex-col p-6 gap-8">
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-4 px-3">Main Menu</p>
-                        <SidebarLink icon={<LayoutDashboard size={18} />} label="Overview" active />
-                        <SidebarLink icon={<Calendar size={18} />} label="Appointments" />
-                        <SidebarLink icon={<FileText size={18} />} label="Project Files" />
-                        <SidebarLink icon={<Settings size={18} />} label="Settings" />
-                    </div>
-
-                    <div className="mt-auto">
-                        <button
-                            onClick={handleSignOut}
-                            className="flex items-center gap-3 px-3 py-2 text-white/40 hover:text-red-400 transition-colors text-sm font-bold uppercase tracking-widest"
-                        >
-                            <LogOut size={18} /> Exit Portal
-                        </button>
-                    </div>
-                </aside>
+                {/* Sidebar Navigation */}
+                <DashboardSidebar isAdmin={clientData?.role === 'admin'} />
 
                 {/* Dashboard Content */}
                 <section className="flex-1 p-8 md:p-12 overflow-y-auto">
@@ -158,14 +143,7 @@ export default function DashboardPage() {
     )
 }
 
-function SidebarLink({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
-    return (
-        <div className={`flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all ${active ? 'bg-accent/10 text-accent border border-accent/20' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}>
-            {icon}
-            <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
-        </div>
-    )
-}
+
 
 function StatCard({ title, value, sub }: { title: string, value: string, sub: string }) {
     return (
