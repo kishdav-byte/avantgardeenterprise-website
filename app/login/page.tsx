@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -13,13 +13,16 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [isSignUp, setIsSignUp] = useState(false)
-    const [debugInfo, setDebugInfo] = useState('')
+    const [mounted, setMounted] = useState(false)
+
+    // Create Supabase client inside component to ensure access to env vars
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     useEffect(() => {
-        // Debug: Check if environment variables are loaded
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const hasKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        setDebugInfo(`URL: ${url?.substring(0, 30)}... | Key exists: ${hasKey}`)
+        setMounted(true)
     }, [])
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -53,6 +56,10 @@ export default function LoginPage() {
         }
     }
 
+    if (!mounted) {
+        return <div className="min-h-screen bg-black" />
+    }
+
     return (
         <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decoration */}
@@ -78,9 +85,6 @@ export default function LoginPage() {
                     </Link>
                     <h1 className="text-3xl font-bold tracking-tighter uppercase mb-2">Access Portal</h1>
                     <p className="text-white/50 text-sm uppercase tracking-[0.1em]">Secure Environment // Client Access</p>
-                    {debugInfo && (
-                        <p className="text-[8px] text-white/20 mt-2 font-mono">{debugInfo}</p>
-                    )}
                 </div>
 
                 <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm shadow-2xl">
