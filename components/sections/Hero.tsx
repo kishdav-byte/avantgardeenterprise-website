@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export function Hero() {
@@ -35,10 +36,8 @@ export function Hero() {
                 </motion.div>
 
                 {/* The "START PROJECT" Button matching the glass style of the uploaded image */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                <Link
+                    href="/login"
                     className="relative group cursor-pointer"
                 >
                     <div className="absolute inset-x-[-20px] inset-y-[-10px] bg-accent/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -55,7 +54,7 @@ export function Hero() {
                             <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-black" />
 
                             <span className="text-accent text-[14px] font-black tracking-[0.3em] uppercase">
-                                Start Project
+                                Join the Mission
                             </span>
                         </div>
                     </div>
@@ -63,7 +62,7 @@ export function Hero() {
                     {/* Decorative Outside Bracket lines */}
                     <div className="absolute -left-2 top-0 bottom-0 w-[1px] bg-accent/30" />
                     <div className="absolute -right-2 top-0 bottom-0 w-[1px] bg-accent/30" />
-                </motion.div>
+                </Link>
 
                 {/* Scrolling Label */}
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-30">
