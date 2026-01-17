@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabaseClient'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const contactSchema = z.object({
     name: z.string().min(1),
     email: z.string().email(),
