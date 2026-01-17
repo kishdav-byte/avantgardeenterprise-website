@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
         // Insert into Supabase
         const { error } = await supabase
-            .from('contacts')
+            .from('inquiries')
             .insert([{ name, email, message }])
 
         if (error) {
