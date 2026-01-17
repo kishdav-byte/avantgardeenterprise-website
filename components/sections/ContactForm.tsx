@@ -131,7 +131,7 @@ export function ContactForm() {
                         </Button>
 
                         {status === "success" && (
-                            <p className="text-accent text-center mt-4">Message sent successfully! We'll be in touch.</p>
+                            <p className="text-white/60 mb-8 max-w-sm">Ready to shatter the status quo? Let&apos;s build the future together.</p>
                         )}
                         {status === "error" && (
                             <p className="text-red-400 text-center mt-4">Something went wrong. Please try again.</p>

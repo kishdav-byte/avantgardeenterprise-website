@@ -16,7 +16,7 @@ export function About() {
                         WE ARE A <span className="text-accent">COLLECTIVE</span> OF VISIONARIES.
                     </h2>
                     <p className="text-lg text-white/70 mb-6 leading-relaxed">
-                        Avant-Garde Enterprise isn't just a studio; it's a movement. We reject the mundane and embrace the extraordinary. Our mission is to disrupt industries through design-driven technology.
+                        Avant-Garde isn&apos;t just our name—it&apos;s our operating model. We exist at the intersection ofthe mundane and embrace the extraordinary. Our mission is to disrupt industries through design-driven technology.
                     </p>
                     <p className="text-lg text-white/70 leading-relaxed">
                         From experimental interfaces to mission-critical systems, we bring a level of craft and precision that defines the modern era.
