@@ -39,12 +39,10 @@ export default function DashboardPage() {
                 .from('clients')
                 .select('*')
                 .eq('id', session.user.id)
-                .single()
+                .maybeSingle()
 
             if (error) {
                 console.error("Profile Fetch Error:", error)
-                // Temporary: Alert the user to the specific error for debugging
-                alert(`Debug Error: ${error.message} (Code: ${error.code})`)
             }
 
             if (profile) setClientData(profile)
