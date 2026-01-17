@@ -3,12 +3,16 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-})
 
 export async function POST(request: Request) {
     try {
+        const apiKey = process.env.OPENAI_API_KEY
+        if (!apiKey) {
+            return NextResponse.json({ error: 'OpenAI API Key not configured' }, { status: 500 })
+        }
+
+        const openai = new OpenAI({ apiKey })
+
         const { topic, intent, keywords, length, links } = await request.json()
 
         // Auth check
