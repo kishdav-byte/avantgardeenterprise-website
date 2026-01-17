@@ -10,9 +10,6 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
       <Navbar />
       <Hero />
-      <Services />
-      <About />
-      <ContactForm />
       <Footer />
     </main>
   )

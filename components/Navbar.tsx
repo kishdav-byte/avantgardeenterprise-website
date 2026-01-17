@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
 const navItems = [
-    { name: "About", href: "#about" },
-    { name: "Services", href: "#services" },
-    { name: "Portfolio", href: "#portfolio" },
-    { name: "Contact", href: "#contact" },
+    { name: "About", href: "/about" },
+    { name: "Services", href: "/services" },
+    { name: "Portfolio", href: "/portfolio" },
+    { name: "Contact", href: "/contact" },
 ]
 
 export function Navbar() {
@@ -49,9 +49,6 @@ export function Navbar() {
                     >
                         Portal
                     </Link>
-                    <button className="px-6 py-2 border border-accent/20 hover:border-accent text-accent text-[11px] font-bold uppercase tracking-[0.2em] transition-all bg-accent/5">
-                        Start Project
-                    </button>
                 </nav>
 
                 {/* Mobile Toggle */}
