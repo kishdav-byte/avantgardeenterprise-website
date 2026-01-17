@@ -1,6 +1,6 @@
 "use client"
-// Force rebuild
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -13,6 +13,14 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [isSignUp, setIsSignUp] = useState(false)
+    const [debugInfo, setDebugInfo] = useState('')
+
+    useEffect(() => {
+        // Debug: Check if environment variables are loaded
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const hasKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        setDebugInfo(`URL: ${url?.substring(0, 30)}... | Key exists: ${hasKey}`)
+    }, [])
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -70,6 +78,9 @@ export default function LoginPage() {
                     </Link>
                     <h1 className="text-3xl font-bold tracking-tighter uppercase mb-2">Access Portal</h1>
                     <p className="text-white/50 text-sm uppercase tracking-[0.1em]">Secure Environment // Client Access</p>
+                    {debugInfo && (
+                        <p className="text-[8px] text-white/20 mt-2 font-mono">{debugInfo}</p>
+                    )}
                 </div>
 
                 <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm shadow-2xl">
@@ -104,8 +115,8 @@ export default function LoginPage() {
 
                         {error && (
                             <div className={`p-3 rounded-lg text-sm ${error.includes('Success')
-                                ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                                : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
                                 }`}>
                                 {error}
                             </div>
