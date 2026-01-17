@@ -1,12 +1,50 @@
 "use client"
 
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
+    const router = useRouter()
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [isSignUp, setIsSignUp] = useState(false)
+
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        setError('')
+
+        try {
+            if (isSignUp) {
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    }
+                })
+                if (error) throw error
+                setError('Success! Check your email to verify your account.')
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                })
+                if (error) throw error
+                router.push('/dashboard')
+            }
+        } catch (error: any) {
+            setError(error.message || 'An error occurred')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decoration */}
@@ -35,32 +73,63 @@ export default function LoginPage() {
                 </div>
 
                 <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm shadow-2xl">
-                    <Auth
-                        supabaseClient={supabase}
-                        appearance={{
-                            theme: ThemeSupa,
-                            variables: {
-                                default: {
-                                    colors: {
-                                        brand: '#FFFFFF',
-                                        brandAccent: '#FFFFFF',
-                                        inputBackground: 'rgba(255, 255, 255, 0.05)',
-                                        inputBorder: 'rgba(255, 255, 255, 0.1)',
-                                        inputText: 'white',
-                                        inputPlaceholder: 'rgba(255, 255, 255, 0.3)',
-                                    }
-                                }
-                            },
-                            className: {
-                                container: 'auth-container',
-                                button: 'auth-button',
-                                input: 'auth-input',
-                            }
-                        }}
-                        theme="dark"
-                        providers={[]}
-                        redirectTo={`${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`}
-                    />
+                    <form onSubmit={handleAuth} className="space-y-4">
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none transition-colors"
+                                placeholder="your@email.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none transition-colors"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className={`p-3 rounded-lg text-sm ${error.includes('Success')
+                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                                }`}>
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-white text-black font-bold uppercase tracking-widest py-3 rounded-lg hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? 'Processing...' : isSignUp ? 'Sign Up' : 'Sign In'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsSignUp(!isSignUp)
+                                setError('')
+                            }}
+                            className="w-full text-white/50 hover:text-accent text-sm font-bold uppercase tracking-widest transition-colors"
+                        >
+                            {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
+                        </button>
+                    </form>
                 </div>
 
                 <div className="mt-8 text-center">
@@ -72,43 +141,6 @@ export default function LoginPage() {
                     </Link>
                 </div>
             </motion.div>
-
-            <style jsx global>{`
-                .auth-container {
-                    font-family: inherit;
-                }
-                .auth-button {
-                    border-radius: 8px !important;
-                    text-transform: uppercase !important;
-                    font-weight: 800 !important;
-                    letter-spacing: 0.1em !important;
-                    padding: 12px !important;
-                    background: white !important;
-                    color: black !important;
-                    transition: all 0.2s ease !important;
-                }
-                .auth-button:hover {
-                    background: #f0f0f0 !important;
-                    transform: translateY(-1px);
-                }
-                .auth-input {
-                    border-radius: 8px !important;
-                    background: rgba(255, 255, 255, 0.05) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    color: white !important;
-                    padding: 12px !important;
-                }
-                .auth-input:focus {
-                    border-color: rgba(255, 255, 255, 0.3) !important;
-                }
-                .supabase-account-link {
-                    color: rgba(255, 255, 255, 0.5) !important;
-                    font-size: 12px !important;
-                }
-                .supabase-account-link:hover {
-                    color: white !important;
-                }
-            `}</style>
         </main>
     )
 }
