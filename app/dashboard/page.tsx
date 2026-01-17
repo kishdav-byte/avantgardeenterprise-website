@@ -35,11 +35,17 @@ export default function DashboardPage() {
             setUser(session.user)
 
             // Fetch profile data from our custom 'clients' table
-            const { data: profile } = await supabase
+            const { data: profile, error } = await supabase
                 .from('clients')
                 .select('*')
                 .eq('id', session.user.id)
                 .single()
+
+            if (error) {
+                console.error("Profile Fetch Error:", error)
+                // Temporary: Alert the user to the specific error for debugging
+                alert(`Debug Error: ${error.message} (Code: ${error.code})`)
+            }
 
             if (profile) setClientData(profile)
             setLoading(false)
