@@ -1,5 +1,5 @@
 "use client"
-
+// Force rebuild
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { motion } from 'framer-motion'
@@ -104,8 +104,8 @@ export default function LoginPage() {
 
                         {error && (
                             <div className={`p-3 rounded-lg text-sm ${error.includes('Success')
-                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                                ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                                : 'bg-red-500/10 border border-red-500/20 text-red-400'
                                 }`}>
                                 {error}
                             </div>
