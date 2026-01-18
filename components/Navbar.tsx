@@ -73,12 +73,14 @@ export function Navbar() {
             <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6 bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
                 {/* Logo Section */}
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="w-8 h-8 border-2 border-accent rotate-45 flex items-center justify-center transition-transform group-hover:rotate-[135deg] duration-500">
-                        <div className="w-4 h-4 bg-accent -rotate-45" />
+                    <div className="w-10 h-10 border-2 border-accent rotate-45 flex items-center justify-center transition-all duration-500 group-hover:rotate-[225deg] group-hover:scale-110 group-hover:bg-accent/10 relative">
+                        <div className="w-full h-full flex items-center justify-center -rotate-45 transition-all duration-500 group-hover:-rotate-[225deg]">
+                            <span className="font-black text-accent text-xs tracking-tighter">AG</span>
+                        </div>
                     </div>
                     <div className="flex flex-col leading-none">
-                        <span className="text-xl font-black tracking-tighter uppercase">Avant-Garde</span>
-                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">Enterprise</span>
+                        <span className="text-xl font-black tracking-tighter text-white group-hover:text-accent transition-colors">avant-garde</span>
+                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 group-hover:text-white transition-colors">Enterprise</span>
                     </div>
                 </Link>
 
