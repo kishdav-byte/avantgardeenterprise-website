@@ -24,6 +24,12 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
     return (
         <aside className="w-64 border-r border-white/10 hidden md:flex flex-col p-6 gap-8 h-screen sticky top-0 overflow-y-auto pt-24">
             <div className="space-y-2">
+                <Link href="/" className="mb-6 block px-3">
+                    <button className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent hover:text-white transition-colors flex items-center gap-2">
+                        ← Return to Website
+                    </button>
+                </Link>
+
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-4 px-3">Main Menu</p>
 
                 <Link href="/dashboard">
