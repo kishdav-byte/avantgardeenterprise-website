@@ -12,7 +12,9 @@ interface Blog {
     id: string;
     title: string;
     content: string;
-    published_date: string;
+    published_at: string;
+    created_at: string;
+    featured_image: string;
 }
 
 export default function BlogPostPage() {
@@ -62,7 +64,7 @@ export default function BlogPostPage() {
                         </Link>
 
                         <time className="block text-accent text-xs font-bold tracking-[0.4em] uppercase mb-4">
-                            {new Date(blog.published_date).toLocaleDateString('en-US', {
+                            {new Date(blog.published_at || blog.created_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
@@ -73,12 +75,22 @@ export default function BlogPostPage() {
                             {blog.title}
                         </h1>
 
-                        <div className="prose prose-invert prose-lg max-w-none text-white/70 leading-relaxed font-light">
-                            {/* In a real scenario, we'd use a markdown parser here if the content is markdown */}
-                            {blog.content.split('\n').map((para, i) => (
-                                <p key={i} className="mb-6">{para}</p>
-                            ))}
-                        </div>
+                        {/* Featured Image */}
+                        {blog.featured_image && (
+                            <div className="mb-16 rounded-2xl overflow-hidden border border-white/10 aspect-video relative">
+                                <img
+                                    src={blog.featured_image}
+                                    alt={blog.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        <div
+                            className="prose prose-invert prose-lg max-w-none text-white/70 leading-relaxed font-light [&>h2]:text-white [&>h2]:font-bold [&>h2]:tracking-tighter [&>h2]:uppercase [&>h2]:mb-6 [&>h2]:mt-12 [&>a]:text-accent [&>a]:underline hover:[&>a]:text-white transition-colors"
+                            dangerouslySetInnerHTML={{ __html: blog.content }}
+                        />
                     </motion.div>
                 </div>
             </article>
