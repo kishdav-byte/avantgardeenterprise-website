@@ -35,16 +35,23 @@ export default function DashboardPage() {
         }, 8000)
 
         const getSession = async () => {
+            // Local client to prevent singleton conflicts
+            const { createBrowserClient } = await import('@supabase/ssr')
+            const supabase = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            )
+
             try {
-                const { data: { session } } = await supabase.auth.getSession()
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+                if (sessionError) throw sessionError
 
                 if (!session) {
                     console.log("No session found, redirecting to login...")
                     router.push('/login')
                     return
                 }
-
-                if (mounted) setUser(session.user)
 
                 if (mounted) setUser(session.user)
 
@@ -57,10 +64,10 @@ export default function DashboardPage() {
                     .maybeSingle()
 
                 if (error) {
-                    console.error("Profile Fetch Error details:", error)
-                    if (error.message?.includes('AbortError')) {
-                        console.warn('Fetch was aborted. This might be due to strict mode or navigation.')
+                    if (error.message?.includes('AbortError') || (error as any).name === 'AbortError') {
+                        return // Ignore aborts
                     }
+                    console.error("Profile Fetch Error details:", error)
                 } else {
                     console.log('Profile fetched:', profile ? 'Found' : 'Not Found')
                 }
@@ -69,7 +76,11 @@ export default function DashboardPage() {
                     if (profile) setClientData(profile)
                     setLoading(false)
                 }
-            } catch (e) {
+            } catch (e: any) {
+                // Ignore AbortError
+                if (e.name === 'AbortError' || e.message?.includes('AbortError')) {
+                    return
+                }
                 console.error("Dashboard Session Error:", e)
                 if (mounted) setLoading(false)
             }

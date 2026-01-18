@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function AdminDashboard() {
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const [loading, setLoading] = useState(false)
     const [generatingKeywords, setGeneratingKeywords] = useState(false)
     const [message, setMessage] = useState<string | null>(null)
@@ -45,7 +49,10 @@ export default function AdminDashboard() {
             .order('created_at', { ascending: false })
 
         if (data) setBlogs(data)
-        if (error) console.error("Error fetching blogs:", error)
+        if (error) {
+            if (error.message?.includes('AbortError') || (error as any).name === 'AbortError') return
+            console.error("Error fetching blogs:", error)
+        }
     }
 
     async function handleSuggestKeywords() {
