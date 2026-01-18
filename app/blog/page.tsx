@@ -11,7 +11,10 @@ interface Blog {
     id: string;
     title: string;
     content: string;
-    published_date: string;
+    published_at: string;
+    featured_image?: string;
+    excerpt?: string;
+    slug: string;
 }
 
 export default function BlogPage() {
@@ -23,9 +26,11 @@ export default function BlogPage() {
             const { data, error } = await supabase
                 .from('blogs')
                 .select('*')
-                .order('published_date', { ascending: false })
+                .eq('status', 'published')
+                .order('published_at', { ascending: false })
 
             if (data) setBlogs(data)
+            if (error) console.error("Error loading blogs:", error)
             setLoading(false)
         }
         fetchBlogs()
@@ -53,32 +58,41 @@ export default function BlogPage() {
                             <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                         </div>
                     ) : blogs.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             {blogs.map((blog, index) => (
                                 <motion.article
                                     key={blog.id}
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="group relative border-b border-white/10 pb-12 hover:border-accent/30 transition-colors"
+                                    className="group relative flex flex-col h-full bg-white/5 border border-white/10 overflow-hidden rounded-xl hover:border-accent/50 transition-colors"
                                 >
-                                    <div className="flex flex-col md:flex-row md:items-baseline gap-4 mb-4">
-                                        <time className="text-accent text-xs font-bold tracking-widest uppercase">
-                                            {new Date(blog.published_date).toLocaleDateString('en-US', {
+                                    {blog.featured_image && (
+                                        <div className="aspect-video w-full overflow-hidden">
+                                            <img
+                                                src={blog.featured_image}
+                                                alt={blog.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="p-6 flex flex-col flex-grow">
+                                        <time className="text-accent text-[10px] font-bold tracking-widest uppercase mb-3 block">
+                                            {blog.published_at ? new Date(blog.published_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric'
-                                            })}
+                                            }) : 'Recently'}
                                         </time>
-                                        <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tighter group-hover:text-accent transition-colors">
-                                            <Link href={`/blog/${blog.id}`}>{blog.title}</Link>
+                                        <h2 className="text-2xl font-bold uppercase tracking-tight mb-4 group-hover:text-accent transition-colors leading-tight">
+                                            <Link href={`/blog/${blog.id}`} className="hover:underline decoration-transparent hover:decoration-accent transition-all">
+                                                {blog.title}
+                                            </Link>
                                         </h2>
-                                    </div>
-                                    <p className="text-white/50 line-clamp-2 max-w-2xl text-lg leading-relaxed">
-                                        {blog.content.replace(/<[^>]*>?/gm, '').substring(0, 200)}...
-                                    </p>
-                                    <div className="mt-6">
-                                        <Link href={`/blog/${blog.id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-accent transition-colors">
+                                        <p className="text-white/50 line-clamp-3 text-sm leading-relaxed mb-6 flex-grow">
+                                            {blog.excerpt || blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..."}
+                                        </p>
+                                        <Link href={`/blog/${blog.id}`} className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white hover:text-accent transition-colors mt-auto">
                                             Read Full Article <span className="text-lg">→</span>
                                         </Link>
                                     </div>

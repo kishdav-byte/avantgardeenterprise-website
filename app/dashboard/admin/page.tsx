@@ -210,6 +210,11 @@ export default function AdminDashboard() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase">Blog Commander</h1>
                     <p className="text-white/40 text-sm tracking-widest uppercase mt-2">AI-Powered Content Generation</p>
                 </div>
+                <Link href="/dashboard">
+                    <Button variant="outline" className="border-white/20 hover:bg-white/10 text-xs font-bold uppercase tracking-widest">
+                        ← Back to Dashboard
+                    </Button>
+                </Link>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
