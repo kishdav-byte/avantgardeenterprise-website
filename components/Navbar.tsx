@@ -79,8 +79,8 @@ export function Navbar() {
                         </div>
                     </div>
                     <div className="flex flex-col leading-none">
-                        <span className="text-xl font-black tracking-tighter text-white group-hover:text-accent transition-colors">avant-garde</span>
-                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 group-hover:text-white transition-colors">Enterprise</span>
+                        <span className="text-lg md:text-xl font-black tracking-tighter text-white group-hover:text-accent transition-colors whitespace-nowrap">avant-garde</span>
+                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 group-hover:text-white transition-colors whitespace-nowrap">Enterprise</span>
                     </div>
                 </Link>
 

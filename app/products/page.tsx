@@ -34,11 +34,11 @@ export default function ProductsPage() {
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-32 group"
                     >
                         {/* Visual Side */}
-                        <div className="relative order-2 lg:order-1">
-                            <div className="aspect-square lg:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors">
+                        <div className="relative order-2 lg:order-1 lg:col-span-5">
+                            <div className="aspect-square lg:aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors">
                                 {/* Abstract UI visualization */}
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="w-64 h-64 rounded-full border border-accent/20 flex items-center justify-center animate-pulse-slow">
@@ -58,7 +58,7 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Content Side */}
-                        <div className="order-1 lg:order-2">
+                        <div className="order-1 lg:order-2 lg:col-span-7">
                             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
                                 AI Command Center
                             </h2>
@@ -99,7 +99,7 @@ export default function ProductsPage() {
                         className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
                     >
                         {/* Content Side */}
-                        <div>
+                        <div className="lg:col-span-7">
                             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
                                 Total Package Interview
                             </h2>
@@ -132,8 +132,8 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Visual Side */}
-                        <div className="relative">
-                            <div className="aspect-square lg:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
+                        <div className="relative lg:col-span-5">
+                            <div className="aspect-square lg:aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-50" />
                                 <div className="text-center relative z-10 p-8">
                                     <div className="text-9xl font-black text-white/10 select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">TPI</div>
@@ -154,8 +154,8 @@ export default function ProductsPage() {
                         className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
                     >
                         {/* Visual Side */}
-                        <div className="relative order-2 lg:order-1">
-                            <div className="aspect-square lg:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
+                        <div className="relative order-2 lg:order-1 lg:col-span-5">
+                            <div className="aspect-square lg:aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
                                 {/* Abstract Visualization */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 opacity-50" />
                                 <div className="text-center relative z-10 p-8">
@@ -171,7 +171,7 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Content Side */}
-                        <div className="order-1 lg:order-2">
+                        <div className="order-1 lg:order-2 lg:col-span-7">
                             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
                                 AI Advantage
                             </h2>
