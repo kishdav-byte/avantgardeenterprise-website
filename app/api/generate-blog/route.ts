@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
@@ -111,8 +111,43 @@ The image should be appealing, clean, and suited for a blog header — but it mu
         })
 
         const imageUrl = imageResponse?.data?.[0]?.url || ""
+        let finalImageUrl = imageUrl
 
-        // 3. Save to DB
+        // 3. Upload to Supabase Storage (Permanent Hosting)
+        if (imageUrl) {
+            try {
+                const imageRes = await fetch(imageUrl)
+                if (imageRes.ok) {
+                    const imageBuffer = await imageRes.arrayBuffer()
+                    const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.png`
+
+                    const { data: uploadData, error: uploadError } = await supabase
+                        .storage
+                        .from('blog-images')
+                        .upload(fileName, imageBuffer, {
+                            contentType: 'image/png',
+                            upsert: false
+                        })
+
+                    if (uploadError) {
+                        console.error('Storage Upload Error:', uploadError)
+                    } else {
+                        // Get public URL
+                        const { data: { publicUrl } } = supabase
+                            .storage
+                            .from('blog-images')
+                            .getPublicUrl(fileName)
+
+                        finalImageUrl = publicUrl
+                    }
+                }
+            } catch (storageErr) {
+                console.error('Image Processing Error:', storageErr)
+                // Fallback to the temp URL if upload fails, so we at least return something
+            }
+        }
+
+        // 4. Save to DB
         const { data: insertedBlog, error: dbError } = await supabase
             .from('blogs')
             .insert({
@@ -120,7 +155,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
                 slug: `${topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now()}`,
                 content: blogData.content_html,
                 excerpt: blogData.excerpt,
-                featured_image: imageUrl, // Temporary URL. In prod, you'd download and upload to storage. for now we'll save the link.
+                featured_image: finalImageUrl, // Saved permanent URL from Supabase Storage
                 status: 'draft',
                 author_id: session.user.id,
                 author_name: authorName || 'Avant-Garde Team',

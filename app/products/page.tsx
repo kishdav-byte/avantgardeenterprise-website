@@ -3,7 +3,7 @@
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { motion } from "framer-motion"
-import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap } from "lucide-react"
+import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap, BookOpen } from "lucide-react"
 import Link from "next/link"
 
 export default function ProductsPage() {
@@ -142,6 +142,69 @@ export default function ProductsPage() {
                                         System: Active
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* PRODUCT 3: AI ADVANTAGE */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
+                    >
+                        {/* Visual Side */}
+                        <div className="relative order-2 lg:order-1">
+                            <div className="aspect-square lg:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
+                                {/* Abstract Visualization */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 opacity-50" />
+                                <div className="text-center relative z-10 p-8">
+                                    <div className="w-48 h-64 border border-white/20 bg-white/5 mx-auto mb-6 flex items-center justify-center rounded-r-xl shadow-2xl relative">
+                                        <div className="absolute left-2 top-0 bottom-0 w-px bg-white/10" />
+                                        <BookOpen size={48} className="text-accent" />
+                                    </div>
+                                    <div className="absolute -bottom-4 right-12 bg-accent text-black text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded">
+                                        Best Seller
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Side */}
+                        <div className="order-1 lg:order-2">
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
+                                AI Advantage
+                            </h2>
+                            <p className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-8">
+                                The Small Business Blueprint
+                            </p>
+
+                            <p className="text-white/70 leading-relaxed mb-8 text-lg">
+                                A definitive guide designed to demystify artificial intelligence for enterprise growth. This comprehensive framework includes readiness assessments, a 4-phase implementation strategy, and real-world case studies to transform your business operations.
+                            </p>
+
+                            <ul className="space-y-4 mb-10">
+                                <li className="flex items-center gap-3 text-white/80">
+                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
+                                    <span><strong>Strategic Framework:</strong> 4-phase implementation roadmap</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-white/80">
+                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
+                                    <span><strong>Actionable Tools:</strong> Readiness assessment & ROI calculators</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-white/80">
+                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
+                                    <span><strong>Complete Workbook:</strong> Step-by-step pilot project planner</span>
+                                </li>
+                            </ul>
+
+                            <div className="flex flex-wrap gap-4">
+                                <a href="https://a.co/d/6oCHAhs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent transition-colors">
+                                    Buy on Amazon <ArrowRight size={16} />
+                                </a>
+                                <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 border border-white/20 text-white font-bold uppercase tracking-widest text-xs hover:border-accent hover:text-accent transition-colors">
+                                    Contact for Bulk <ArrowRight size={16} />
+                                </Link>
                             </div>
                         </div>
                     </motion.div>

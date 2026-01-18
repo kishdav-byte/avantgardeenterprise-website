@@ -26,37 +26,20 @@ export default function DashboardPage() {
     useEffect(() => {
         let mounted = true
 
-        // Safety timeout to prevent infinite spinning
-        const timeoutId = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn("Dashboard loading timed out. Forcing UI render.")
-                setLoading(false)
-            }
-        }, 8000)
-
         const getSession = async () => {
-            // Local client to prevent singleton conflicts
-            const { createBrowserClient } = await import('@supabase/ssr')
-            const supabase = createBrowserClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-            )
-
             try {
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
                 if (sessionError) throw sessionError
 
                 if (!session) {
-                    console.log("No session found, redirecting to login...")
                     router.push('/login')
                     return
                 }
 
                 if (mounted) setUser(session.user)
 
-                // Fetch profile data from our custom 'clients' table
-                console.log('Fetching profile for:', session.user.id)
+                // Fetch profile data
                 const { data: profile, error } = await supabase
                     .from('clients')
                     .select('*')
@@ -64,23 +47,14 @@ export default function DashboardPage() {
                     .maybeSingle()
 
                 if (error) {
-                    if (error.message?.includes('AbortError') || (error as any).name === 'AbortError') {
-                        return // Ignore aborts
-                    }
-                    console.error("Profile Fetch Error details:", error)
-                } else {
-                    console.log('Profile fetched:', profile ? 'Found' : 'Not Found')
+                    console.error("Profile Fetch Error:", error)
                 }
 
                 if (mounted) {
                     if (profile) setClientData(profile)
                     setLoading(false)
                 }
-            } catch (e: any) {
-                // Ignore AbortError
-                if (e.name === 'AbortError' || e.message?.includes('AbortError')) {
-                    return
-                }
+            } catch (e) {
                 console.error("Dashboard Session Error:", e)
                 if (mounted) setLoading(false)
             }
@@ -90,7 +64,6 @@ export default function DashboardPage() {
 
         return () => {
             mounted = false
-            clearTimeout(timeoutId)
         }
     }, [router])
 
