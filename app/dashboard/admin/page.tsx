@@ -164,9 +164,16 @@ export default function AdminDashboard() {
     // Archive Functions
     async function togglePublishStatus(blog: any) {
         const newStatus = blog.status === 'published' ? 'draft' : 'published'
+
+        let updates: any = { status: newStatus }
+        // If publishing and no date set, set to today
+        if (newStatus === 'published' && !blog.published_at) {
+            updates.published_at = new Date().toISOString()
+        }
+
         const { error } = await supabase
             .from('blogs')
-            .update({ status: newStatus })
+            .update(updates)
             .eq('id', blog.id)
 
         if (error) {
@@ -436,9 +443,17 @@ export default function AdminDashboard() {
                                         <div className="text-xs text-white/40 font-mono">{blog.slug}</div>
                                     </td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${blog.status === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'}`}>
-                                            {blog.status}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={blog.status === 'published'}
+                                                onChange={() => togglePublishStatus(blog)}
+                                                className="w-4 h-4 accent-accent cursor-pointer"
+                                            />
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${blog.status === 'published' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                {blog.status === 'published' ? 'Posted' : 'Draft'}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="p-4">
                                         <input
@@ -454,14 +469,7 @@ export default function AdminDashboard() {
                                                 <Eye size={14} />
                                             </Button>
                                         </Link>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className={`h-8 text-[10px] font-bold uppercase tracking-widest ${blog.status === 'published' ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
-                                            onClick={() => togglePublishStatus(blog)}
-                                        >
-                                            {blog.status === 'published' ? 'Unpublish' : 'Publish'}
-                                        </Button>
+
                                         <Button
                                             size="icon"
                                             variant="ghost"

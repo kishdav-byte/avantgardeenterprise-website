@@ -108,7 +108,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
             .from('blogs')
             .insert({
                 title: topic,
-                slug: topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                slug: `${topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now()}`,
                 content: blogData.content_html,
                 excerpt: blogData.excerpt,
                 featured_image: imageUrl, // Temporary URL. In prod, you'd download and upload to storage. for now we'll save the link.
