@@ -436,6 +436,7 @@ export default function AdminDashboard() {
                             <tr>
                                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Title</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Status</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">SEO</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Published Date</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50 text-right">Actions</th>
                             </tr>
@@ -459,6 +460,18 @@ export default function AdminDashboard() {
                                                 {blog.status === 'published' ? 'Posted' : 'Draft'}
                                             </span>
                                         </div>
+                                    </td>
+                                    <td className="p-4">
+                                        {blog.seo_score ? (
+                                            <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full border text-xs font-bold ${blog.seo_score >= 80 ? 'border-green-500/50 text-green-400 bg-green-500/10' :
+                                                blog.seo_score >= 50 ? 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10' :
+                                                    'border-red-500/50 text-red-500 bg-red-500/10'
+                                                }`}>
+                                                {blog.seo_score}
+                                            </div>
+                                        ) : (
+                                            <span className="text-white/20 text-xs">-</span>
+                                        )}
                                     </td>
                                     <td className="p-4">
                                         <input

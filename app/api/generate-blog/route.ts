@@ -75,11 +75,13 @@ At the end, include a meta description in this format:
 Output Format: JSON string structure:
         {
             "content_html": "The full HTML content including meta description",
-                "excerpt": "Short summary for preview text",
-                    "social_snippets": {
+            "excerpt": "Short summary for preview text",
+            "social_snippets": {
                 "linkedin": "Draft for a LinkedIn post",
-                    "facebook": "Draft for a Facebook post"
-            }
+                "facebook": "Draft for a Facebook post"
+            },
+            "seo_score": 85,
+            "seo_critique": "Brief explanation of the score."
         } `
 
         const completion = await openai.chat.completions.create({
@@ -123,7 +125,9 @@ The image should be appealing, clean, and suited for a blog header — but it mu
                 author_id: session.user.id,
                 generated_social_snippets: blogData.social_snippets,
                 intent: focus,
-                seo_keywords: keywords.split(',').map((k: string) => k.trim())
+                seo_keywords: keywords.split(',').map((k: string) => k.trim()),
+                seo_score: blogData.seo_score || 0,
+                seo_critique: blogData.seo_critique || ""
             })
             .select()
             .single()
