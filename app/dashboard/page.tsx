@@ -46,7 +46,10 @@ export default function DashboardPage() {
 
                 if (mounted) setUser(session.user)
 
+                if (mounted) setUser(session.user)
+
                 // Fetch profile data from our custom 'clients' table
+                console.log('Fetching profile for:', session.user.id)
                 const { data: profile, error } = await supabase
                     .from('clients')
                     .select('*')
@@ -54,7 +57,12 @@ export default function DashboardPage() {
                     .maybeSingle()
 
                 if (error) {
-                    console.error("Profile Fetch Error:", error)
+                    console.error("Profile Fetch Error details:", error)
+                    if (error.message?.includes('AbortError')) {
+                        console.warn('Fetch was aborted. This might be due to strict mode or navigation.')
+                    }
+                } else {
+                    console.log('Profile fetched:', profile ? 'Found' : 'Not Found')
                 }
 
                 if (mounted) {
