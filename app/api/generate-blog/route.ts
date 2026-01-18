@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
         const openai = new OpenAI({ apiKey })
 
-        const { topic, focus, keywords, productName, productUrl, length = '1200', imageStyle = 'Minimalist' } = await request.json()
+        const { topic, focus, keywords, productName, productUrl, authorName, length = '1200', imageStyle = 'Minimalist' } = await request.json()
 
         // Auth check
         const cookieStore = await cookies()
@@ -123,6 +123,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
                 featured_image: imageUrl, // Temporary URL. In prod, you'd download and upload to storage. for now we'll save the link.
                 status: 'draft',
                 author_id: session.user.id,
+                author_name: authorName || 'Avant-Garde Team',
                 generated_social_snippets: blogData.social_snippets,
                 intent: focus,
                 seo_keywords: keywords.split(',').map((k: string) => k.trim()),

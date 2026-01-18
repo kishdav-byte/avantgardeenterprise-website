@@ -15,6 +15,7 @@ interface Blog {
     published_at: string;
     created_at: string;
     featured_image: string;
+    author_name?: string;
 }
 
 export default function BlogPostPage() {
@@ -63,14 +64,18 @@ export default function BlogPostPage() {
                             ← Return to Index
                         </Link>
 
-                        <time className="block text-accent text-xs font-bold tracking-[0.4em] uppercase mb-4">
-                            {new Date(blog.published_at || blog.created_at).toLocaleDateString('en-US', {
-                                timeZone: 'UTC',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </time>
+                        <div className="flex items-center gap-4 text-xs font-bold tracking-[0.4em] uppercase mb-4 text-accent">
+                            <time>
+                                {new Date(blog.published_at || blog.created_at).toLocaleDateString('en-US', {
+                                    timeZone: 'UTC',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </time>
+                            <span className="text-white/20">//</span>
+                            <span>{blog.author_name || 'Avant-Garde Team'}</span>
+                        </div>
 
                         <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-20 leading-tight">
                             {blog.title}

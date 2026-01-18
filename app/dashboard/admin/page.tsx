@@ -22,6 +22,7 @@ export default function AdminDashboard() {
     const [productUrl, setProductUrl] = useState("")
     const [keywords, setKeywords] = useState("") // comma separated
     const [length, setLength] = useState("1200")
+    const [authorName, setAuthorName] = useState('Avant-Garde Team')
     const [imageStyle, setImageStyle] = useState("Minimalist")
 
     // Result State
@@ -88,6 +89,7 @@ export default function AdminDashboard() {
                     keywords,
                     productName,
                     productUrl,
+                    authorName,
                     length,
                     imageStyle
                 }),
@@ -265,6 +267,17 @@ export default function AdminDashboard() {
                                         onChange={(e) => setProductUrl(e.target.value)}
                                     />
                                 </div>
+                            </div>
+
+                            {/* Author Name */}
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Author Name (Byline)</label>
+                                <input
+                                    className="w-full bg-black/50 border border-white/20 p-3 rounded text-white focus:border-accent outline-none font-medium text-sm"
+                                    placeholder="e.g. David Kish"
+                                    value={authorName}
+                                    onChange={(e) => setAuthorName(e.target.value)}
+                                />
                             </div>
 
                             {/* NEW: Length and Style */}
