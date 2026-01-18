@@ -46,13 +46,20 @@ export async function POST(request: Request) {
 
         // 1. Generate Blog Content
         const primaryKeyword = keywords.split(',')[0]
+
+        // Sanitize URL to ensure absolute path
+        let safeProductUrl = productUrl.trim()
+        if (!safeProductUrl.startsWith('http://') && !safeProductUrl.startsWith('https://')) {
+            safeProductUrl = 'https://' + safeProductUrl
+        }
+
         const prompt = `Write a ${length}-word SEO-optimized blog post titled: ${topic}
 Target the keyword: ${primaryKeyword}
-Naturally mention the product: "${productName}" and link to it using this URL: ${productUrl}
+Naturally mention the product: "${productName}" and link to it using this URL: ${safeProductUrl}
 
 CRITICAL INSTRUCTIONS:
-1. You MUST hyperlink the text "${productName}" to "${productUrl}" at least once in the body content.
-2. The link must be a standard HTML <a> tag: <a href="${productUrl}">${productName}</a>.
+1. You MUST hyperlink the text "${productName}" to "${safeProductUrl}" at least once in the body content.
+2. The link must be a standard HTML <a> tag: <a href="${safeProductUrl}">${productName}</a>.
 3. Do NOT output markdown (like [text](url)). Output strictly clean HTML.
 4. Do NOT include '\`\`\`html' or any code block markers.
 

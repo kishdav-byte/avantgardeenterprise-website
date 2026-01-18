@@ -79,6 +79,7 @@ export default function BlogPage() {
                                     <div className="p-6 flex flex-col flex-grow">
                                         <time className="text-accent text-[10px] font-bold tracking-widest uppercase mb-3 block">
                                             {blog.published_at ? new Date(blog.published_at).toLocaleDateString('en-US', {
+                                                timeZone: 'UTC',
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric'

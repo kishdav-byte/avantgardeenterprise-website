@@ -65,6 +65,7 @@ export default function BlogPostPage() {
 
                         <time className="block text-accent text-xs font-bold tracking-[0.4em] uppercase mb-4">
                             {new Date(blog.published_at || blog.created_at).toLocaleDateString('en-US', {
+                                timeZone: 'UTC',
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
