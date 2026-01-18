@@ -24,39 +24,63 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        let mounted = true
+
+        // Safety timeout to prevent infinite spinning
+        const timeoutId = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("Dashboard loading timed out. Forcing UI render.")
+                setLoading(false)
+            }
+        }, 8000)
+
         const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
 
-            if (!session) {
-                router.push('/login')
-                return
+                if (!session) {
+                    console.log("No session found, redirecting to login...")
+                    window.location.href = '/login' // Hard redirect to clear state
+                    return
+                }
+
+                if (mounted) setUser(session.user)
+
+                // Fetch profile data from our custom 'clients' table
+                const { data: profile, error } = await supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .maybeSingle()
+
+                if (error) {
+                    console.error("Profile Fetch Error:", error)
+                }
+
+                if (mounted) {
+                    if (profile) setClientData(profile)
+                    setLoading(false)
+                }
+            } catch (e) {
+                console.error("Dashboard Session Error:", e)
+                if (mounted) setLoading(false)
             }
-
-            setUser(session.user)
-
-            // Fetch profile data from our custom 'clients' table
-            const { data: profile, error } = await supabase
-                .from('clients')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle()
-
-            if (error) {
-                console.error("Profile Fetch Error:", error)
-            }
-
-            if (profile) setClientData(profile)
-            setLoading(false)
         }
 
         getSession()
 
         // Handle auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!session) router.push('/login')
+            if (!session) {
+                window.location.href = '/login'
+            }
         })
 
-        return () => subscription.unsubscribe()
+        return () => {
+            mounted = false
+            clearTimeout(timeoutId)
+            subscription.unsubscribe()
+        }
     }, [router])
 
     const handleSignOut = async () => {
