@@ -48,9 +48,9 @@ export default function LoginPage() {
                 })
                 if (error) throw error
                 if (error) throw error
-                // Force a hard navigation to ensure session is recognized everywhere
+                // Force a refresh so that middleware/server components recognize the new session
                 router.refresh()
-                window.location.href = '/dashboard'
+                router.push('/dashboard')
             }
         } catch (error: any) {
             setError(error.message || 'An error occurred')

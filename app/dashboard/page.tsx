@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
                 if (!session) {
                     console.log("No session found, redirecting to login...")
-                    window.location.href = '/login' // Hard redirect to clear state
+                    router.push('/login')
                     return
                 }
 
@@ -69,17 +69,9 @@ export default function DashboardPage() {
 
         getSession()
 
-        // Handle auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!session) {
-                window.location.href = '/login'
-            }
-        })
-
         return () => {
             mounted = false
             clearTimeout(timeoutId)
-            subscription.unsubscribe()
         }
     }, [router])
 
