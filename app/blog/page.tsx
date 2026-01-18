@@ -21,19 +21,40 @@ export default function BlogPage() {
     const [blogs, setBlogs] = useState<Blog[]>([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        async function fetchBlogs() {
-            const { data, error } = await supabase
-                .from('blogs')
-                .select('*')
-                .eq('status', 'published')
-                .order('published_at', { ascending: false })
+    const [error, setError] = useState<string | null>(null)
 
-            if (data) setBlogs(data)
-            if (error) console.error("Error loading blogs:", error)
-            setLoading(false)
+    useEffect(() => {
+        let mounted = true
+
+        async function fetchBlogs() {
+            try {
+                // Timeout race to prevent infinite spinning
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out')), 10000)
+                )
+
+                const fetchPromise = supabase
+                    .from('blogs')
+                    .select('*')
+                    .eq('status', 'published')
+                    .order('published_at', { ascending: false })
+
+                const result = await Promise.race([fetchPromise, timeoutPromise]) as any
+
+                if (result.error) throw result.error
+
+                if (mounted && result.data) {
+                    setBlogs(result.data)
+                }
+            } catch (err: any) {
+                console.error("Error loading blogs:", err)
+                if (mounted) setError(err.message)
+            } finally {
+                if (mounted) setLoading(false)
+            }
         }
         fetchBlogs()
+        return () => { mounted = false }
     }, [])
 
     return (
@@ -102,7 +123,9 @@ export default function BlogPage() {
                         </div>
                     ) : (
                         <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
-                            <p className="text-white/30 uppercase tracking-widest text-sm">Transmission pending... No articles found yet.</p>
+                            <p className="text-white/30 uppercase tracking-widest text-sm">
+                                {error ? `Transmission Error: ${error}` : 'Transmission pending... No articles found yet.'}
+                            </p>
                         </div>
                     )}
                 </div>
