@@ -48,33 +48,32 @@ export async function POST(request: Request) {
         const primaryKeyword = keywords.split(',')[0]
         const prompt = `Write a 1200-word SEO-optimized blog post titled: ${topic}
 Target the keyword: ${primaryKeyword}
-Naturally mention and promote this product: ${productName}
-Product link ${productUrl}
+Naturally mention the product: "${productName}" and link to it using this URL: ${productUrl}
 
-within the final article do not include the following text anywhere at all: \`\`\`html
+CRITICAL INSTRUCTIONS:
+1. You MUST hyperlink the text "${productName}" to "${productUrl}" at least once in the body content.
+2. The link must be a standard HTML <a> tag: <a href="${productUrl}">${productName}</a>.
+3. Do NOT output markdown (like [text](url)). Output strictly clean HTML.
+4. Do NOT include '```html' or any code block markers.
 
-Important formatting instructions:
-- Format everything in clean HTML
-- Use <h2> for subheadings
-- Use <p> for paragraphs
-- Use <ul>/<ol> for bullet or numbered lists
-- Hyperlink all tools and product links using <a> tags
-- Do not include markdown, asterisks, or hashtags
-
-Replace ${productName} ${productUrl} with the actual product URL from in the <a> tag.
+Formatting Rules:
+        - Use<h2> for subheadings
+            - Use<p> for paragraphs
+                - Use<ul> / <ol> for lists
+                    - Maintain a professional, authoritative tone.
 
 At the end, include a meta description in this format:
-<p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
+        <p style="display:none;" > Meta description: [Insert a 150 - character SEO summary of the article here] </p>
 
 Output Format: JSON string structure:
-{
-  "content_html": "The full HTML content including meta description",
-  "excerpt": "Short summary for preview text",
-  "social_snippets": {
-    "linkedin": "Draft for a LinkedIn post",
-    "facebook": "Draft for a Facebook post"
-  }
-}`
+        {
+            "content_html": "The full HTML content including meta description",
+                "excerpt": "Short summary for preview text",
+                    "social_snippets": {
+                "linkedin": "Draft for a LinkedIn post",
+                    "facebook": "Draft for a Facebook post"
+            }
+        } `
 
         const completion = await openai.chat.completions.create({
             messages: [{ role: 'system', content: prompt }],
@@ -87,7 +86,7 @@ Output Format: JSON string structure:
         const blogData = JSON.parse(contentRaw)
 
         // 2. Generate Image
-        const imagePrompt = `Generate a clean, professional, blog-style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
+        const imagePrompt = `Generate a clean, professional, blog - style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
 Do not include any text, numbers, letters, symbols, or writing in any language.
 Avoid branding, logos, or anything that resembles UI.
 Make it minimal, modern, and purely visual.
