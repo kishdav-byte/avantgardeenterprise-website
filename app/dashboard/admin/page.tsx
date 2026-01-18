@@ -6,13 +6,8 @@ import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-    Wand2,
-    Save,
-    Send,
-} from "lucide-react" // This line was incomplete in the original, but the new snippet replaces the imports.
+import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon, Save, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon } from "lucide-react"
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(false)

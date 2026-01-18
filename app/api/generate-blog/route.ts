@@ -102,7 +102,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
             style: "vivid"
         })
 
-        const imageUrl = imageResponse.data[0].url
+        const imageUrl = imageResponse?.data?.[0]?.url || ""
 
         // 3. Save to DB
         const { data: insertedBlog, error: dbError } = await supabase
