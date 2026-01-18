@@ -54,7 +54,7 @@ CRITICAL INSTRUCTIONS:
 1. You MUST hyperlink the text "${productName}" to "${productUrl}" at least once in the body content.
 2. The link must be a standard HTML <a> tag: <a href="${productUrl}">${productName}</a>.
 3. Do NOT output markdown (like [text](url)). Output strictly clean HTML.
-4. Do NOT include '```html' or any code block markers.
+4. Do NOT include '\`\`\`html' or any code block markers.
 
 Formatting Rules:
         - Use<h2> for subheadings
@@ -86,7 +86,7 @@ Output Format: JSON string structure:
         const blogData = JSON.parse(contentRaw)
 
         // 2. Generate Image
-        const imagePrompt = `Generate a ${ imageStyle } style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
+        const imagePrompt = `Generate a ${imageStyle} style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
 Do not include any text, numbers, letters, symbols, or writing in any language.
 Avoid branding, logos, or anything that resembles UI.
 Make it minimal, modern, and purely visual.
