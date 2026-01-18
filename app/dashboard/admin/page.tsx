@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { motion, AnimatePresence } from "framer-motion"
-import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon, Save, Send } from "lucide-react"
+import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon, Save, Send, Trash2, Eye, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(false)
@@ -20,11 +21,31 @@ export default function AdminDashboard() {
     const [productName, setProductName] = useState("")
     const [productUrl, setProductUrl] = useState("")
     const [keywords, setKeywords] = useState("") // comma separated
+    const [length, setLength] = useState("1200")
+    const [imageStyle, setImageStyle] = useState("Minimalist")
 
     // Result State
     const [generatedBlog, setGeneratedBlog] = useState<any>(null)
     const [isEditing, setIsEditing] = useState(false)
     const [editContent, setEditContent] = useState("")
+
+    // Archive State
+    const [blogs, setBlogs] = useState<any[]>([])
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+    useEffect(() => {
+        fetchBlogs()
+    }, [refreshTrigger, generatedBlog])
+
+    async function fetchBlogs() {
+        const { data, error } = await supabase
+            .from('blogs')
+            .select('*')
+            .order('created_at', { ascending: false })
+
+        if (data) setBlogs(data)
+        if (error) console.error("Error fetching blogs:", error)
+    }
 
     async function handleSuggestKeywords() {
         if (!topic || !focus) {
@@ -66,7 +87,9 @@ export default function AdminDashboard() {
                     focus,
                     keywords,
                     productName,
-                    productUrl
+                    productUrl,
+                    length,
+                    imageStyle
                 }),
             })
 
@@ -77,6 +100,7 @@ export default function AdminDashboard() {
             setGeneratedBlog(data.blog)
             setEditContent(data.blog.content)
             setMessage("Blog generated successfully! Saved as Draft.")
+            setRefreshTrigger(prev => prev + 1)
 
         } catch (error: any) {
             console.error(error)
@@ -105,6 +129,7 @@ export default function AdminDashboard() {
             setGeneratedBlog(data.blog)
             setIsEditing(false)
             setMessage("Blog updated successfully!")
+            setRefreshTrigger(prev => prev + 1)
         } catch (error: any) {
             setMessage(`Update Error: ${error.message}`)
         } finally {
@@ -128,11 +153,47 @@ export default function AdminDashboard() {
 
             setGeneratedBlog(data.blog)
             setMessage("Blog PUBLISHED successfully!")
+            setRefreshTrigger(prev => prev + 1)
         } catch (error: any) {
             setMessage(`Publish Error: ${error.message}`)
         } finally {
             setLoading(false)
         }
+    }
+
+    // Archive Functions
+    async function togglePublishStatus(blog: any) {
+        const newStatus = blog.status === 'published' ? 'draft' : 'published'
+        const { error } = await supabase
+            .from('blogs')
+            .update({ status: newStatus })
+            .eq('id', blog.id)
+
+        if (error) {
+            alert("Error updating status: " + error.message)
+        } else {
+            setRefreshTrigger(prev => prev + 1)
+        }
+    }
+
+    async function updatePublishedDate(blogId: string, newDate: string) {
+        const { error } = await supabase
+            .from('blogs')
+            .update({ published_at: newDate })
+            .eq('id', blogId)
+
+        if (error) {
+            alert("Error updating date: " + error.message)
+        } else {
+            setRefreshTrigger(prev => prev + 1)
+        }
+    }
+
+    async function deleteBlog(blogId: string) {
+        if (!confirm("Are you sure you want to delete this blog? This cannot be undone.")) return
+        const { error } = await supabase.from('blogs').delete().eq('id', blogId)
+        if (error) alert("Error deleting: " + error.message)
+        else setRefreshTrigger(prev => prev + 1)
     }
 
     return (
@@ -191,6 +252,42 @@ export default function AdminDashboard() {
                                         value={productUrl}
                                         onChange={(e) => setProductUrl(e.target.value)}
                                     />
+                                </div>
+                            </div>
+
+                            {/* NEW: Length and Style */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Length</label>
+                                    <select
+                                        className="w-full bg-black/50 border border-white/20 p-3 rounded text-white focus:border-accent outline-none font-bold text-sm uppercase"
+                                        value={length}
+                                        onChange={(e) => setLength(e.target.value)}
+                                    >
+                                        <option value="800">Short (~800 words)</option>
+                                        <option value="1200">Medium (~1200 words)</option>
+                                        <option value="2000">Long (~2000 words)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Image Style</label>
+                                    <div className="flex flex-col gap-2">
+                                        {['Minimalist', 'Cyberpunk', 'Professional', 'Abstract'].map((style) => (
+                                            <label key={style} className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="radio"
+                                                    name="imageStyle"
+                                                    value={style}
+                                                    checked={imageStyle === style}
+                                                    onChange={(e) => setImageStyle(e.target.value)}
+                                                    className="accent-accent"
+                                                />
+                                                <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${imageStyle === style ? 'text-accent' : 'text-white/50 group-hover:text-white'}`}>
+                                                    {style}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -314,7 +411,78 @@ export default function AdminDashboard() {
                     )}
                 </div>
             </div>
-        </div>
+
+            {/* ARCHIVE SECTION */}
+            <div className="mt-20 border-t border-white/10 pt-12">
+                <h2 className="text-2xl font-black uppercase tracking-wider mb-8 flex items-center gap-3">
+                    <Calendar className="text-accent" /> Blog Archive
+                </h2>
+
+                <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-white/5">
+                            <tr>
+                                <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Title</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Status</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50">Published Date</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-widest text-white/50 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                            {blogs.map(blog => (
+                                <tr key={blog.id} className="hover:bg-white/5 transition-colors">
+                                    <td className="p-4">
+                                        <div className="font-bold text-white mb-1 line-clamp-1">{blog.title}</div>
+                                        <div className="text-xs text-white/40 font-mono">{blog.slug}</div>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${blog.status === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'}`}>
+                                            {blog.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-4">
+                                        <input
+                                            type="date"
+                                            className="bg-transparent border border-white/20 rounded p-1 text-xs text-white/70 focus:border-accent outline-none"
+                                            value={blog.published_at ? new Date(blog.published_at).toISOString().split('T')[0] : ''}
+                                            onChange={(e) => updatePublishedDate(blog.id, e.target.value)}
+                                        />
+                                    </td>
+                                    <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <Link href={`/blog/${blog.id}`} target="_blank">
+                                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-white/10 hover:text-white text-white/50">
+                                                <Eye size={14} />
+                                            </Button>
+                                        </Link>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className={`h-8 text-[10px] font-bold uppercase tracking-widest ${blog.status === 'published' ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
+                                            onClick={() => togglePublishStatus(blog)}
+                                        >
+                                            {blog.status === 'published' ? 'Unpublish' : 'Publish'}
+                                        </Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 hover:bg-red-500/20 hover:text-red-500 text-white/30"
+                                            onClick={() => deleteBlog(blog.id)}
+                                        >
+                                            <Trash2 size={14} />
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {blogs.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-8 text-center text-white/30 text-sm uppercase tracking-widest">No blogs found</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div >
     )
 }
 

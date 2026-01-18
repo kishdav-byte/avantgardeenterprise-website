@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
         const openai = new OpenAI({ apiKey })
 
-        const { topic, focus, keywords, productName, productUrl } = await request.json()
+        const { topic, focus, keywords, productName, productUrl, length = '1200', imageStyle = 'Minimalist' } = await request.json()
 
         // Auth check
         const cookieStore = await cookies()
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
         // 1. Generate Blog Content
         const primaryKeyword = keywords.split(',')[0]
-        const prompt = `Write a 1200-word SEO-optimized blog post titled: ${topic}
+        const prompt = `Write a ${length}-word SEO-optimized blog post titled: ${topic}
 Target the keyword: ${primaryKeyword}
 Naturally mention the product: "${productName}" and link to it using this URL: ${productUrl}
 
@@ -86,7 +86,7 @@ Output Format: JSON string structure:
         const blogData = JSON.parse(contentRaw)
 
         // 2. Generate Image
-        const imagePrompt = `Generate a clean, professional, blog - style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
+        const imagePrompt = `Generate a ${ imageStyle } style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
 Do not include any text, numbers, letters, symbols, or writing in any language.
 Avoid branding, logos, or anything that resembles UI.
 Make it minimal, modern, and purely visual.
