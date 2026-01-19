@@ -58,13 +58,13 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-MANDATORY STRUCTURAL REQUIREMENTS FOR 1500+ WORDS:
-1. THE HOOK: Start with an evocative, 5-paragraph introduction. Every paragraph MUST be at least 9 sentences long (3 sent Technical, 3 sent Psychological, 3 sent Stakes).
+MANDATORY STRUCTURAL REQUIREMENTS FOR 2000+ WORDS:
+1. THE HOOK: Start with an evocative, 4-paragraph introduction. Every paragraph MUST be at least 6 sentences long (2 sent Technical, 2 sent Psychological, 2 sent Stakes).
 2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags). 
-3. THE NINE-SENTENCE RULE: Under EACH subheading, you MUST write EXACTLY 5 paragraphs. Every single paragraph MUST be at least 9 sentences long. Follow this EXACT 3/3/3 structure for every paragraph:
-   - 3 Sentences on THE TECHNICAL MECHANICS (The logic/system/how it works).
-   - 3 Sentences on THE PSYCHOLOGICAL IMPACT (The human/emotional/decision-maker stakes).
-   - 3 Sentences on THE MENTAL MODEL (A visualization, metaphor, or framework for clarity).
+3. THE SIX-SENTENCE RULE: Under EACH subheading, you MUST write EXACTLY 4 paragraphs. Every single paragraph MUST be at least 6 sentences long. Follow this EXACT 2/2/2 structure for every paragraph:
+   - 2 Sentences on THE TECHNICAL MECHANICS (The logic/system/how it works).
+   - 2 Sentences on THE PSYCHOLOGICAL IMPACT (The human/emotional/decision-maker stakes).
+   - 2 Sentences on THE MENTAL MODEL (A visualization, metaphor, or framework for clarity).
 4. EXPERT CALL-OUTS: In every section, include a quote using this EXACT HTML:
    <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">
       "[Quote text]" — [Specific High-Authority Title]
@@ -73,7 +73,7 @@ MANDATORY STRUCTURAL REQUIREMENTS FOR 1500+ WORDS:
    <ul>
      <li><strong>WRONG WAY:</strong> [Generic approach]</li>
      <li><strong>RIGHT WAY:</strong> [Strategic approach]</li>
-     <li><strong>THE WIN:</strong> [A mandatory 4-sentence dense technical explanation]</li>
+     <li><strong>THE WIN:</strong> [A mandatory 3-sentence dense technical explanation]</li>
    </ul>
 6. REQUIRED THEMES:
    - The Psychology of the concept.
@@ -88,8 +88,8 @@ CRITICAL: If you output plain text or markdown instead of the requested <h2>, <b
 
 Output Format (Output strictly as a JSON object):
 {
-    "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The massive 1500+ word HTML content",
+    "refined_title": "A compelling, benefit-driven title",
+    "content_html": "The massive 2000+ word HTML content",
     "excerpt": "A high-CTR summary",
     "social_snippets": { "linkedin": "Post draft", "facebook": "Post draft" },
     "seo_score": 98,
