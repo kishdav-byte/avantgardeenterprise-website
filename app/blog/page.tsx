@@ -27,30 +27,27 @@ export default function BlogPage() {
         let mounted = true
 
         const fetchBlogs = async () => {
+            console.log("Transmission initiated: Fetching blogs...")
+            const startTime = Date.now()
+
             try {
-                // Create a promise that rejects after 5 seconds to prevent infinite spinning
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out')), 5000)
-                )
-
-                // Use the shared client which is properly initialized
-                const dataPromise = supabase
+                // EXTREME SIMPLIFICATION: No filtering, no ordering. Just get the data.
+                const { data, error } = await supabase
                     .from('blogs')
-                    .select('*')
-                    // .eq('status', 'published') // Temporarily commented out to debug content loading
-                    .order('published_at', { ascending: false })
+                    .select('id, title, excerpt, content, published_at, featured_image, slug')
+                    .limit(10)
 
-                // Race the fetch against the timeout
-                const { data, error } = await Promise.race([dataPromise, timeoutPromise]) as any
+                const duration = Date.now() - startTime
+                console.log(`Transmission complete: ${duration}ms`)
 
                 if (error) throw error
 
                 if (mounted && data) {
-                    setBlogs(data)
+                    setBlogs(data as Blog[])
                 }
             } catch (err: any) {
-                console.error("Error loading blogs:", err)
-                if (mounted) setError(err.message || "Unknown error")
+                console.error("Transmission Failure:", err)
+                if (mounted) setError(err.message || "Connection timed out")
             } finally {
                 if (mounted) setLoading(false)
             }
