@@ -9,7 +9,19 @@ export async function middleware(request: NextRequest) {
         },
     })
 
-    // Create an unscoped Supabase Client to access, modify, and refresh the session
+    const path = request.nextUrl.pathname
+
+    // Define paths that require a session check (Protected + Login for redirect)
+    // We strictly avoid running the extensive auth check on public pages (blog, products, home) to prevent lag
+    const isProtected = path.startsWith('/dashboard') || path.startsWith('/admin')
+    const isLoginPage = path === '/login'
+
+    // FAST PATH: If it's a public page and not login, skip Supabase entirely
+    if (!isProtected && !isLoginPage) {
+        return response
+    }
+
+    // SLOW PATH (Only for Dashboard/Admin/Login): Create client and check session
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,22 +43,18 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // IMPORTANT: You *must* run the getUser() or getSession() to refresh the auth token
-    // However, to speed up public navigation, we can avoid strict checks unless necessary
+    // Helper to get user without throwing
     const { data: { user } } = await supabase.auth.getUser()
 
-
-
-    // PROTECTED ROUTES LOGIC
-    // If user is NOT signed in and the current path is /dashboard, redirect to /login
-    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    // 1. Protected Route Guard
+    if (isProtected && !user) {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
         return NextResponse.redirect(redirectUrl)
     }
 
-    // OPTIONAL: If user IS signed in and visits /login, redirect to /dashboard
-    if (user && request.nextUrl.pathname === '/login') {
+    // 2. Login Page Guard (Redirect to Dashboard if already logged in)
+    if (isLoginPage && user) {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/dashboard'
         return NextResponse.redirect(redirectUrl)
