@@ -59,13 +59,14 @@ Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
 MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
-1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}".
-2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 4 dense, info-rich paragraphs.
-3. INTERNAL STRUCTURE FOR EACH SECTION:
-   - Paragraph 1-2: Explanation of the concept and why it matters.
-   - Paragraph 3: An "Industry Expert's Perspective" or "Insider Secret" (e.g., provide a granular, high-authority insight that only a veteran professional in this specific field would know. This should provide high "Information Gain" that isn't found in generic articles).
-   - Paragraph 4: Actionable advice for the reader.
-4. REQUIRED THEMES (Use natural, benefit-driven titles):
+1. THE HOOK: Start with a visceral, 5-paragraph description of the pain and stakes of "${focus}".
+2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 5 dense, info-rich paragraphs. 
+3. PARAGRAPH WEIGHT: Every paragraph MUST be at least 5-7 sentences long. Do not allow the AI to be brief. Expand on the technical "why," the psychological "impact," and provide a "mental model" or visualization for every section.
+4. EXPERT INTEGRATION: Seamlessly weave in a quote or insight from an industry expert in every section. 
+   - CRITICAL: Never use generic placeholder names like "Jane Doe," "John Smith," or "John Doe." 
+   - REQUIREMENT: Use professional-sounding, unique names or (better yet) refer to them by a specific, high-level job title (e.g., "A Senior Vice President of Global Talent," "A Lead Engineer for a Tier-1 ATS Provider," or "A Career Strategist with 20+ years of executive placement experience"). This builds maximum authority.
+   - Use phrases like "As noted by [Name/Title], a veteran in [Field]..." or "Industry leaders at top-tier firms often point to the [Concept] as the primary failure point..."
+5. REQUIRED THEMES (Use your own benefit-driven titles):
    - The Psychology of the "Resume Black Hole."
    - The Technical Mechanics of Parsing and OCR.
    - Keyword Theory: Strategic selection vs. stuffing.
@@ -80,7 +81,7 @@ FORMATTING & PERSUASION:
 - Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
 - CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
-- CRITICAL: Do NOT use my instructions (like "The Easy Button") as headings. Create your own compelling, SEO-friendly titles.
+- CRITICAL: Do NOT use my instructions (like "The Easy Button") as headings.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
