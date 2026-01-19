@@ -59,34 +59,38 @@ Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
 MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
-1. THE HOOK: Start with a visceral, multi-paragraph description of the pain and stakes of "${focus}".
+1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}".
 2. SUBHEADING MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). 
-3. DEPTH MANDATE: Each subheading MUST be followed by at least 150-200 words of detailed, info-rich content.
-4. REQUIRED THEMES (Use natural titles, NOT labels/chapters):
+3. DEPTH MANDATE (EXPLAIN THE "HOW"): Under EACH of the 8 subheadings, you MUST write at least 3 to 4 dense, info-rich paragraphs. Do not just define terms; explain the psychology, the technical mechanics, and provide real-world advice.
+4. REQUIRED THEMES (Use natural titles):
    - The Psychology of the "Resume Black Hole."
    - The Technical Mechanics of Parsing and OCR.
    - Keyword Theory: Strategic selection vs. stuffing.
-   - Formatting Physics: Why design elements break the machine.
-   - The Human Transition: The recruiter's 6-second scan.
-   - Literal "WRONG WAY vs. RIGHT WAY" text examples for bullets.
+   - Formatting Physics: Why design elements (columns, tables) break the machine.
+   - The Human Transition: The recruiter's 6-second scan psychology.
+   - Step-by-Step Optimization Guide.
+   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons for resume bullets.
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
-   - Final Takeaway Checklist.
 
 FORMATTING & PERSUASION:
 - Format everything in clean HTML (No markdown, no asterisks, no hashtags).
 - Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
 - CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction." Use benefit-driven, natural subheadings.
+- WRONG vs RIGHT: In that specific section, provide 3 distinct side-by-side examples.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
 
-Output Format: JSON string structure:
+Output Format (Output strictly as a JSON object):
 {
     "refined_title": "A compelling, benefit-driven version of the title",
     "content_html": "The full, deep 1200+ word HTML body content",
     "excerpt": "A high-CTR summary for preview text",
-    "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
+    "social_snippets": {
+        "linkedin": "A professional post draft",
+        "facebook": "An engaging post draft"
+    },
     "seo_score": 98,
     "seo_critique": "A brief breakdown."
 }`
@@ -128,7 +132,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
                 const imageRes = await fetch(imageUrl)
                 if (imageRes.ok) {
                     const imageBuffer = await imageRes.arrayBuffer()
-                    const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.png`
+                    const fileName = `blog - ${Date.now()} -${Math.random().toString(36).substring(7)}.png`
 
                     const { data: uploadData, error: uploadError } = await supabase
                         .storage
@@ -161,7 +165,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
             .from('blogs')
             .insert({
                 title: finalTitle,
-                slug: `${finalTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now()}`,
+                slug: `${finalTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')} -${Date.now()} `,
                 content: blogData.content_html,
                 excerpt: blogData.excerpt,
                 featured_image: finalImageUrl, // Saved permanent URL from Supabase Storage
