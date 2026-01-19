@@ -54,43 +54,36 @@ export async function POST(request: Request) {
         }
 
         const prompt = `You are a world-class SEO content strategist and high-conversion copywriter. 
-Your goal is to write a deeply engaging, SEO-optimized blog post that provides massive value while naturally positioning a product as the ultimate solution.
+Your goal is to write an exhaustive, high-authority "Ultimate Guide" blog post that provides massive value.
 
-INPUTS:
-- Initial Topic/Title Idea: "${topic}"
-- Main Point/Focus: "${focus}"
+CURRENT GOAL: 
 - Target Keyword: "${primaryKeyword}"
-- Latent Semantic Keywords: "${keywords}"
-- Product Name: "${productName}"
-- Product URL: "${safeProductUrl}"
+- Product: "${productName}" (${safeProductUrl})
 - Target Length: At least ${length} words.
 
-CRITICAL ARCHITECTURE & DEPTH INSTRUCTIONS:
-1. TITLE REFINEMENT: Create a high-value, benefit-driven H1 headline that promises a transformation or solves a specific fear.
-2. PAIN-FIRST HOOK: Start with a visceral description of the problem. Use sensory details. Make the reader feel the "black hole" of rejection or the frustration of the status quo. 
-3. SHOW, DON'T JUST TELL (LITERAL EXAMPLES): Whenever you give a tip (like keyword optimization or formatting), you MUST provide a literal side-by-side example. 
-   - Example Template: "WRONG WAY: [Generic Text] vs. RIGHT WAY: [Optimized Text]." 
-   - Explain exactly WHY the "Right Way" works better for the algorithm and the human.
-4. MAXIMUM VERBOSITY (WORD COUNT MANDATE): Since the target is ${length} words, DO NOT SUMMARIZE. Expand on the "Hidden Physics" of every concept. Break down complex ideas into detailed step-by-step guides. Expand on the psychology behind the advice. If you think you've finished a section, go deeper into a niche sub-topic related to it.
-5. THE "EASY BUTTON" PERSUASION: Position "${productName}" as the logical "Easy Button." Bridging the gap between the hard, manual, time-consuming work described and the automated/improved solution offered at ${safeProductUrl}. 
-   - Phrase as: "You could spend hours manually auditing every bullet point, or you could let technology fight technology..."
-6. FORMATTING: Output strictly clean HTML. Use <h2> for main chapters and <h3> for granular sub-topics. Use <p> and <ul>/<li> generously for readability.
+STRICT 7-CHAPTER BLUEPRINT (You MUST follow this structure):
+CHAPTER 1: THE HOOK & PSYCHOLOGY. Start with a visceral description of the "Resume Black Hole." Connect with the reader's fear of obsolescence. (Min 250 words)
+CHAPTER 2: THE TECHNICAL "TRUTH." Write a technical deep-dive into how ATS software actually works. Explain parsing, OCR (Optical Character Recognition), and Boolean search strings. Don't be afraid to be "nerdy." (Min 300 words)
+CHAPTER 3: THE KEYWORD TRAP. Explain why "Lying at the Bot" is a recipe for disaster. Provide 3+ literal "WRONG vs. RIGHT" examples of keyword placement. (Min 300 words)
+CHAPTER 4: FORMATTING PHYSICS. A detailed guide on columns, tables, headers, and footers. Explain exactly why modern systems fail to read certain designs. (Min 300 words)
+CHAPTER 5: THE HUMAN HAND-OFF. What happens when a human recruiter finally sees the "bot-approved" resume? Discuss the 6-second scan. (Min 250 words)
+CHAPTER 6: THE "EASY BUTTON." Position ${productName} at ${safeProductUrl} as the logical solution to the exhaustive manual work described above. (Min 250 words)
+CHAPTER 7: THE FINAL BLUEPRINT. A summary checklist and a call to action. (Min 150 words)
 
-TECHNICAL MANDATES:
-- Perform a natural hyperlink for "${productName}" to "${safeProductUrl}" inside the body.
-- Output strictly clean HTML (no markdown tags like \`\`\`html or **).
-- Include a hidden meta description at the very end using: <p style="display:none;">Meta description: [150 chars]</p>
+CONTENT MANDATES:
+- NEVER SUMMARIZE: If a point is worth making, explain the 'How,' the 'Why,' and provide an example.
+- LITERAL EXAMPLES: Use the template: "WRONG WAY: [Generic/Bad Text] vs. RIGHT WAY: [Optimized/High-IMPACT Text]."
+- NO CLICHES: Do not use "In today's fast-paced world."
+- HYPERLINK: Naturally link "${productName}" to "${safeProductUrl}".
+- REFINED TITLE: Create a new, elite, high-CTR headline as the H1.
 
 Output Format: JSON string structure:
 {
-    "refined_title": "The benefit-driven headline",
-    "content_html": "The full, exhaustive HTML body content (aim for ${length} words)",
-    "excerpt": "High-CTR summary",
-    "social_snippets": {
-        "linkedin": "Professional post",
-        "facebook": "Engaging post"
-    },
-    "seo_score": 95,
+    "refined_title": "Elite Headline",
+    "content_html": "Full 2000-word HTML content with H2s and H3s",
+    "excerpt": "Compelling summary",
+    "social_snippets": { "linkedin": "...", "facebook": "..." },
+    "seo_score": 98,
     "seo_critique": "Detailed breakdown."
 }`
 
