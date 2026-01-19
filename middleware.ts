@@ -16,8 +16,9 @@ export async function middleware(request: NextRequest) {
     const isProtected = path.startsWith('/dashboard') || path.startsWith('/admin')
     const isLoginPage = path === '/login'
 
-    // FAST PATH: If it's a public page and not login, skip Supabase entirely
-    if (!isProtected && !isLoginPage) {
+    // FAST PATH: If it's a public page OR the login page, skip Supabase entirely
+    // This removes the "spinning" on the Portal link caused by slow/hanging auth checks.
+    if (!isProtected) {
         return response
     }
 

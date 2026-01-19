@@ -28,12 +28,20 @@ export default function BlogPage() {
 
         const fetchBlogs = async () => {
             try {
+                // Create a promise that rejects after 5 seconds to prevent infinite spinning
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out')), 5000)
+                )
+
                 // Use the shared client which is properly initialized
-                const { data, error } = await supabase
+                const dataPromise = supabase
                     .from('blogs')
                     .select('*')
-                    .eq('status', 'published')
+                    // .eq('status', 'published') // Temporarily commented out to debug content loading
                     .order('published_at', { ascending: false })
+
+                // Race the fetch against the timeout
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]) as any
 
                 if (error) throw error
 
