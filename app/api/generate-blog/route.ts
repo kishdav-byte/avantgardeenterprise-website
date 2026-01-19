@@ -58,41 +58,43 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
-1. THE HOOK: Start with a visceral, 5-paragraph description of the pain and stakes of "${focus}".
-2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 5 dense, info-rich paragraphs. 
-3. PARAGRAPH DENSITY: Every single paragraph MUST be 6-8 sentences long. Do not allow the AI to be brief.
-4. ACTIONABLE COMPARISONS: You MUST include a section titled "From Strategy to Execution: A Comparative Guide". This section MUST contain at least 3 side-by-side comparisons using a <ul> or <ol> list formatted exactly like this:
-   - **WRONG WAY:** [Describe a common, low-value approach]
-   - **RIGHT WAY:** [Describe the high-value, elite approach]
-   - **THE WIN:** [Briefly explain the psychological or technical reason why the Right Way succeeds]
-5. ELITE EXPERT INTEGRATION: Every section MUST include a quote or insight from a high-authority industry professional (e.g., VP, Lead Engineer, Career Strategist). 
-   - CRITICAL: Wrap every expert quote in an HTML <blockquote> tag.
-   - REQUIREMENT: Use unique, professional names and titles. Never use placeholders like Jane/John Doe.
+MANDATORY STRUCTURAL REQUIREMENTS FOR 1200-1500+ WORDS:
+1. THE HOOK: Start with an evocative, 5-paragraph introduction. Every paragraph MUST be a dense block of text (at least 100 words each).
+2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags). 
+3. DENSITY LOCK (NO SHORT PARAGRAPHS): Under EACH subheading, you MUST write at least 5 paragraphs. Every single paragraph MUST be at least 100 words long. If a paragraph is shorter than 4 sentences, you have failed.
+4. EXPERT CALL-OUTS: In every section, include an expert insight from a high-authority persona (e.g., Chief Data Officer, VP of Talent). Every single quote MUST use this EXACT HTML structure:
+   <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">
+      "[Quote text from expert]" — [Name], [High-Authority Title]
+   </blockquote>
+5. ACTIONABLE COMPARISONS: Include a section titled "Tactical Comparison: The Pro vs. The Amateur". Use this EXACT list format for at least 3 comparisons:
+   <ul>
+     <li><strong>WRONG WAY:</strong> [Generic, low-value approach]</li>
+     <li><strong>RIGHT WAY:</strong> [Strategic, high-value approach]</li>
+     <li><strong>THE WIN:</strong> [The 3-sentence technical or psychological reason why this wins]</li>
+   </ul>
 6. REQUIRED THEMES:
    - The Psychology of the concept.
    - The Technical Mechanics or "Under the Hood" logic.
    - Strategic selection vs. poor alternatives.
    - Common failure points and "Physics" of why they break.
-   - The Human/Recruiter/Customer psychology of the transition.
+   - The Human transition/Recruiter psychology.
    - A step-by-step optimization blueprint.
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
 
 FORMATTING & PERSUASION:
 - Format everything in clean HTML (No markdown, no asterisks, no hashtags).
 - Use <h2> for subheadings and <p> for dense paragraphs.
-- Use <blockquote> for expert quotes.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
-- CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," "Introduction," or "Hook."
-- CRITICAL: Do NOT use my instructions as headings.
+- CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
+- CRITICAL: Do NOT use my instructions (like "Density Lock") as headings.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
 
-Output Format: JSON string structure:
+Output Format (Output strictly as a JSON object):
 {
     "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The full, deep 1200+ word HTML body content",
+    "content_html": "The full, massive 1500+ word HTML body content",
     "excerpt": "A high-CTR summary for preview text",
     "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
     "seo_score": 98,
