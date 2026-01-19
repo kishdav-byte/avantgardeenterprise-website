@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} antialiased selection:bg-accent selection:text-accent-foreground`}>
+      <body suppressHydrationWarning className={`${outfit.variable} antialiased selection:bg-accent selection:text-accent-foreground`}>
         {children}
       </body>
     </html>

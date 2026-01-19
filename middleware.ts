@@ -11,18 +11,16 @@ export async function middleware(request: NextRequest) {
 
     const path = request.nextUrl.pathname
 
-    // Define paths that require a session check (Protected + Login for redirect)
-    // We strictly avoid running the extensive auth check on public pages (blog, products, home) to prevent lag
-    const isProtected = path.startsWith('/dashboard') || path.startsWith('/admin')
-    const isLoginPage = path === '/login'
+    // Define paths that require a strict session check (Private Dashboard/Admin only)
+    const isProtectedRoute = path.startsWith('/dashboard') || path.startsWith('/admin')
 
-    // FAST PATH: If it's a public page OR the login page, skip Supabase entirely
-    // This removes the "spinning" on the Portal link caused by slow/hanging auth checks.
-    if (!isProtected) {
+    // FAST PATH: If it's NOT a protected route, skip Supabase entirely.
+    // This makes the Login page, Blog, and Products render instantly without waiting for a security layer.
+    if (!isProtectedRoute) {
         return response
     }
 
-    // SLOW PATH (Only for Dashboard/Admin/Login): Create client and check session
+    // SLOW PATH (Only for Dashboard/Admin): Create client and check session
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -48,16 +46,9 @@ export async function middleware(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     // 1. Protected Route Guard
-    if (isProtected && !user) {
+    if (isProtectedRoute && !user) {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
-        return NextResponse.redirect(redirectUrl)
-    }
-
-    // 2. Login Page Guard (Redirect to Dashboard if already logged in)
-    if (isLoginPage && user) {
-        const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = '/dashboard'
         return NextResponse.redirect(redirectUrl)
     }
 
