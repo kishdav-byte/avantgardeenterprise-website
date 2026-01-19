@@ -61,19 +61,16 @@ Product link: ${safeProductUrl}
 MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
 1. THE HOOK: Start with a visceral, 5-paragraph description of the pain and stakes of "${focus}".
 2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 5 dense, info-rich paragraphs. 
-3. PARAGRAPH WEIGHT: Every paragraph MUST be at least 5-7 sentences long. Do not allow the AI to be brief. Expand on the technical "why," the psychological "impact," and provide a "mental model" or visualization for every section.
-4. EXPERT INTEGRATION: Seamlessly weave in a quote or insight from an industry expert in every section. 
-   - CRITICAL: Never use generic placeholder names like "Jane Doe," "John Smith," or "John Doe." 
-   - REQUIREMENT: Use professional-sounding, unique names or (better yet) refer to them by a specific, high-level job title (e.g., "A Senior Vice President of Global Talent," "A Lead Engineer for a Tier-1 ATS Provider," or "A Career Strategist with 20+ years of executive placement experience"). This builds maximum authority.
-   - Use phrases like "As noted by [Name/Title], a veteran in [Field]..." or "Industry leaders at top-tier firms often point to the [Concept] as the primary failure point..."
-5. REQUIRED THEMES (Use your own benefit-driven titles):
-   - The Psychology of the "Resume Black Hole."
-   - The Technical Mechanics of Parsing and OCR.
-   - Keyword Theory: Strategic selection vs. stuffing.
-   - Formatting Physics: Why design elements (columns, tables) break the machine.
-   - The Human Transition: The recruiter's 6-second scan psychology.
+3. PARAGRAPH DENSITY: Every single paragraph MUST be 6-8 sentences long. Do not allow the AI to be brief. Expand on the technical "why," the psychological "impact," and provide a "mental model" or visualization for every section.
+4. ACTIONABLE EXAMPLES: You MUST include a dedicated section titled with a benefit-driven name (e.g., "From Theory to Practice: Tactics that Win") that contains at least 3 "WRONG WAY vs. RIGHT WAY" literal text comparisons with a brief explanation of WHY the Right Way wins.
+5. EXPERT INTEGRATION: Seamlessly weave in a quote or insight from an industry expert in every section using unique, high-authority names/titles. Never use placeholder names like Jane Doe or John Smith.
+6. REQUIRED THEMES:
+   - The Psychology of the concept.
+   - The Technical Mechanics or "Under the Hood" logic.
+   - Strategic selection vs. poor alternatives.
+   - Common failure points and "Physics" of why they break.
+   - The Human/Recruiter/Customer psychology of the transition.
    - A step-by-step optimization blueprint.
-   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons (provide at least 3 distinct examples with a brief explanation of WHY the Right Way wins).
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
 
 FORMATTING & PERSUASION:
@@ -81,7 +78,7 @@ FORMATTING & PERSUASION:
 - Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
 - CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
-- CRITICAL: Do NOT use my instructions (like "The Easy Button") as headings.
+- CRITICAL: Do NOT use my instructions as headings.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
