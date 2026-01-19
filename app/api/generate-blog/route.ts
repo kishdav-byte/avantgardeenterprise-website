@@ -53,43 +53,46 @@ export async function POST(request: Request) {
             safeProductUrl = 'https://' + safeProductUrl
         }
 
-        const prompt = `You are a world-class SEO content strategist and high-conversion copywriter. 
-Your goal is to write an exhaustive, high-authority "Ultimate Guide" blog post that provides massive value.
+        const prompt = `Write a ${length}-word SEO-optimized blog post titled: "${topic}"
+Target the keyword: "${primaryKeyword}"
+Naturally mention and promote this product: "${productName}"
+Product link: ${safeProductUrl}
 
-CURRENT GOAL: 
-- Target Keyword: "${primaryKeyword}"
-- Product: "${productName}" (${safeProductUrl})
-- Target Length: At least ${length} words.
+EXPERT GUIDELINES FOR HIGH-AUTHORITY CONTENT:
+1. THE HOOK: Do not use clichés. Start with the visceral pain and stakes of the problem described in "${focus}". 
+2. SHOW, DON'T JUST TELL: Whenever you give a tip or strategy, provide a literal "WRONG WAY vs. RIGHT WAY" text example. 
+3. THE "EASY BUTTON" TRANSITION: Position "${productName}" as the logical, time-saving "Easy Button" that automates the manual work described.
+4. DEPTH & DETAIL: Expand deeply on the technical and psychological aspects of "${primaryKeyword}" to ensure a comprehensive, long-form guide. Avoid surface-level summaries.
 
-STRICT 7-CHAPTER BLUEPRINT & VERBOSITY MANDATE:
-CHAPTER 1: THE HOOK & PSYCHOLOGY. Start with a visceral, 4-paragraph description of the "Resume Black Hole." Discuss the psychological toll of ghosting and the high stakes of modern career transition. (Min 300 words)
-CHAPTER 2: THE TECHNICAL "TRUTH." For the terms 'Parsing', 'OCR', and 'Boolean search', you MUST provide: 1. Technical definition. 2. A 'Recruiters-eye' view of why they use it. 3. A 'Bot-eye' view of how the machine literally 'sees' the characters. (Min 400 words)
-CHAPTER 3: THE KEYWORD TRAP. Deconstruct why "Keyword Stuffing" is detected by modern algorithms. Provide 3+ literal, multi-sentence "WRONG vs. RIGHT" examples. Explain the 'Why' for each. (Min 400 words)
-CHAPTER 4: FORMATTING PHYSICS. A granular technical guide on columns, tables, non-standard fonts, and graphics. Explain the 'Parsing Error' that occurs when an ATS hits a column. (Min 350 words)
-CHAPTER 5: THE HUMAN HAND-OFF. The transition from bot to human. Describe the '6-second scan' psychology in detail. (Min 250 words)
-CHAPTER 6: THE "EASY BUTTON." Position ${productName} at ${safeProductUrl} as the automated antidote to this manual exhaustion. Contrast the 4-hour manual tweak vs. the 30-second AI optimization. (Min 250 words)
-CHAPTER 7: THE FINAL BLUEPRINT. A 10-point checklist for the reader. (Min 150 words)
+FORMATTING INSTRUCTIONS:
+- Format everything in clean HTML.
+- Use <h2> for main subheadings and <h3> for supporting points.
+- Use <p> for paragraphs.
+- Use <ul>/<ol> for bullet or numbered lists.
+- Hyperlink "${productName}" using an <a> tag pointing to "${safeProductUrl}".
+- Do NOT include markdown tags, asterisks, hashtags, or the text "\`\`\`html" anywhere.
+- CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction" as headers. Use natural, compelling, benefit-driven subheadings.
 
-CONTENT REQUISITES:
-- ENCYCLOPEDIC DEPTH: Do not state a fact without explaining the mechanics behind it.
-- NO SUMMARIZATION: If you reach the end of a section and it's short, invent a "Deep Dive" or "Case Study" sub-section to expand it.
-- HYPERLINK: Naturally link "${productName}" to "${safeProductUrl}".
-- REFINED TITLE: Create an elite, high-CTR headline as the H1.
+At the end, include a meta description in this format:
+<p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
 
-Output Format: JSON:
+Output Format: JSON string structure:
 {
-    "refined_title": "Elite Headline",
-    "content_html": "Exhaustive HTML content",
-    "excerpt": "Summary",
-    "social_snippets": { "linkedin": "...", "facebook": "..." },
-    "seo_score": 98,
-    "seo_critique": "Breakdown."
+    "refined_title": "A compelling, benefit-driven version of the title",
+    "content_html": "The full HTML body content",
+    "excerpt": "A high-CTR summary for preview text",
+    "social_snippets": {
+        "linkedin": "A professional post draft",
+        "facebook": "An engaging post draft"
+    },
+    "seo_score": 95,
+    "seo_critique": "A brief breakdown."
 }`
 
         const completion = await openai.chat.completions.create({
             messages: [{ role: 'system', content: prompt }],
             model: 'gpt-4o',
-            max_tokens: 4096, // Force maximum output length
+            max_tokens: 4096,
             response_format: { type: "json_object" },
         })
 
