@@ -74,7 +74,7 @@ export default function DashboardPage() {
             mounted = false
             clearTimeout(timeoutId)
         }
-    }, [router, loading])
+    }, [router])
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()

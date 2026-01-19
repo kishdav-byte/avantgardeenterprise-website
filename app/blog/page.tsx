@@ -67,7 +67,7 @@ export default function BlogPage() {
             mounted = false
             clearTimeout(timeoutId)
         }
-    }, [loading])
+    }, [])
 
     return (
         <main className="min-h-screen bg-background text-foreground">

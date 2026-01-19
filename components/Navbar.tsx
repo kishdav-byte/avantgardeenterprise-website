@@ -72,7 +72,7 @@ export function Navbar() {
         })
 
         return () => subscription.unsubscribe()
-    }, [profile]) // Logic: Only run on mount to set up the listener. internal updates handle the state.
+    }, []) // Logic: Only run on mount to set up the listener. internal updates handle the state.
 
 
     const handleSignOut = async () => {
