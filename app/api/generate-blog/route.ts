@@ -53,36 +53,43 @@ export async function POST(request: Request) {
             safeProductUrl = 'https://' + safeProductUrl
         }
 
-        const prompt = `Write a ${length}-word SEO-optimized blog post titled: ${topic}
-Target the keyword: ${primaryKeyword}
-Naturally mention the product: "${productName}" and link to it using this URL: ${safeProductUrl}
+        const prompt = `You are a world-class SEO content strategist and high-conversion copywriter. 
+Your goal is to write a deeply engaging, SEO-optimized blog post that provides massive value while naturally positioning a product as the ultimate solution.
 
-CRITICAL INSTRUCTIONS:
-1. You MUST hyperlink the text "${productName}" to "${safeProductUrl}" at least once in the body content.
-2. The link must be a standard HTML <a> tag: <a href="${safeProductUrl}">${productName}</a>.
-3. Do NOT output markdown (like [text](url)). Output strictly clean HTML.
-4. Do NOT include '\`\`\`html' or any code block markers.
+INPUTS:
+- Initial Topic/Title Idea: "${topic}"
+- Main Point/Focus: "${focus}"
+- Target Keyword: "${primaryKeyword}"
+- Latent Semantic Keywords: "${keywords}"
+- Product Name: "${productName}"
+- Product URL: "${safeProductUrl}"
+- Target Length: At least ${length} words.
 
-Formatting Rules:
-        - Use<h2> for subheadings
-            - Use<p> for paragraphs
-                - Use<ul> / <ol> for lists
-                    - Maintain a professional, authoritative tone.
+CRITICAL ARCHITECTURE INSTRUCTIONS:
+1. TITLE REFINEMENT: Do not just use the initial topic. Treat it as a raw idea. Create a compelling, benefit-driven headline (H1) that grabs attention (e.g., using "How to," "Secrets of," "Ultimate Guide," or addressing a specific fear/desire).
+2. THE HOOK: Do NOT start with generic phrases like "In today's fast-paced world." Start with the PAIN. Connect emotionally with the reader's frustration or the high stakes of their problem.
+3. ACTIONABLE VALUE & EXAMPLES: Provide specific, concrete examples. Use "Before vs. After" or "Wrong way vs. Right way" scenarios. If you give a tip, give a real-world example of how to apply it.
+4. THE "EASY BUTTON" TRANSITION: Position "${productName}" not just as a tool, but as the logical "Easy Button." Bridging the gap between the hard manual work described and the automated/improved solution the product offers.
+5. FORMATTING: Output strictly clean HTML. Use <h2> for main sections and <h3> for sub-points. Use <p> and <ul>/<li> for readability. Ensure a clear, scannable hierarchy.
+6. WORD COUNT: You MUST reach the ${length} word minimum. Expand on nuances, provide more examples, and go deeper into the "why" and "how" to ensure the length is substantial.
 
-At the end, include a meta description in this format:
-        <p style="display:none;" > Meta description: [Insert a 150 - character SEO summary of the article here] </p>
+TECHNICAL MANDATES:
+- Perform a natural hyperlink for "${productName}" to "${safeProductUrl}" inside the body.
+- Output strictly clean HTML (no markdown tags like \`\`\`html or **).
+- Include a hidden meta description at the very end using: <p style="display:none;">Meta description: [150 chars]</p>
 
 Output Format: JSON string structure:
-        {
-            "content_html": "The full HTML content including meta description",
-            "excerpt": "Short summary for preview text",
-            "social_snippets": {
-                "linkedin": "Draft for a LinkedIn post",
-                "facebook": "Draft for a Facebook post"
-            },
-            "seo_score": 85,
-            "seo_critique": "Brief explanation of the score."
-        } `
+{
+    "refined_title": "The new compelling headline you created",
+    "content_html": "The full HTML body content",
+    "excerpt": "A high-CTR summary for preview text",
+    "social_snippets": {
+        "linkedin": "A professional post draft",
+        "facebook": "An engaging post draft"
+    },
+    "seo_score": 90,
+    "seo_critique": "A brief breakdown of why this ranks well."
+}`
 
         const completion = await openai.chat.completions.create({
             messages: [{ role: 'system', content: prompt }],
@@ -93,9 +100,10 @@ Output Format: JSON string structure:
         const contentRaw = completion.choices[0].message.content
         if (!contentRaw) throw new Error('No content generation')
         const blogData = JSON.parse(contentRaw)
+        const finalTitle = blogData.refined_title || topic
 
         // 2. Generate Image
-        const imagePrompt = `Generate a ${imageStyle} style illustration that visually captures the theme of: "${topic} and ${primaryKeyword}".
+        const imagePrompt = `Generate a ${imageStyle} style illustration that visually captures the theme of: "${finalTitle}".
 Do not include any text, numbers, letters, symbols, or writing in any language.
 Avoid branding, logos, or anything that resembles UI.
 Make it minimal, modern, and purely visual.
@@ -151,8 +159,8 @@ The image should be appealing, clean, and suited for a blog header — but it mu
         const { data: insertedBlog, error: dbError } = await supabase
             .from('blogs')
             .insert({
-                title: topic,
-                slug: `${topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now()}`,
+                title: finalTitle,
+                slug: `${finalTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now()}`,
                 content: blogData.content_html,
                 excerpt: blogData.excerpt,
                 featured_image: finalImageUrl, // Saved permanent URL from Supabase Storage
