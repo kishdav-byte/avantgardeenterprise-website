@@ -59,38 +59,34 @@ Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
 MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
-1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}".
-2. SUBHEADING MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). 
-3. DEPTH MANDATE (EXPLAIN THE "HOW"): Under EACH of the 8 subheadings, you MUST write at least 3 to 4 dense, info-rich paragraphs. Do not just define terms; explain the psychology, the technical mechanics, and provide real-world advice.
-4. REQUIRED THEMES (Use natural titles):
+1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}". Each paragraph must be at least 4 sentences long.
+2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 3 dense, expansive paragraphs. Each paragraph should be 4-6 sentences long, providing technical details, psychological insights, or actionable advice.
+3. REQUIRED THEMES (Create your own benefit-driven titles for these):
    - The Psychology of the "Resume Black Hole."
    - The Technical Mechanics of Parsing and OCR.
    - Keyword Theory: Strategic selection vs. stuffing.
    - Formatting Physics: Why design elements (columns, tables) break the machine.
    - The Human Transition: The recruiter's 6-second scan psychology.
-   - Step-by-Step Optimization Guide.
-   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons for resume bullets.
+   - A step-by-step optimization blueprint.
+   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons (provide at least 3 examples).
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
 
 FORMATTING & PERSUASION:
 - Format everything in clean HTML (No markdown, no asterisks, no hashtags).
 - Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
-- CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction." Use benefit-driven, natural subheadings.
-- WRONG vs RIGHT: In that specific section, provide 3 distinct side-by-side examples.
+- CRITICAL: DO NOT use my instructions as your titles. For example, do NOT use "The Easy Button" or "Wrong vs Right" as a heading. Instead, create a catchy, benefit-driven heading like "The Secret Shortcut to Automated Success" or "Transforming Weak Bullets into High-Impact Wins."
+- NEVER include labels like "Chapter 1," "Section 1," or "Introduction."
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
 
-Output Format (Output strictly as a JSON object):
+Output Format: JSON string structure:
 {
     "refined_title": "A compelling, benefit-driven version of the title",
     "content_html": "The full, deep 1200+ word HTML body content",
     "excerpt": "A high-CTR summary for preview text",
-    "social_snippets": {
-        "linkedin": "A professional post draft",
-        "facebook": "An engaging post draft"
-    },
+    "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
     "seo_score": 98,
     "seo_critique": "A brief breakdown."
 }`
