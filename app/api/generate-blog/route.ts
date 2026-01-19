@@ -58,17 +58,23 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-EXPERT GUIDELINES FOR MAXIMUM DEPTH (1200+ WORDS):
-1. THE HOOK: Start with the visceral pain and high stakes of "${focus}". Do not use clichés.
-2. THE DEPTH MULTIPLIER: For EVERY <h2> subheading, you MUST write at least three detailed, info-rich paragraphs. Explain the "How," the "Why," and the "So What."
-3. LITERAL "WRONG vs. RIGHT" EXAMPLES: You MUST provide literal, side-by-side text comparisons. 
-   - Template: "WRONG WAY: [Literal bad text snippet] vs. RIGHT WAY: [Literal high-impact text snippet]." 
-   - Explain exactly why the "Right Way" wins in the eyes of an algorithm and a human recruiter.
-4. THE "EASY BUTTON" TRANSITION: Position "${productName}" from ${safeProductUrl} as the automated, time-saving "Easy Button" that fixes the manual exhaustion described above.
+MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
+1. THE HOOK: Start with a visceral, multi-paragraph description of the pain and stakes of "${focus}".
+2. SUBHEADING MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). 
+3. DEPTH MANDATE: Each subheading MUST be followed by at least 150-200 words of detailed, info-rich content.
+4. REQUIRED THEMES (Use natural titles, NOT labels/chapters):
+   - The Psychology of the "Resume Black Hole."
+   - The Technical Mechanics of Parsing and OCR.
+   - Keyword Theory: Strategic selection vs. stuffing.
+   - Formatting Physics: Why design elements break the machine.
+   - The Human Transition: The recruiter's 6-second scan.
+   - Literal "WRONG WAY vs. RIGHT WAY" text examples for bullets.
+   - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
+   - Final Takeaway Checklist.
 
-FORMATTING INSTRUCTIONS:
-- Format everything in clean HTML (No markdown, no asterisks, no hashtags, no "\`\`\`html").
-- Use <h2> for subheadings and <h3> for supporting concepts.
+FORMATTING & PERSUASION:
+- Format everything in clean HTML (No markdown, no asterisks, no hashtags).
+- Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
 - CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction." Use benefit-driven, natural subheadings.
 
@@ -78,13 +84,10 @@ At the end, include a meta description in this format:
 Output Format: JSON string structure:
 {
     "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The full, deep HTML body content (Aim for 1200+ words)",
+    "content_html": "The full, deep 1200+ word HTML body content",
     "excerpt": "A high-CTR summary for preview text",
-    "social_snippets": {
-        "linkedin": "A professional post draft",
-        "facebook": "An engaging post draft"
-    },
-    "seo_score": 95,
+    "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
+    "seo_score": 98,
     "seo_critique": "A brief breakdown."
 }`
 
