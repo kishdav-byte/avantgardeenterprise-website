@@ -120,6 +120,12 @@ export function Navbar() {
                             >
                                 Dashboard
                             </Link>
+                            <button
+                                onClick={handleSignOut}
+                                className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-500/70 hover:text-red-500 transition-colors px-2"
+                            >
+                                Sign Out
+                            </button>
                         </div>
                     ) : (
                         <Link
