@@ -58,22 +58,22 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-MANDATORY STRUCTURAL REQUIREMENTS FOR 1200-1500+ WORDS:
-1. THE HOOK: Start with an evocative, 5-paragraph introduction. Every paragraph MUST be a dense block of text at least 100 words long. 
+MANDATORY STRUCTURAL REQUIREMENTS FOR 1500+ WORDS:
+1. THE HOOK: Start with an evocative, 5-paragraph introduction. Every paragraph MUST be at least 9 sentences long (3 sent Technical, 3 sent Psychological, 3 sent Stakes).
 2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags). 
-3. HYPER-DENSITY LOCK (THE 100-WORD RULE): Under EACH subheading, you MUST write at least 5 paragraphs. Every single paragraph MUST be at least 100 words long. To achieve this density, every paragraph MUST explicitly cover three layers:
-   - THE TECHNICAL MECHANICS: How the concept works from a system or logical perspective.
-   - THE PSYCHOLOGICAL IMPACT: How this affects the human decision-maker, recruiter, or customer.
-   - THE MENTAL MODEL: Provide a visualization, metaphor, or framework to make the value "click" for the reader.
-4. EXPERT CALL-OUTS: In every section, include an expert insight from a high-authority persona. Every single quote MUST use this EXACT HTML structure:
+3. THE NINE-SENTENCE RULE: Under EACH subheading, you MUST write EXACTLY 5 paragraphs. Every single paragraph MUST be at least 9 sentences long. Follow this EXACT 3/3/3 structure for every paragraph:
+   - 3 Sentences on THE TECHNICAL MECHANICS (The logic/system/how it works).
+   - 3 Sentences on THE PSYCHOLOGICAL IMPACT (The human/emotional/decision-maker stakes).
+   - 3 Sentences on THE MENTAL MODEL (A visualization, metaphor, or framework for clarity).
+4. EXPERT CALL-OUTS: In every section, include a quote using this EXACT HTML:
    <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">
-      "[Quote text from expert]" — [Name], [High-Authority Title]
+      "[Quote text]" — [Specific High-Authority Title]
    </blockquote>
-5. ACTIONABLE COMPARISONS: Include a section titled "Tactical Comparison: The Pro vs. The Amateur". Use this EXACT list format for at least 3 comparisons:
+5. ACTIONABLE COMPARISONS: Include a section titled "Tactical Comparison: The Pro vs. The Amateur". Use this EXACT HTML structure:
    <ul>
-     <li><strong>WRONG WAY:</strong> [Generic, low-value approach]</li>
-     <li><strong>RIGHT WAY:</strong> [Strategic, high-value approach]</li>
-     <li><strong>THE WIN:</strong> [A mandatory 4-sentence dense technical explanation of why the Right Way succeeds]</li>
+     <li><strong>WRONG WAY:</strong> [Generic approach]</li>
+     <li><strong>RIGHT WAY:</strong> [Strategic approach]</li>
+     <li><strong>THE WIN:</strong> [A mandatory 4-sentence dense technical explanation]</li>
    </ul>
 6. REQUIRED THEMES:
    - The Psychology of the concept.
@@ -84,24 +84,16 @@ MANDATORY STRUCTURAL REQUIREMENTS FOR 1200-1500+ WORDS:
    - A step-by-step optimization blueprint.
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
 
-FORMATTING & PERSUASION:
-- Format everything in clean HTML (No markdown, no asterisks, no hashtags).
-- Use <h2> for subheadings and <p> for dense paragraphs.
-- Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
-- CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
-- CRITICAL: Do NOT use my instructions (like "Hyper-Density Lock") as headings.
-
-At the end, include a meta description in this format:
-<p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
+CRITICAL: If you output plain text or markdown instead of the requested <h2>, <blockquote>, and <ul> HTML tags, the job will fail.
 
 Output Format (Output strictly as a JSON object):
 {
     "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The full, massive 1500+ word HTML body content",
-    "excerpt": "A high-CTR summary for preview text",
-    "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
+    "content_html": "The massive 1500+ word HTML content",
+    "excerpt": "A high-CTR summary",
+    "social_snippets": { "linkedin": "Post draft", "facebook": "Post draft" },
     "seo_score": 98,
-    "seo_critique": "A brief breakdown."
+    "seo_critique": "Breakdown."
 }`
 
         const completion = await openai.chat.completions.create({
