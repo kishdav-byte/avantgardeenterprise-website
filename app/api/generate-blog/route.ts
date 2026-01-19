@@ -61,35 +61,35 @@ CURRENT GOAL:
 - Product: "${productName}" (${safeProductUrl})
 - Target Length: At least ${length} words.
 
-STRICT 7-CHAPTER BLUEPRINT (You MUST follow this structure):
-CHAPTER 1: THE HOOK & PSYCHOLOGY. Start with a visceral description of the "Resume Black Hole." Connect with the reader's fear of obsolescence. (Min 250 words)
-CHAPTER 2: THE TECHNICAL "TRUTH." Write a technical deep-dive into how ATS software actually works. Explain parsing, OCR (Optical Character Recognition), and Boolean search strings. Don't be afraid to be "nerdy." (Min 300 words)
-CHAPTER 3: THE KEYWORD TRAP. Explain why "Lying at the Bot" is a recipe for disaster. Provide 3+ literal "WRONG vs. RIGHT" examples of keyword placement. (Min 300 words)
-CHAPTER 4: FORMATTING PHYSICS. A detailed guide on columns, tables, headers, and footers. Explain exactly why modern systems fail to read certain designs. (Min 300 words)
-CHAPTER 5: THE HUMAN HAND-OFF. What happens when a human recruiter finally sees the "bot-approved" resume? Discuss the 6-second scan. (Min 250 words)
-CHAPTER 6: THE "EASY BUTTON." Position ${productName} at ${safeProductUrl} as the logical solution to the exhaustive manual work described above. (Min 250 words)
-CHAPTER 7: THE FINAL BLUEPRINT. A summary checklist and a call to action. (Min 150 words)
+STRICT 7-CHAPTER BLUEPRINT & VERBOSITY MANDATE:
+CHAPTER 1: THE HOOK & PSYCHOLOGY. Start with a visceral, 4-paragraph description of the "Resume Black Hole." Discuss the psychological toll of ghosting and the high stakes of modern career transition. (Min 300 words)
+CHAPTER 2: THE TECHNICAL "TRUTH." For the terms 'Parsing', 'OCR', and 'Boolean search', you MUST provide: 1. Technical definition. 2. A 'Recruiters-eye' view of why they use it. 3. A 'Bot-eye' view of how the machine literally 'sees' the characters. (Min 400 words)
+CHAPTER 3: THE KEYWORD TRAP. Deconstruct why "Keyword Stuffing" is detected by modern algorithms. Provide 3+ literal, multi-sentence "WRONG vs. RIGHT" examples. Explain the 'Why' for each. (Min 400 words)
+CHAPTER 4: FORMATTING PHYSICS. A granular technical guide on columns, tables, non-standard fonts, and graphics. Explain the 'Parsing Error' that occurs when an ATS hits a column. (Min 350 words)
+CHAPTER 5: THE HUMAN HAND-OFF. The transition from bot to human. Describe the '6-second scan' psychology in detail. (Min 250 words)
+CHAPTER 6: THE "EASY BUTTON." Position ${productName} at ${safeProductUrl} as the automated antidote to this manual exhaustion. Contrast the 4-hour manual tweak vs. the 30-second AI optimization. (Min 250 words)
+CHAPTER 7: THE FINAL BLUEPRINT. A 10-point checklist for the reader. (Min 150 words)
 
-CONTENT MANDATES:
-- NEVER SUMMARIZE: If a point is worth making, explain the 'How,' the 'Why,' and provide an example.
-- LITERAL EXAMPLES: Use the template: "WRONG WAY: [Generic/Bad Text] vs. RIGHT WAY: [Optimized/High-IMPACT Text]."
-- NO CLICHES: Do not use "In today's fast-paced world."
+CONTENT REQUISITES:
+- ENCYCLOPEDIC DEPTH: Do not state a fact without explaining the mechanics behind it.
+- NO SUMMARIZATION: If you reach the end of a section and it's short, invent a "Deep Dive" or "Case Study" sub-section to expand it.
 - HYPERLINK: Naturally link "${productName}" to "${safeProductUrl}".
-- REFINED TITLE: Create a new, elite, high-CTR headline as the H1.
+- REFINED TITLE: Create an elite, high-CTR headline as the H1.
 
-Output Format: JSON string structure:
+Output Format: JSON:
 {
     "refined_title": "Elite Headline",
-    "content_html": "Full 2000-word HTML content with H2s and H3s",
-    "excerpt": "Compelling summary",
+    "content_html": "Exhaustive HTML content",
+    "excerpt": "Summary",
     "social_snippets": { "linkedin": "...", "facebook": "..." },
     "seo_score": 98,
-    "seo_critique": "Detailed breakdown."
+    "seo_critique": "Breakdown."
 }`
 
         const completion = await openai.chat.completions.create({
             messages: [{ role: 'system', content: prompt }],
             model: 'gpt-4o',
+            max_tokens: 4096, // Force maximum output length
             response_format: { type: "json_object" },
         })
 
