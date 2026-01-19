@@ -26,6 +26,14 @@ export default function DashboardPage() {
     useEffect(() => {
         let mounted = true
 
+        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
+        const timeoutId = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("Dashboard loading timed out. Forcefully clearing state.")
+                setLoading(false)
+            }
+        }, 10000)
+
         const getSession = async () => {
             try {
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -64,8 +72,9 @@ export default function DashboardPage() {
 
         return () => {
             mounted = false
+            clearTimeout(timeoutId)
         }
-    }, [router])
+    }, [router, loading])
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()

@@ -26,6 +26,15 @@ export default function BlogPage() {
     useEffect(() => {
         let mounted = true
 
+        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
+        const timeoutId = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("Blog transmission timed out.")
+                setLoading(false)
+                setError("Transmission timed out. Please check your connection.")
+            }
+        }, 10000)
+
         const fetchBlogs = async () => {
             console.log("Transmission initiated: Fetching blogs...")
             const startTime = Date.now()
@@ -54,8 +63,11 @@ export default function BlogPage() {
         }
 
         fetchBlogs()
-        return () => { mounted = false }
-    }, [])
+        return () => {
+            mounted = false
+            clearTimeout(timeoutId)
+        }
+    }, [loading])
 
     return (
         <main className="min-h-screen bg-background text-foreground">

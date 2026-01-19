@@ -26,16 +26,26 @@ export function Navbar() {
     React.useEffect(() => {
         // Initial session check
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            setUser(session?.user || null)
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
+                setUser(session?.user || null)
 
-            if (session?.user) {
-                const { data } = await supabase
-                    .from('clients')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single()
-                setProfile(data)
+                if (session?.user) {
+                    // Create a timeout for the profile fetch specifically
+                    const controller = new AbortController()
+                    const profileTimeout = setTimeout(() => controller.abort(), 5000)
+
+                    const { data, error } = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single()
+
+                    clearTimeout(profileTimeout)
+                    if (!error) setProfile(data)
+                }
+            } catch (err) {
+                console.warn("Navbar session fetch timed out or failed.")
             }
         }
 
@@ -46,19 +56,23 @@ export function Navbar() {
             setUser(session?.user || null)
 
             if (session?.user && !profile) {
-                const { data } = await supabase
-                    .from('clients')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single()
-                setProfile(data)
+                try {
+                    const { data } = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single()
+                    setProfile(data)
+                } catch (e) {
+                    console.warn("Auth change profile fetch failed.")
+                }
             } else if (!session) {
                 setProfile(null)
             }
         })
 
         return () => subscription.unsubscribe()
-    }, []) // Logic: Only run on mount to set up the listener. internal updates handle the state.
+    }, [profile]) // Logic: Only run on mount to set up the listener. internal updates handle the state.
 
 
     const handleSignOut = async () => {
