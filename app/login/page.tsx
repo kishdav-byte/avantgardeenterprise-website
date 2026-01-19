@@ -13,10 +13,8 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [isSignUp, setIsSignUp] = useState(false)
+    const [joinMailingList, setJoinMailingList] = useState(true)
     const [mounted, setMounted] = useState(false)
-
-    // Use shared client
-    // const supabase = ... (we use the imported one)
 
     useEffect(() => {
         setMounted(true)
@@ -29,22 +27,33 @@ export default function LoginPage() {
 
         try {
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
                         emailRedirectTo: `${window.location.origin}/auth/callback`,
                     }
                 })
-                if (error) throw error
-                setError('Success! Check your email to verify your account.')
+                if (signUpError) throw signUpError
+
+                // If they opted into the mailing list, record it
+                if (joinMailingList && signUpData?.user) {
+                    await supabase
+                        .from('subscribers')
+                        .insert({
+                            email,
+                            client_id: signUpData.user.id,
+                            received_workbook: false
+                        })
+                }
+
+                setError('Success! Check your email to verify your account and claim your workbook.')
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 })
                 if (error) throw error
-                // Force a refresh so that middleware/server components recognize the new session
                 router.refresh()
                 router.push('/dashboard')
             }
@@ -54,9 +63,6 @@ export default function LoginPage() {
             setLoading(false)
         }
     }
-
-    // Removed the blocking !mounted check to allow immediate server-render match or rapid hydration
-
 
     return (
         <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -86,7 +92,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm shadow-2xl">
-                    <form onSubmit={handleAuth} className="space-y-4">
+                    <form onSubmit={handleAuth} className="space-y-6">
                         <div>
                             <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
                                 Email Address
@@ -114,6 +120,21 @@ export default function LoginPage() {
                                 placeholder="••••••••"
                             />
                         </div>
+
+                        {isSignUp && (
+                            <div className="flex items-start gap-3 p-4 bg-accent/5 border border-accent/10 rounded-xl transition-all hover:bg-accent/10 group cursor-pointer"
+                                onClick={() => setJoinMailingList(!joinMailingList)}>
+                                <div className={`mt-1 w-4 h-4 border-2 border-accent transition-all flex items-center justify-center p-[2px] ${joinMailingList ? 'bg-accent' : 'bg-transparent'}`}>
+                                    {joinMailingList && (
+                                        <div className="w-full h-full bg-black rounded-[1px]" />
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-white">Join the Mailing List</p>
+                                    <p className="text-[10px] text-white/40 uppercase tracking-tight leading-relaxed">Send me the Free AI Implementation Workbook & Insights</p>
+                                </div>
+                            </div>
+                        )}
 
                         {error && (
                             <div className={`p-3 rounded-lg text-sm ${error.includes('Success')

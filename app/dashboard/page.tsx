@@ -145,15 +145,17 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            {/* Activity Teaser */}
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
-                                <div className="w-16 h-16 border border-white/10 rounded-full flex items-center justify-center mb-6 text-white/20">
+                            {/* Workbook Teaser */}
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-accent/40 transition-all relative overflow-hidden"
+                                onClick={() => router.push('/dashboard/workbook')}>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 group-hover:bg-accent/10 transition-colors" />
+                                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-6 text-accent group-hover:scale-110 transition-transform">
                                     <FileText size={32} />
                                 </div>
-                                <h3 className="text-lg font-bold uppercase tracking-tighter mb-2">No Active Projects</h3>
-                                <p className="text-white/40 text-sm max-w-xs mb-8">Your account is active. When we begin a project, your files and progress will appear here.</p>
-                                <button className="px-8 py-3 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-accent transition-colors">
-                                    Start New Inquiry
+                                <h3 className="text-xl font-bold uppercase tracking-tighter mb-2 group-hover:text-accent transition-colors italic">Interactive Workbook</h3>
+                                <p className="text-white/40 text-sm max-w-xs mb-8 uppercase tracking-widest font-bold">The AI Advantage: Implementation Planner</p>
+                                <button className="px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-accent transition-colors">
+                                    Launch Workbook Interface
                                 </button>
                             </div>
                         </div>

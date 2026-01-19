@@ -6,7 +6,8 @@ import {
     FileText,
     Settings,
     LogOut,
-    Shield
+    Shield,
+    Compass
 } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 import { useRouter, usePathname } from "next/navigation"
@@ -37,6 +38,14 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                         icon={<LayoutDashboard size={18} />}
                         label="Overview"
                         active={pathname === '/dashboard'}
+                    />
+                </Link>
+
+                <Link href="/dashboard/workbook">
+                    <SidebarItem
+                        icon={<Compass size={18} />}
+                        label="Implementation Workbook"
+                        active={pathname === '/dashboard/workbook'}
                     />
                 </Link>
 
