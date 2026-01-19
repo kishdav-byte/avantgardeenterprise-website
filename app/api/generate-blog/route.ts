@@ -58,48 +58,40 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-MANDATORY STRUCTURAL REQUIREMENTS FOR 2000+ WORDS:
-1. THE HOOK: Start with an evocative, 4-paragraph introduction. Every paragraph MUST be at least 6 sentences long (2 sent Technical, 2 sent Psychological, 2 sent Stakes).
-2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags). 
-3. THE SIX-SENTENCE RULE: Under EACH subheading, you MUST write EXACTLY 4 paragraphs. Every single paragraph MUST be at least 6 sentences long. Follow this EXACT 2/2/2 structure for every paragraph:
-   - 2 Sentences on THE TECHNICAL MECHANICS (The logic/system/how it works).
-   - 2 Sentences on THE PSYCHOLOGICAL IMPACT (The human/emotional/decision-maker stakes).
-   - 2 Sentences on THE MENTAL MODEL (A visualization, metaphor, or framework for clarity).
-4. EXPERT CALL-OUTS: In every section, include a quote using this EXACT HTML:
-   <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">
-      "[Quote text]" — [Specific High-Authority Title]
-   </blockquote>
-5. ACTIONABLE COMPARISONS: Include a section titled "Tactical Comparison: The Pro vs. The Amateur". Use this EXACT HTML structure:
-   <ul>
-     <li><strong>WRONG WAY:</strong> [Generic approach]</li>
-     <li><strong>RIGHT WAY:</strong> [Strategic approach]</li>
-     <li><strong>THE WIN:</strong> [A mandatory 3-sentence dense technical explanation]</li>
-   </ul>
-6. REQUIRED THEMES:
-   - The Psychology of the concept.
-   - The Technical Mechanics or "Under the Hood" logic.
-   - Strategic selection vs. poor alternatives.
-   - Common failure points and "Physics" of why they break.
-   - The Human transition/Recruiter psychology.
-   - A step-by-step optimization blueprint.
-   - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
+HTML SYNTAX RULES (NON-NEGOTIABLE):
+- EVERY paragraph must start with <p> and end with </p>.
+- EVERY expert quote must use this EXACT syntax: <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">"Quote content" — Name, Title</blockquote>
+- EVERY comparison must use this EXACT syntax: <ul><li><strong>WRONG WAY:</strong> ...</li><li><strong>RIGHT WAY:</strong> ...</li><li><strong>THE WIN:</strong> ...</li></ul>
+- DO NOT use markdown (*, #, **). Use only <h2> and <p>.
 
-CRITICAL: If you output plain text or markdown instead of the requested <h2>, <blockquote>, and <ul> HTML tags, the job will fail.
+CONTENT ENGINE (2000+ WORDS):
+1. THE HOOK: 5 dense paragraphs (8 sentences each) about the visceral pain of "${focus}".
+2. DEPTH: 6 Subheadings (<h2>). Under each, you MUST write 5 massive paragraphs.
+3. THE 3-LAYER RULE (EVERY PARA): Each paragraph MUST cover: 
+   - [Technical Mechanics] + [Psychological Stakes] + [Mental Model/Metaphor].
+4. THE WIN: The "THE WIN" section must be a 5-sentence technical deep-dive.
 
-Output Format (Output strictly as a JSON object):
+MANDATORY THEMES:
+- The Psychology of the concept.
+- Under the Hood (Technical Mechanics).
+- Failure Physics (Why most people fail).
+- The "Easy Button": Promote "${productName}" (${safeProductUrl}) as the ultimate solution.
+
+Output strictly as JSON:
 {
-    "refined_title": "A compelling, benefit-driven title",
-    "content_html": "The massive 2000+ word HTML content",
-    "excerpt": "A high-CTR summary",
-    "social_snippets": { "linkedin": "Post draft", "facebook": "Post draft" },
+    "refined_title": "Elite Title",
+    "content_html": "Rich, formatted HTML content following all SYNTAX RULES above. Must be at least 1500-2000 words.",
+    "excerpt": "High-CTR summary",
+    "social_snippets": { "linkedin": "Post", "facebook": "Post" },
     "seo_score": 98,
-    "seo_critique": "Breakdown."
+    "seo_critique": "Breakdown"
 }`
 
         const completion = await openai.chat.completions.create({
             messages: [{ role: 'system', content: prompt }],
             model: 'gpt-4o',
             max_tokens: 4096,
+            temperature: 0.7,
             response_format: { type: "json_object" },
         })
 
