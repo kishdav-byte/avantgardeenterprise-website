@@ -25,39 +25,22 @@ export default function BlogPage() {
 
     useEffect(() => {
         let mounted = true
-        // Safe robust fetching
-        const fetchBlogs = async () => {
-            // Create local client to avoid singleton issues and ensure correct auth/headers
-            const { createBrowserClient } = await import('@supabase/ssr')
-            const supabase = createBrowserClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-            )
 
+        const fetchBlogs = async () => {
             try {
+                // Use the shared client which is properly initialized
                 const { data, error } = await supabase
                     .from('blogs')
                     .select('*')
                     .eq('status', 'published')
                     .order('published_at', { ascending: false })
 
-                if (error) {
-                    // Check if the error is actually an AbortError (sometimes presented as generic object)
-                    if (error.message?.includes('AbortError') || (error as any).name === 'AbortError') {
-                        console.warn('Auto-recovered from AbortError')
-                        return
-                    }
-                    throw error
-                }
+                if (error) throw error
 
                 if (mounted && data) {
                     setBlogs(data)
                 }
             } catch (err: any) {
-                // Ignore AbortError if it bubbles up as an exception
-                if (err.name === 'AbortError' || err.message?.includes('AbortError')) {
-                    return
-                }
                 console.error("Error loading blogs:", err)
                 if (mounted) setError(err.message || "Unknown error")
             } finally {
@@ -66,7 +49,6 @@ export default function BlogPage() {
         }
 
         fetchBlogs()
-
         return () => { mounted = false }
     }, [])
 

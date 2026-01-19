@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabase } from "@/lib/supabaseClient"
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -15,11 +15,8 @@ export default function LoginPage() {
     const [isSignUp, setIsSignUp] = useState(false)
     const [mounted, setMounted] = useState(false)
 
-    // Create Supabase client inside component to ensure access to env vars
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Use shared client
+    // const supabase = ... (we use the imported one)
 
     useEffect(() => {
         setMounted(true)
@@ -47,7 +44,6 @@ export default function LoginPage() {
                     password,
                 })
                 if (error) throw error
-                if (error) throw error
                 // Force a refresh so that middleware/server components recognize the new session
                 router.refresh()
                 router.push('/dashboard')
@@ -59,9 +55,8 @@ export default function LoginPage() {
         }
     }
 
-    if (!mounted) {
-        return <div className="min-h-screen bg-black" />
-    }
+    // Removed the blocking !mounted check to allow immediate server-render match or rapid hydration
+
 
     return (
         <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
