@@ -15,60 +15,38 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value
+                getAll() {
+                    return request.cookies.getAll()
                 },
-                set(name: string, value: string, options: CookieOptions) {
-                    // If the cookie is updated, update the cookies for the request and response
-                    request.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    })
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
                     response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
+                        request,
                     })
-                    response.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    })
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        response.cookies.set(name, value, options)
+                    )
                 },
             },
         }
     )
 
-    const { data: { session } } = await supabase.auth.getSession()
+    // IMPORTANT: You *must* run the getUser() or getSession() to refresh the auth token
+    // However, to speed up public navigation, we can avoid strict checks unless necessary
+    const { data: { user } } = await supabase.auth.getUser()
+
+
 
     // PROTECTED ROUTES LOGIC
     // If user is NOT signed in and the current path is /dashboard, redirect to /login
-    if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
         return NextResponse.redirect(redirectUrl)
     }
 
     // OPTIONAL: If user IS signed in and visits /login, redirect to /dashboard
-    if (session && request.nextUrl.pathname === '/login') {
+    if (user && request.nextUrl.pathname === '/login') {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/dashboard'
         return NextResponse.redirect(redirectUrl)
