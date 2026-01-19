@@ -29,6 +29,7 @@ export default function BlogPostPage() {
                 .from('blogs')
                 .select('*')
                 .eq('id', params.id)
+                .eq('status', 'published')
                 .single()
 
             if (data) setBlog(data)

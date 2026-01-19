@@ -40,10 +40,12 @@ export default function BlogPage() {
             const startTime = Date.now()
 
             try {
-                // EXTREME SIMPLIFICATION: No filtering, no ordering. Just get the data.
+                // Filter for published blogs and order by published_at
                 const { data, error } = await supabase
                     .from('blogs')
                     .select('id, title, excerpt, content, published_at, featured_image, slug')
+                    .eq('status', 'published')
+                    .order('published_at', { ascending: false })
                     .limit(10)
 
                 const duration = Date.now() - startTime
