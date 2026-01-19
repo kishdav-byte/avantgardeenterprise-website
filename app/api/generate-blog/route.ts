@@ -58,20 +58,19 @@ Target the keyword: "${primaryKeyword}"
 Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
-EXPERT GUIDELINES FOR HIGH-AUTHORITY CONTENT:
-1. THE HOOK: Do not use clichés. Start with the visceral pain and stakes of the problem described in "${focus}". 
-2. SHOW, DON'T JUST TELL: Whenever you give a tip or strategy, provide a literal "WRONG WAY vs. RIGHT WAY" text example. 
-3. THE "EASY BUTTON" TRANSITION: Position "${productName}" as the logical, time-saving "Easy Button" that automates the manual work described.
-4. DEPTH & DETAIL: Expand deeply on the technical and psychological aspects of "${primaryKeyword}" to ensure a comprehensive, long-form guide. Avoid surface-level summaries.
+EXPERT GUIDELINES FOR MAXIMUM DEPTH (1200+ WORDS):
+1. THE HOOK: Start with the visceral pain and high stakes of "${focus}". Do not use clichés.
+2. THE DEPTH MULTIPLIER: For EVERY <h2> subheading, you MUST write at least three detailed, info-rich paragraphs. Explain the "How," the "Why," and the "So What."
+3. LITERAL "WRONG vs. RIGHT" EXAMPLES: You MUST provide literal, side-by-side text comparisons. 
+   - Template: "WRONG WAY: [Literal bad text snippet] vs. RIGHT WAY: [Literal high-impact text snippet]." 
+   - Explain exactly why the "Right Way" wins in the eyes of an algorithm and a human recruiter.
+4. THE "EASY BUTTON" TRANSITION: Position "${productName}" from ${safeProductUrl} as the automated, time-saving "Easy Button" that fixes the manual exhaustion described above.
 
 FORMATTING INSTRUCTIONS:
-- Format everything in clean HTML.
-- Use <h2> for main subheadings and <h3> for supporting points.
-- Use <p> for paragraphs.
-- Use <ul>/<ol> for bullet or numbered lists.
-- Hyperlink "${productName}" using an <a> tag pointing to "${safeProductUrl}".
-- Do NOT include markdown tags, asterisks, hashtags, or the text "\`\`\`html" anywhere.
-- CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction" as headers. Use natural, compelling, benefit-driven subheadings.
+- Format everything in clean HTML (No markdown, no asterisks, no hashtags, no "\`\`\`html").
+- Use <h2> for subheadings and <h3> for supporting concepts.
+- Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
+- CRITICAL: Do NOT include labels like "Chapter 1," "Section 1," or "Introduction." Use benefit-driven, natural subheadings.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
@@ -79,7 +78,7 @@ At the end, include a meta description in this format:
 Output Format: JSON string structure:
 {
     "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The full HTML body content",
+    "content_html": "The full, deep HTML body content (Aim for 1200+ words)",
     "excerpt": "A high-CTR summary for preview text",
     "social_snippets": {
         "linkedin": "A professional post draft",
