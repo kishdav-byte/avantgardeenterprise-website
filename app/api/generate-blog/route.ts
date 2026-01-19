@@ -65,13 +65,16 @@ INPUTS:
 - Product URL: "${safeProductUrl}"
 - Target Length: At least ${length} words.
 
-CRITICAL ARCHITECTURE INSTRUCTIONS:
-1. TITLE REFINEMENT: Do not just use the initial topic. Treat it as a raw idea. Create a compelling, benefit-driven headline (H1) that grabs attention (e.g., using "How to," "Secrets of," "Ultimate Guide," or addressing a specific fear/desire).
-2. THE HOOK: Do NOT start with generic phrases like "In today's fast-paced world." Start with the PAIN. Connect emotionally with the reader's frustration or the high stakes of their problem.
-3. ACTIONABLE VALUE & EXAMPLES: Provide specific, concrete examples. Use "Before vs. After" or "Wrong way vs. Right way" scenarios. If you give a tip, give a real-world example of how to apply it.
-4. THE "EASY BUTTON" TRANSITION: Position "${productName}" not just as a tool, but as the logical "Easy Button." Bridging the gap between the hard manual work described and the automated/improved solution the product offers.
-5. FORMATTING: Output strictly clean HTML. Use <h2> for main sections and <h3> for sub-points. Use <p> and <ul>/<li> for readability. Ensure a clear, scannable hierarchy.
-6. WORD COUNT: You MUST reach the ${length} word minimum. Expand on nuances, provide more examples, and go deeper into the "why" and "how" to ensure the length is substantial.
+CRITICAL ARCHITECTURE & DEPTH INSTRUCTIONS:
+1. TITLE REFINEMENT: Create a high-value, benefit-driven H1 headline that promises a transformation or solves a specific fear.
+2. PAIN-FIRST HOOK: Start with a visceral description of the problem. Use sensory details. Make the reader feel the "black hole" of rejection or the frustration of the status quo. 
+3. SHOW, DON'T JUST TELL (LITERAL EXAMPLES): Whenever you give a tip (like keyword optimization or formatting), you MUST provide a literal side-by-side example. 
+   - Example Template: "WRONG WAY: [Generic Text] vs. RIGHT WAY: [Optimized Text]." 
+   - Explain exactly WHY the "Right Way" works better for the algorithm and the human.
+4. MAXIMUM VERBOSITY (WORD COUNT MANDATE): Since the target is ${length} words, DO NOT SUMMARIZE. Expand on the "Hidden Physics" of every concept. Break down complex ideas into detailed step-by-step guides. Expand on the psychology behind the advice. If you think you've finished a section, go deeper into a niche sub-topic related to it.
+5. THE "EASY BUTTON" PERSUASION: Position "${productName}" as the logical "Easy Button." Bridging the gap between the hard, manual, time-consuming work described and the automated/improved solution offered at ${safeProductUrl}. 
+   - Phrase as: "You could spend hours manually auditing every bullet point, or you could let technology fight technology..."
+6. FORMATTING: Output strictly clean HTML. Use <h2> for main chapters and <h3> for granular sub-topics. Use <p> and <ul>/<li> generously for readability.
 
 TECHNICAL MANDATES:
 - Perform a natural hyperlink for "${productName}" to "${safeProductUrl}" inside the body.
@@ -80,15 +83,15 @@ TECHNICAL MANDATES:
 
 Output Format: JSON string structure:
 {
-    "refined_title": "The new compelling headline you created",
-    "content_html": "The full HTML body content",
-    "excerpt": "A high-CTR summary for preview text",
+    "refined_title": "The benefit-driven headline",
+    "content_html": "The full, exhaustive HTML body content (aim for ${length} words)",
+    "excerpt": "High-CTR summary",
     "social_snippets": {
-        "linkedin": "A professional post draft",
-        "facebook": "An engaging post draft"
+        "linkedin": "Professional post",
+        "facebook": "Engaging post"
     },
-    "seo_score": 90,
-    "seo_critique": "A brief breakdown of why this ranks well."
+    "seo_score": 95,
+    "seo_critique": "Detailed breakdown."
 }`
 
         const completion = await openai.chat.completions.create({
