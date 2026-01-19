@@ -59,24 +59,28 @@ Naturally mention and promote this product: "${productName}"
 Product link: ${safeProductUrl}
 
 MANDATORY STRUCTURAL REQUIREMENTS FOR 1200+ WORDS:
-1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}". Each paragraph must be at least 4 sentences long.
-2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 3 dense, expansive paragraphs. Each paragraph should be 4-6 sentences long, providing technical details, psychological insights, or actionable advice.
-3. REQUIRED THEMES (Create your own benefit-driven titles for these):
+1. THE HOOK: Start with a visceral, 4-paragraph description of the pain and stakes of "${focus}".
+2. DEPTH MANDATE: You MUST include at least 8 distinct subheadings (<h2> tags). Under EACH subheading, you MUST write at least 4 dense, info-rich paragraphs.
+3. INTERNAL STRUCTURE FOR EACH SECTION:
+   - Paragraph 1-2: Explanation of the concept and why it matters.
+   - Paragraph 3: An "Industry Expert's Perspective" or "Insider Secret" (e.g., provide a granular, high-authority insight that only a veteran professional in this specific field would know. This should provide high "Information Gain" that isn't found in generic articles).
+   - Paragraph 4: Actionable advice for the reader.
+4. REQUIRED THEMES (Use natural, benefit-driven titles):
    - The Psychology of the "Resume Black Hole."
    - The Technical Mechanics of Parsing and OCR.
    - Keyword Theory: Strategic selection vs. stuffing.
    - Formatting Physics: Why design elements (columns, tables) break the machine.
    - The Human Transition: The recruiter's 6-second scan psychology.
    - A step-by-step optimization blueprint.
-   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons (provide at least 3 examples).
+   - Literal "WRONG WAY vs. RIGHT WAY" text comparisons (provide at least 3 distinct examples with a brief explanation of WHY the Right Way wins).
    - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
 
 FORMATTING & PERSUASION:
 - Format everything in clean HTML (No markdown, no asterisks, no hashtags).
 - Use <h2> for subheadings and <p> for dense paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
-- CRITICAL: DO NOT use my instructions as your titles. For example, do NOT use "The Easy Button" or "Wrong vs Right" as a heading. Instead, create a catchy, benefit-driven heading like "The Secret Shortcut to Automated Success" or "Transforming Weak Bullets into High-Impact Wins."
-- NEVER include labels like "Chapter 1," "Section 1," or "Introduction."
+- CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
+- CRITICAL: Do NOT use my instructions (like "The Easy Button") as headings. Create your own compelling, SEO-friendly titles.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
