@@ -142,8 +142,8 @@ export function ContactBot() {
                         className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                         <div className={`max-w-[80%] p-6 rounded-3xl text-sm leading-relaxed border ${m.role === "user"
-                                ? "bg-white/10 text-white border-white/10"
-                                : "bg-accent/5 text-accent border-accent/20 font-bold italic"
+                            ? "bg-white/10 text-white border-white/10"
+                            : "bg-accent/5 text-accent border-accent/20 font-bold italic"
                             }`}>
                             {m.content}
                         </div>
@@ -174,18 +174,18 @@ export function ContactBot() {
                     </div>
                 ) : (
                     <div className="relative group">
-                        <div className="absolute inset-0 bg-accent/10 rounded-[24px] blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-accent/10 rounded-[24px] blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                         <input
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
                             placeholder={step === 'info' ? "Enter your name or email..." : "Speak to the Architect..."}
-                            className="w-full bg-white/5 border border-white/10 rounded-[24px] px-8 py-6 text-sm font-bold placeholder:text-white/10 outline-none focus:border-accent/40 transition-all text-white pr-20"
+                            className="w-full relative z-10 bg-white/5 border border-white/10 rounded-[24px] px-8 py-6 text-sm font-bold placeholder:text-white/10 outline-none focus:border-accent/40 transition-all text-white pr-20"
                         />
                         <button
                             onClick={handleSend}
                             disabled={isLoading}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center hover:bg-accent transition-all active:scale-95 shadow-xl"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center hover:bg-accent transition-all active:scale-95 shadow-xl z-20"
                         >
                             <Send size={20} />
                         </button>

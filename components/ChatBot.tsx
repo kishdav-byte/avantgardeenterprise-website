@@ -153,17 +153,17 @@ export function ChatBot() {
                         {/* Input Area */}
                         <div className="p-6 border-t border-white/10 bg-white/[0.02]">
                             <div className="relative group">
-                                <div className="absolute inset-0 bg-accent/5 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                                <div className="absolute inset-0 bg-accent/5 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                                 <input
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder="Input query for the Architect..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-accent/40 transition-all placeholder:text-white/10"
+                                    className="w-full relative z-10 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-accent/40 transition-all placeholder:text-white/10"
                                 />
                                 <button
                                     onClick={handleSend}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:bg-accent transition-colors transition-transform active:scale-95"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:bg-accent transition-colors transition-transform active:scale-95 z-20"
                                 >
                                     <Send size={16} />
                                 </button>
