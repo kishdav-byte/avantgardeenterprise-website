@@ -12,7 +12,9 @@ interface Message {
 
 export function ChatBot() {
     const [isOpen, setIsOpen] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([])
+    const [messages, setMessages] = useState<Message[]>([
+        { role: "assistant", content: "Laying the foundation... I am the Architect. How can I optimize your trajectory today?" }
+    ])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -25,8 +27,14 @@ export function ChatBot() {
                 .eq('key', 'architect_config')
                 .maybeSingle()
 
-            const greeting = data?.value?.greeting || "Laying the foundation... I am the Architect. How can I optimize your trajectory today?"
-            setMessages([{ role: "assistant", content: greeting }])
+            if (data?.value?.greeting) {
+                setMessages(prev => {
+                    if (prev.length === 1 && prev[0].role === 'assistant') {
+                        return [{ role: "assistant", content: data.value.greeting }]
+                    }
+                    return prev
+                })
+            }
         }
         fetchConfig()
     }, [])
