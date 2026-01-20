@@ -4,7 +4,14 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Activity } from "lucide-react"
 
-const slides = [
+export interface ShowcaseSlide {
+    image: string
+    title: string
+    description: string
+    features: string[]
+}
+
+export const commandCenterSlides: ShowcaseSlide[] = [
     {
         image: "/showcase/command-center-1.png",
         title: "AI Control Panel",
@@ -19,7 +26,7 @@ const slides = [
     }
 ]
 
-export function ProductShowcase() {
+export function ProductShowcase({ slides = commandCenterSlides }: { slides?: ShowcaseSlide[] }) {
     const [current, setCurrent] = useState(0)
     const [isHovered, setIsHovered] = useState(false)
 

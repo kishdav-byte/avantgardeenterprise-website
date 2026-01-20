@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageSquare, X, Send, Bot, Cpu, Sparkles, Activity } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
 
 interface Message {
     role: "user" | "assistant"
@@ -11,12 +12,24 @@ interface Message {
 
 export function ChatBot() {
     const [isOpen, setIsOpen] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([
-        { role: "assistant", content: "Laying the foundation... I am the Architect. How can I optimize your trajectory today?" }
-    ])
+    const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            const { data } = await supabase
+                .from('bot_config')
+                .select('value')
+                .eq('key', 'architect_config')
+                .maybeSingle()
+
+            const greeting = data?.value?.greeting || "Laying the foundation... I am the Architect. How can I optimize your trajectory today?"
+            setMessages([{ role: "assistant", content: greeting }])
+        }
+        fetchConfig()
+    }, [])
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })

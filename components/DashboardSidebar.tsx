@@ -62,7 +62,7 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                         <Link href="/dashboard/admin">
                             <SidebarItem
                                 icon={<Shield size={18} />}
-                                label="Blog Generator"
+                                label="Command Center"
                                 active={pathname?.startsWith('/dashboard/admin')}
                             />
                         </Link>

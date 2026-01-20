@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { supabase } from '@/lib/supabaseClient'
 
 // Note: I'm assuming 'ai' package might not be installed based on package.json view earlier.
 // Let me check package.json again or just use standard Response for streaming.
@@ -9,14 +10,10 @@ import OpenAI from 'openai'
 export const dynamic = 'force-dynamic'
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
+    apiKey: process.env.OPENAI_API_KEY,
 })
 
-export async function POST(req: Request) {
-    try {
-        const { messages } = await req.json()
-
-        const systemPrompt = `You are the "Avant-Garde AI Architect," the digital embodiment of David Kish's vision for high-performance automation.
+const DEFAULT_SYSTEM_PROMPT = `You are the "Avant-Garde AI Architect," the digital embodiment of David Kish's vision for high-performance automation.
 Your mission is to guide visitors through the Avant-Garde ecosystem with clinical precision and visionary insight.
 
 CORE PERSONALITY:
@@ -39,6 +36,19 @@ GUIDELINES:
 
 Current User Status: Browsing the main site.`
 
+export async function POST(req: Request) {
+    try {
+        const { messages } = await req.json()
+
+        // Fetch dynamic bot config
+        const { data: botConfig } = await supabase
+            .from('bot_config')
+            .select('value')
+            .eq('key', 'architect_config')
+            .maybeSingle()
+
+        const systemPrompt = botConfig?.value?.system_prompt || DEFAULT_SYSTEM_PROMPT
+
         const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             stream: true,
@@ -46,6 +56,7 @@ Current User Status: Browsing the main site.`
                 { role: 'system', content: systemPrompt },
                 ...messages,
             ],
+            temperature: 0.7,
         })
 
         // Convert the response into a friendly text-stream

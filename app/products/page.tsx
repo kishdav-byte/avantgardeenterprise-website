@@ -8,6 +8,21 @@ import Link from "next/link"
 import { ProductShowcase } from "@/components/sections/ProductShowcase"
 import { DiscoveryCTA } from "@/components/sections/DiscoveryCTA"
 
+const tpiSlides = [
+    {
+        image: "/showcase/tpi-1.png",
+        title: "Mission Briefing",
+        description: "Analyze mission dossiers and role requirements with automated intel injection.",
+        features: ["Interviewer Intel", "Role Requirements (JD)", "Mission Toolkit"]
+    },
+    {
+        image: "/showcase/tpi-2.png",
+        title: "Performance Hub",
+        description: "Ready to dominate? Track market relevance and strategic fit in real-time.",
+        features: ["Market Metrics", "Job Tracker", "Strategic Fit Score"]
+    }
+]
+
 export default function ProductsPage() {
     return (
         <main className="min-h-screen bg-background text-foreground">
@@ -106,28 +121,15 @@ export default function ProductsPage() {
                         viewport={{ once: true }}
                         className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-48 group"
                     >
-                        {/* Visual Side */}
-                        <div className="relative order-2 lg:order-1 lg:col-span-5">
-                            <div className="relative group aspect-square">
-                                <div className="absolute inset-0 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="h-full w-full bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col items-center justify-center p-12 transition-all duration-500 group-hover:scale-[1.02] group-hover:border-accent/20">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-accent/20 blur-2xl animate-pulse" />
-                                        <ShieldCheck size={120} className="text-accent relative z-10" />
-                                    </div>
-                                    <div className="mt-8 text-center">
-                                        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent mb-2">Protocol TPI-01</div>
-                                        <div className="h-1 w-24 bg-white/10 mx-auto rounded-full overflow-hidden">
-                                            <motion.div
-                                                className="h-full bg-accent"
-                                                animate={{ x: [-100, 100] }}
-                                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                                            />
-                                        </div>
-                                    </div>
+                        {/* Visual Side - NOW CAROUSEL */}
+                        <div className="relative lg:col-span-5 order-2 lg:order-1">
+                            <div className="relative group">
+                                <div className="absolute inset-x-[-20px] inset-y-[-20px] bg-accent/10 blur-[60px] opacity-20" />
+                                <div className="relative border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:border-accent/30">
+                                    <ProductShowcase slides={tpiSlides} />
                                 </div>
-                                <div className="absolute bottom-8 left-8 bg-black/80 backdrop-blur px-4 py-2 border border-white/10 rounded font-mono text-[9px] text-white/40">
-                                    $ ./initialize_coaching_module
+                                <div className="absolute -top-4 -right-4 bg-black border border-accent/30 px-4 py-1 text-[8px] font-black uppercase tracking-widest text-accent">
+                                    Protocol TPI-01 // ACTIVE
                                 </div>
                             </div>
                         </div>
