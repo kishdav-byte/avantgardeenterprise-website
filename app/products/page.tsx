@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer"
 import { motion } from "framer-motion"
 import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap, BookOpen } from "lucide-react"
 import Link from "next/link"
+import { ProductShowcase } from "@/components/sections/ProductShowcase"
 
 export default function ProductsPage() {
     return (
@@ -90,6 +91,11 @@ export default function ProductsPage() {
                             </Link>
                         </div>
                     </motion.div>
+
+                    {/* INTERFACE SHOWCASE */}
+                    <div className="mb-32">
+                        <ProductShowcase />
+                    </div>
 
                     {/* PRODUCT 2: TOTAL PACKAGE INTERVIEW */}
                     <motion.div
