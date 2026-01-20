@@ -58,6 +58,10 @@ export default function AdminDashboard() {
     // --- BLOG FUNCTIONS ---
     async function fetchBlogs() {
         const { data, error } = await supabase.from('blogs').select('*').order('created_at', { ascending: false })
+        if (error) {
+            console.error('Fetch Blogs Error:', error)
+            showMsg(error.message, 'error')
+        }
         if (data) setBlogs(data)
     }
 
