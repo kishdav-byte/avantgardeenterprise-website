@@ -8,7 +8,7 @@ const botLeadSchema = z.object({
     name: z.string().optional().default('Anonymous AI Lead'),
     email: z.string().email(),
     message: z.string().min(1),
-    metadata: z.record(z.any()).optional().default({})
+    metadata: z.record(z.string(), z.any()).optional().default({})
 })
 
 export async function POST(request: Request) {
