@@ -3,7 +3,7 @@
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { motion } from "framer-motion"
-import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap, BookOpen } from "lucide-react"
+import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap, BookOpen, Target } from "lucide-react"
 import Link from "next/link"
 import { ProductShowcase } from "@/components/sections/ProductShowcase"
 import { DiscoveryCTA } from "@/components/sections/DiscoveryCTA"
@@ -31,101 +31,152 @@ export default function ProductsPage() {
                         </p>
                     </motion.div>
 
-                    {/* PRODUCT 1: AI COMMAND CENTER (Unified Section) */}
-                    <div className="mb-48">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="max-w-4xl mb-16"
-                        >
-                            <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-4 italic italic">
+                    {/* PRODUCT 1: AI COMMAND CENTER */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-48 group"
+                    >
+                        {/* Content Side */}
+                        <div className="lg:col-span-7">
+                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 italic italic">
                                 AI Command Center
                             </h2>
-                            <p className="text-accent text-sm font-bold uppercase tracking-[0.3em] mb-8">
-                                The Orchestration Layer for Your Digital Workforce
-                            </p>
-                            <p className="text-white/70 leading-relaxed text-xl mb-12">
-                                Replace static reception with a dynamic, multi-modal AI workforce. By unifying the power of Google Gemini and OpenAI, the Command Center serves as the central brain for managing intelligent voice assistants that adapt to your brand identity in real-time.
+                            <p className="text-accent text-[11px] font-bold uppercase tracking-[0.4em] mb-8">
+                                The Orchestration Layer // For Digital Workforces
                             </p>
 
-                            <div className="flex flex-wrap gap-8 mb-12">
-                                {[
-                                    { label: "Dual-Core", text: "Gemini + OpenAI" },
-                                    { label: "Adaptive", text: "11+ Voice Personas" },
-                                    { label: "Scale", text: "Unlimited Concurrency" },
-                                ].map((stat, i) => (
-                                    <div key={i} className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">{stat.label}</span>
-                                        <span className="text-sm font-bold opacity-40 uppercase tracking-tighter">{stat.text}</span>
+                            <div className="space-y-6 mb-10">
+                                <div className="bg-white/[0.03] border-l-2 border-accent p-6 rounded-r-2xl italic italic relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
+                                        <Bot size={64} />
                                     </div>
-                                ))}
+                                    <p className="text-white/70 text-lg leading-relaxed mb-4">
+                                        "Most businesses treat AI like a chatbot. We treat it like a workforce. The Command Center is for the leader who isn't satisfied with 'good enough' and demands real-time, multi-modal coordination."
+                                    </p>
+                                    <p className="text-white/40 text-sm leading-relaxed uppercase tracking-tighter">
+                                        Unified intelligence streams from Google Gemini and OpenAI, synchronized into a single, brand-adaptive voice interface that never sleeps.
+                                    </p>
+                                </div>
                             </div>
 
-                            <Link href="/contact" className="inline-flex items-center gap-2 px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors">
-                                Request Enterprise Access <ArrowRight size={18} />
-                            </Link>
-                        </motion.div>
+                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                                {[
+                                    { label: "Dual-Core", text: "Gemini Speed + OpenAI Nuance" },
+                                    { label: "Adaptive", text: "11+ Distinct Voice Personas" },
+                                    { label: "Infinite Scale", text: "Unlimited Concurrent Traffic" },
+                                    { label: "Brand-Aware", text: "Custom Knowledge Base Injection" },
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 items-start p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="w-1.5 h-1.5 bg-accent rounded-full mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">{item.label}</p>
+                                            <p className="text-[11px] font-bold opacity-40 leading-snug uppercase tracking-tight">{item.text}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
 
-                        {/* Integrated Interface Carousel */}
-                        <div className="relative">
-                            <div className="absolute -top-24 -left-24 w-96 h-96 bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
-                            <ProductShowcase />
+                            <Link href="/contact" className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors inline-flex items-center gap-2">
+                                <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                <span className="relative z-10 group-hover:text-black">Request Enterprise Access</span>
+                                <ArrowRight size={18} className="relative z-10" />
+                            </Link>
                         </div>
-                    </div>
+
+                        {/* Visual Side - Carousel */}
+                        <div className="relative lg:col-span-5">
+                            <div className="relative group">
+                                <div className="absolute inset-x-[-20px] inset-y-[-20px] bg-accent/10 blur-[60px] opacity-20" />
+                                <div className="relative border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:border-accent/30">
+                                    <ProductShowcase />
+                                </div>
+                                <div className="absolute -top-4 -right-4 bg-black border border-accent/30 px-4 py-1 text-[8px] font-black uppercase tracking-widest text-accent">
+                                    Systems Interface // Active
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
 
                     {/* PRODUCT 2: TOTAL PACKAGE INTERVIEW */}
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-48 group"
                     >
-                        {/* Content Side */}
-                        <div className="lg:col-span-7">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
-                                Total Package Interview
-                            </h2>
-                            <p className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-8">
-                                Elite Career Engineering
-                            </p>
-
-                            <p className="text-white/70 leading-relaxed mb-8 text-lg">
-                                A specialized product designed to deconstruct the interview process. Leveraging advanced AI analysis, this tool provides roleplay scenarios, resume optimization, and real-time feedback to transform candidates into top-tier prospects.
-                            </p>
-
-                            <ul className="space-y-4 mb-10">
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>AI Roleplay:</strong> Realistic mock interviews</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>Resume Logic:</strong> Automated keyword & structural analysis</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>Feedback Loop:</strong> Actionable scoring & critique</span>
-                                </li>
-                            </ul>
-
-                            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 border border-white/20 text-white font-bold uppercase tracking-widest text-xs hover:border-accent hover:text-accent transition-colors">
-                                Inquire About Access <ArrowRight size={16} />
-                            </Link>
-                        </div>
-
                         {/* Visual Side */}
-                        <div className="relative lg:col-span-5">
-                            <div className="aspect-square lg:aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-50" />
-                                <div className="text-center relative z-10 p-8">
-                                    <div className="text-9xl font-black text-white/10 select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">TPI</div>
-                                    <ShieldCheck size={64} className="text-white mx-auto mb-6" />
-                                    <div className="text-xs font-mono text-accent uppercase tracking-widest">
-                                        System: Active
+                        <div className="relative order-2 lg:order-1 lg:col-span-5">
+                            <div className="relative group aspect-square">
+                                <div className="absolute inset-0 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="h-full w-full bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col items-center justify-center p-12 transition-all duration-500 group-hover:scale-[1.02] group-hover:border-accent/20">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-accent/20 blur-2xl animate-pulse" />
+                                        <ShieldCheck size={120} className="text-accent relative z-10" />
+                                    </div>
+                                    <div className="mt-8 text-center">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent mb-2">Protocol TPI-01</div>
+                                        <div className="h-1 w-24 bg-white/10 mx-auto rounded-full overflow-hidden">
+                                            <motion.div
+                                                className="h-full bg-accent"
+                                                animate={{ x: [-100, 100] }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="absolute bottom-8 left-8 bg-black/80 backdrop-blur px-4 py-2 border border-white/10 rounded font-mono text-[9px] text-white/40">
+                                    $ ./initialize_coaching_module
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Content Side */}
+                        <div className="order-1 lg:order-2 lg:col-span-7">
+                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 italic italic">
+                                Total Package <br /> Interview
+                            </h2>
+                            <p className="text-accent text-[11px] font-bold uppercase tracking-[0.4em] mb-8">
+                                Elite Career Engineering // Modular Protocol
+                            </p>
+
+                            <div className="space-y-6 mb-10">
+                                <div className="bg-white/[0.03] border-l-2 border-accent p-6 rounded-r-2xl italic italic relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
+                                        <Target size={64} />
+                                    </div>
+                                    <p className="text-white/70 text-lg leading-relaxed mb-4">
+                                        "The market doesn't pay for potential; it pays for proof. We built the Interview Coach to strip away the guesswork and replace it with peak-performance simulation."
+                                    </p>
+                                    <p className="text-white/40 text-sm leading-relaxed">
+                                        A multi-layered system designed to optimize every touchpoint of your professional presentation—from resume logic to the final handshake.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                                {[
+                                    { label: "AI Roleplay", text: "Cinematic Peer-to-Peer Mock Scenarios" },
+                                    { label: "Resume Logic", text: "Automated Path-to-Impact Analysis" },
+                                    { label: "Kill Switch", text: "Red-Flag Detection & Neutralization" },
+                                    { label: "ROI Roadmap", text: "Personalized Salary Leverage Guide" },
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 items-start p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="w-1.5 h-1.5 bg-accent rounded-full mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">{item.label}</p>
+                                            <p className="text-[11px] font-bold opacity-40 leading-snug uppercase tracking-tight">{item.text}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors flex items-center gap-2">
+                                <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                <span className="relative z-10 group-hover:text-black">Inquire About Access</span>
+                                <ArrowRight size={18} className="relative z-10" />
+                            </button>
                         </div>
                     </motion.div>
 
