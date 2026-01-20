@@ -57,12 +57,21 @@ export default function AdminDashboard() {
 
     // --- BLOG FUNCTIONS ---
     async function fetchBlogs() {
-        const { data, error } = await supabase.from('blogs').select('*').order('created_at', { ascending: false })
+        const { data, error } = await supabase
+            .from('blogs')
+            .select('*')
+            .order('created_at', { ascending: false })
+
         if (error) {
             console.error('Fetch Blogs Error:', error)
             showMsg(error.message, 'error')
         }
-        if (data) setBlogs(data)
+        if (data) {
+            const sorted = [...data].sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
+            setBlogs(sorted)
+        }
     }
 
     async function deleteBlog(id: string) {
