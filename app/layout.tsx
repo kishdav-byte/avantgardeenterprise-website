@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Redefining the future with bold innovation.",
 };
 
+import { ChatBot } from "@/components/ChatBot";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +23,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${outfit.variable} antialiased selection:bg-accent selection:text-accent-foreground`}>
         {children}
+        <ChatBot />
       </body>
     </html>
   );

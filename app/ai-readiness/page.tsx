@@ -77,6 +77,11 @@ const questions = [
         question: "What budget have you allocated for AI in the next 12 months?",
         type: "single",
         options: ["Under $10k", "$10k - $50k", "$50k - $200k", "$200k+", "Not yet determined"]
+    },
+    {
+        id: "lead",
+        question: "Where should we send your full AI Blueprint?",
+        type: "form"
     }
 ]
 
@@ -85,16 +90,18 @@ export default function AIReadinessPage() {
     const [answers, setAnswers] = useState<Record<string, any>>({})
     const [isComplete, setIsComplete] = useState(false)
     const [score, setScore] = useState(0)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [leadInfo, setLeadInfo] = useState({ name: "", email: "" })
 
     const handleSelect = (value: any) => {
         const currentQuestion = questions[step]
+
+        if (currentQuestion.id === "lead") return // Handled by form submission
 
         if (currentQuestion.type === "single") {
             setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }))
             if (step < questions.length - 1) {
                 setTimeout(() => setStep(step + 1), 300)
-            } else {
-                calculateResults()
             }
         } else {
             const currentAnswers = answers[currentQuestion.id] || []
@@ -108,8 +115,6 @@ export default function AIReadinessPage() {
     const nextStep = () => {
         if (step < questions.length - 1) {
             setStep(step + 1)
-        } else {
-            calculateResults()
         }
     }
 
@@ -117,13 +122,48 @@ export default function AIReadinessPage() {
         if (step > 0) setStep(step - 1)
     }
 
-    const calculateResults = () => {
-        // Simple logic: weighted average of maturity and urgency
+    const handleSubmitLead = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSubmitting(true)
+
+        // Calculate Score
         const maturityValue = typeof answers.maturity === 'object' ? answers.maturity.value : 20
         const urgencyValue = typeof answers.urgency === 'object' ? answers.urgency.value : 20
         const finalScore = Math.round((maturityValue + urgencyValue) / 2)
         setScore(finalScore)
-        setIsComplete(true)
+
+        try {
+            // Synthesis of message
+            const message = `
+AI READINESS ASSESSMENT RESULTS
+------------------------------
+Readiness Score: ${finalScore}%
+Industry: ${answers.industry}
+Size: ${answers.size}
+Role: ${answers.role}
+Implementation Status: ${answers.maturity?.label || answers.maturity}
+Timeline: ${answers.urgency?.label || answers.urgency}
+Challenges: ${(answers.challenges || []).join(', ')}
+Preventing: ${(answers.friction || []).join(', ')}
+Budget: ${answers.budget}
+            `.trim()
+
+            await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: leadInfo.name,
+                    email: leadInfo.email,
+                    message: message
+                })
+            })
+
+            setIsComplete(true)
+        } catch (error) {
+            console.error("Submission failed:", error)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -186,35 +226,70 @@ export default function AIReadinessPage() {
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {questions[step].options.map((option: any, idx: number) => {
-                                            const label = typeof option === 'string' ? option : option.label
-                                            const isSelected = questions[step].type === "single"
-                                                ? answers[questions[step].id] === option
-                                                : (answers[questions[step].id] || []).includes(option)
+                                    {questions[step].type === "form" ? (
+                                        <form onSubmit={handleSubmitLead} className="space-y-6 max-w-lg">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Full Name</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={leadInfo.name}
+                                                    onChange={(e) => setLeadInfo(prev => ({ ...prev, name: e.target.value }))}
+                                                    placeholder="Enter your name"
+                                                    className="w-full bg-white/5 border border-white/10 p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Business Email</label>
+                                                <input
+                                                    required
+                                                    type="email"
+                                                    value={leadInfo.email}
+                                                    onChange={(e) => setLeadInfo(prev => ({ ...prev, email: e.target.value }))}
+                                                    placeholder="you@company.com"
+                                                    className="w-full bg-white/5 border border-white/10 p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
+                                                />
+                                            </div>
+                                            <button
+                                                disabled={isSubmitting}
+                                                type="submit"
+                                                className="w-full bg-white text-black p-6 font-black uppercase tracking-widest text-xs hover:bg-accent transition-all flex items-center justify-center gap-2"
+                                            >
+                                                {isSubmitting ? "Generating Profile..." : "Analyze My Results"}
+                                                {!isSubmitting && <ChevronRight size={18} />}
+                                            </button>
+                                        </form>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {questions[step].options?.map((option: any, idx: number) => {
+                                                const label = typeof option === 'string' ? option : option.label
+                                                const isSelected = questions[step].type === "single"
+                                                    ? answers[questions[step].id] === option
+                                                    : (answers[questions[step].id] || []).includes(option)
 
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => handleSelect(option)}
-                                                    className={`group relative p-6 text-left border transition-all duration-300 overflow-hidden ${isSelected
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => handleSelect(option)}
+                                                        className={`group relative p-6 text-left border transition-all duration-300 overflow-hidden ${isSelected
                                                             ? 'bg-accent/10 border-accent text-white shadow-[0_0_30px_rgba(255,95,31,0.1)]'
                                                             : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30 hover:bg-white/[0.07]'
-                                                        }`}
-                                                >
-                                                    <div className="relative z-10 flex items-center justify-between">
-                                                        <span className="text-sm font-black uppercase tracking-widest">{label}</span>
-                                                        {isSelected && <CheckCircle2 size={18} className="text-accent" />}
-                                                    </div>
+                                                            }`}
+                                                    >
+                                                        <div className="relative z-10 flex items-center justify-between">
+                                                            <span className="text-sm font-black uppercase tracking-widest">{label}</span>
+                                                            {isSelected && <CheckCircle2 size={18} className="text-accent" />}
+                                                        </div>
 
-                                                    {/* Decorative Elements */}
-                                                    <div className={`absolute top-0 right-0 p-2 opacity-5 pointer-events-none transition-transform group-hover:scale-110 ${isSelected ? 'opacity-20' : ''}`}>
-                                                        <Cpu size={40} />
-                                                    </div>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
+                                                        {/* Decorative Elements */}
+                                                        <div className={`absolute top-0 right-0 p-2 opacity-5 pointer-events-none transition-transform group-hover:scale-110 ${isSelected ? 'opacity-20' : ''}`}>
+                                                            <Cpu size={40} />
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
 
                                     <div className="pt-12 flex items-center justify-between">
                                         <button
@@ -255,15 +330,15 @@ export default function AIReadinessPage() {
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl group hover:border-accent/30 transition-all">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl transition-all">
                                     <div className="text-accent font-black text-4xl mb-2 italic italic">{score}%</div>
                                     <div className="text-[10px] font-black uppercase tracking-widest opacity-40">Readiness Score</div>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl group hover:border-accent/30 transition-all">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl transition-all">
                                     <div className="text-white font-black text-4xl mb-2 italic italic">ELITE</div>
                                     <div className="text-[10px] font-black uppercase tracking-widest opacity-40">Profile Status</div>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl group hover:border-accent/30 transition-all">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl transition-all">
                                     <div className="text-white font-black text-4xl mb-2 italic italic">12.4x</div>
                                     <div className="text-[10px] font-black uppercase tracking-widest opacity-40">Potential ROI</div>
                                 </div>
@@ -271,12 +346,12 @@ export default function AIReadinessPage() {
 
                             <div className="max-w-2xl mx-auto space-y-8">
                                 <p className="text-white/70 text-lg leading-relaxed">
-                                    Our analysis indicates your business is in a prime position to deploy high-concurrency AI systems. We’ve prepared a custom roadmap based on your current scale and maturity.
+                                    Our analysis indicates your business is in a prime position to deploy high-concurrency AI systems. We’ve sent your full roadmap to <strong>{leadInfo.email}</strong>.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
                                     <Link href="/contact" className="px-12 py-6 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors">
-                                        Unlock Full Roadmap
+                                        Speak with an Architect
                                     </Link>
                                     <Link href="/dashboard" className="px-12 py-6 border border-white/10 text-white font-black uppercase tracking-widest text-xs hover:bg-accent hover:border-accent transition-all">
                                         Return to Portal
