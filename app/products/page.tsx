@@ -157,57 +157,86 @@ export default function ProductsPage() {
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-32 group"
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-32 group"
                     >
-                        {/* Visual Side */}
+                        {/* Visual Side - Book Cover */}
                         <div className="relative order-2 lg:order-1 lg:col-span-5">
-                            <div className="aspect-square lg:aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative backdrop-blur-sm group-hover:border-accent/30 transition-colors flex items-center justify-center">
-                                {/* Abstract Visualization */}
-                                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 opacity-50" />
-                                <div className="text-center relative z-10 p-8">
-                                    <div className="w-48 h-64 border border-white/20 bg-white/5 mx-auto mb-6 flex items-center justify-center rounded-r-xl shadow-2xl relative">
-                                        <div className="absolute left-2 top-0 bottom-0 w-px bg-white/10" />
-                                        <BookOpen size={48} className="text-accent" />
-                                    </div>
-                                    <div className="absolute -bottom-4 right-12 bg-accent text-black text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded">
-                                        Best Seller
-                                    </div>
+                            <div className="relative aspect-[2/3] max-w-sm mx-auto group">
+                                {/* Glow Effect */}
+                                <div className="absolute inset-x-[-20px] inset-y-[-20px] bg-accent/20 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+                                <div className="relative h-full w-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-transform duration-500 group-hover:scale-[1.02] group-hover:-rotate-1">
+                                    <img
+                                        src="/ai-advantage-cover.png"
+                                        alt="The AI Advantage for Small Business Book Cover"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    {/* Glass Overlay on hover */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-accent/20 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                </div>
+
+                                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent text-black text-[10px] font-black uppercase tracking-[0.3em] px-6 py-2 rounded-full shadow-xl z-20 whitespace-nowrap">
+                                    Amazon #1 Release
                                 </div>
                             </div>
                         </div>
 
                         {/* Content Side */}
                         <div className="order-1 lg:order-2 lg:col-span-7">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
+                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 italic italic">
                                 AI Advantage
                             </h2>
-                            <p className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-8">
-                                The Small Business Blueprint
+                            <p className="text-accent text-[11px] font-bold uppercase tracking-[0.4em] mb-8">
+                                The Small Business Blueprint // By David Kish
                             </p>
 
-                            <p className="text-white/70 leading-relaxed mb-8 text-lg">
-                                A definitive guide designed to demystify artificial intelligence for enterprise growth. This comprehensive framework includes readiness assessments, a 4-phase implementation strategy, and real-world case studies to transform your business operations.
-                            </p>
+                            <div className="space-y-6 mb-10">
+                                <div className="bg-white/[0.03] border-l-2 border-accent p-6 rounded-r-2xl italic italic relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
+                                        <BookOpen size={64} />
+                                    </div>
+                                    <p className="text-white/70 text-lg leading-relaxed mb-4">
+                                        "If you picked up this book, it's very likely that you are exhausted. You're probably wearing more hats than any reasonable person should—CEO, accountant, customer service rep, and marketing director."
+                                    </p>
+                                    <p className="text-white/40 text-sm leading-relaxed">
+                                        Andrew owned a pizzeria. He was passionate about his craft but drowning in manual processes. He was working 16-hour days but still flying blind. This book is the story of how that's changing for every small business owner.
+                                    </p>
+                                </div>
 
-                            <ul className="space-y-4 mb-10">
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>Strategic Framework:</strong> 4-phase implementation roadmap</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>Actionable Tools:</strong> Readiness assessment & ROI calculators</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-white/80">
-                                    <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                                    <span><strong>Complete Workbook:</strong> Step-by-step pilot project planner</span>
-                                </li>
+                                <p className="text-white/60 leading-relaxed text-sm uppercase tracking-widest font-bold">
+                                    Embracing AI isn't about replacing your human touch—it's about amplifying it. It's about getting back the time and energy you need to focus on what truly matters.
+                                </p>
+                            </div>
+
+                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                                {[
+                                    { label: "Strategic roadmap", text: "A 4-phase implementation plan" },
+                                    { label: "Leveling the Field", text: "Tools that compete with giants" },
+                                    { label: "ROI Calculators", text: "Hard data for every investment" },
+                                    { label: "The Workbook", text: "Integrated interactive portal" },
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 items-start p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="w-1.5 h-1.5 bg-accent rounded-full mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">{item.label}</p>
+                                            <p className="text-[11px] font-bold opacity-40 leading-snug uppercase tracking-tight">{item.text}</p>
+                                        </div>
+                                    </li>
+                                ))}
                             </ul>
 
                             <div className="flex flex-wrap gap-4">
-                                <a href="https://a.co/d/6oCHAhs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent transition-colors">
-                                    Buy on Amazon <ArrowRight size={16} />
+                                <a href="https://a.co/d/6oCHAhs" target="_blank" rel="noopener noreferrer" className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors flex items-center gap-2">
+                                    <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                    <span className="relative z-10 group-hover:text-black">Buy on Amazon</span>
+                                    <ArrowRight size={18} className="relative z-10" />
                                 </a>
+                                <Link
+                                    href="/dashboard/workbook"
+                                    className="px-10 py-5 border border-white/10 text-white font-black uppercase tracking-widest text-xs hover:border-accent hover:text-accent transition-all flex items-center gap-2"
+                                >
+                                    Access Interactive Workbook
+                                </Link>
                             </div>
                         </div>
                     </motion.div>
