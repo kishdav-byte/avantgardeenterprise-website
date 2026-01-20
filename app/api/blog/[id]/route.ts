@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params
-        const { content, title, social_snippets, status } = await request.json()
+        const { content, title, social_snippets, status, published_at } = await request.json()
 
         const cookieStore = await cookies()
         const supabase = createServerClient(
@@ -51,7 +51,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (title) updates.title = title
         if (social_snippets) updates.generated_social_snippets = social_snippets
         if (status) updates.status = status
-        if (status === 'published') updates.published_at = new Date().toISOString()
+
+        if (published_at) {
+            updates.published_at = published_at
+        } else if (status === 'published') {
+            updates.published_at = new Date().toISOString()
+        }
 
         const { data, error } = await supabase
             .from('blogs')

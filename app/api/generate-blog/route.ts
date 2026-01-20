@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
         const openai = new OpenAI({ apiKey })
 
-        const { topic, focus, keywords, productName, productUrl, authorName, length = '1200', imageStyle = 'Minimalist' } = await request.json()
+        const { topic, focus, keywords, productName, productUrl, authorName, length = '1200', imageStyle = 'Minimalist', publishDate } = await request.json()
 
         // Auth check
         const cookieStore = await cookies()
@@ -176,6 +176,7 @@ The image should be appealing, clean, and suited for a blog header — but it mu
                 excerpt: blogData.excerpt,
                 featured_image: finalImageUrl, // Saved permanent URL from Supabase Storage
                 status: 'draft',
+                published_at: publishDate ? new Date(publishDate).toISOString() : null,
                 author_id: session.user.id,
                 author_name: authorName || 'Avant-Garde Team',
                 generated_social_snippets: blogData.social_snippets,

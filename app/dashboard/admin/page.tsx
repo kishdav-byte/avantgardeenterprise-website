@@ -34,6 +34,7 @@ export default function AdminDashboard() {
     const [generatedBlog, setGeneratedBlog] = useState<any>(null)
     const [blogs, setBlogs] = useState<any[]>([])
     const [editingBlog, setEditingBlog] = useState<any>(null)
+    const [publishDate, setPublishDate] = useState(new Date().toISOString().split('T')[0])
     const [refreshTrigger, setRefreshTrigger] = useState(0)
 
     // --- BOT STATE ---
@@ -99,7 +100,8 @@ export default function AdminDashboard() {
                 body: JSON.stringify({
                     content: editingBlog.content,
                     title: editingBlog.title,
-                    status: editingBlog.status
+                    status: editingBlog.status,
+                    published_at: editingBlog.published_at
                 }),
             })
             const data = await res.json()
@@ -135,7 +137,7 @@ export default function AdminDashboard() {
             const res = await fetch("/api/generate-blog", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ topic, focus, keywords, productName, productUrl, authorName, length, imageStyle }),
+                body: JSON.stringify({ topic, focus, keywords, productName, productUrl, authorName, length, imageStyle, publishDate }),
             })
             const data = await res.json()
             if (data.error) throw new Error(data.error)
@@ -276,6 +278,14 @@ export default function AdminDashboard() {
                                                         </button>
                                                     </div>
                                                 </InputGroup>
+                                                <InputGroup label="Publish Date">
+                                                    <input
+                                                        type="date"
+                                                        className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none"
+                                                        value={publishDate}
+                                                        onChange={e => setPublishDate(e.target.value)}
+                                                    />
+                                                </InputGroup>
                                                 <Button onClick={handleGenerate} disabled={loading} className="w-full py-8 text-lg font-black uppercase tracking-[0.2em] bg-white text-black hover:bg-accent transition-all">
                                                     {loading ? "Initializing Synapse..." : "Generate Intelligence Post"}
                                                 </Button>
@@ -309,7 +319,7 @@ export default function AdminDashboard() {
                                                                 <div className={`w-2 h-2 rounded-full ${blog.status === 'published' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                                                                 <div>
                                                                     <h3 className="text-sm font-black uppercase tracking-tight line-clamp-1">{blog.title}</h3>
-                                                                    <p className="text-[8px] font-bold opacity-30 uppercase tracking-[0.2em]">{new Date(blog.created_at).toLocaleDateString()}</p>
+                                                                    <p className="text-[8px] font-bold opacity-30 uppercase tracking-[0.2em]">{new Date(blog.published_at || blog.created_at).toLocaleDateString()}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -340,12 +350,22 @@ export default function AdminDashboard() {
                                                     <InputGroup label="Title">
                                                         <input className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none font-bold" value={editingBlog.title} onChange={e => setEditingBlog({ ...editingBlog, title: e.target.value })} />
                                                     </InputGroup>
-                                                    <InputGroup label="Protocol Status">
-                                                        <select className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none appearance-none font-black uppercase tracking-widest" value={editingBlog.status} onChange={e => setEditingBlog({ ...editingBlog, status: e.target.value })}>
-                                                            <option value="draft">Draft</option>
-                                                            <option value="published">Published</option>
-                                                        </select>
-                                                    </InputGroup>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <InputGroup label="Protocol Status">
+                                                            <select className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none appearance-none font-black uppercase tracking-widest" value={editingBlog.status} onChange={e => setEditingBlog({ ...editingBlog, status: e.target.value })}>
+                                                                <option value="draft">Draft</option>
+                                                                <option value="published">Published</option>
+                                                            </select>
+                                                        </InputGroup>
+                                                        <InputGroup label="Publish Date">
+                                                            <input
+                                                                type="date"
+                                                                className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none font-bold"
+                                                                value={editingBlog.published_at ? new Date(editingBlog.published_at).toISOString().split('T')[0] : ''}
+                                                                onChange={e => setEditingBlog({ ...editingBlog, published_at: new Date(e.target.value).toISOString() })}
+                                                            />
+                                                        </InputGroup>
+                                                    </div>
                                                     <InputGroup label="Neural Content">
                                                         <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-xs focus:border-accent outline-none min-h-[300px] leading-relaxed font-mono" value={editingBlog.content} onChange={e => setEditingBlog({ ...editingBlog, content: e.target.value })} />
                                                     </InputGroup>
