@@ -32,9 +32,8 @@ export default function AdminDashboard() {
     const [authorName, setAuthorName] = useState('Avant-Garde Team')
     const [imageStyle, setImageStyle] = useState("Minimalist")
     const [generatedBlog, setGeneratedBlog] = useState<any>(null)
-    const [isEditing, setIsEditing] = useState(false)
-    const [editContent, setEditContent] = useState("")
     const [blogs, setBlogs] = useState<any[]>([])
+    const [editingBlog, setEditingBlog] = useState<any>(null)
     const [refreshTrigger, setRefreshTrigger] = useState(0)
 
     // --- BOT STATE ---
@@ -60,6 +59,46 @@ export default function AdminDashboard() {
     async function fetchBlogs() {
         const { data, error } = await supabase.from('blogs').select('*').order('created_at', { ascending: false })
         if (data) setBlogs(data)
+    }
+
+    async function deleteBlog(id: string) {
+        if (!confirm("Permanently delete this blog post?")) return
+        setLoading(true)
+        try {
+            const { error } = await supabase.from('blogs').delete().eq('id', id)
+            if (error) throw error
+            showMsg("Blog deleted successfully.")
+            fetchBlogs()
+        } catch (error: any) {
+            showMsg(error.message, 'error')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function handleUpdateBlog() {
+        if (!editingBlog) return
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/blog/${editingBlog.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content: editingBlog.content,
+                    title: editingBlog.title,
+                    status: editingBlog.status
+                }),
+            })
+            const data = await res.json()
+            if (data.error) throw new Error(data.error)
+            showMsg("Blog updated successfully!")
+            setEditingBlog(null)
+            fetchBlogs()
+        } catch (error: any) {
+            showMsg(error.message, 'error')
+        } finally {
+            setLoading(false)
+        }
     }
 
     async function handleSuggestKeywords() {
@@ -88,7 +127,6 @@ export default function AdminDashboard() {
             const data = await res.json()
             if (data.error) throw new Error(data.error)
             setGeneratedBlog(data.blog)
-            setEditContent(data.blog.content)
             showMsg("Blog generated successfully!")
         } catch (error: any) { showMsg(error.message, 'error') } finally { setLoading(false) }
     }
@@ -232,19 +270,90 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
 
-                                    {/* Preview & Archive would go here or below - simplified for brevity but maintaining existing logic */}
+                                    {/* Preview & Archive */}
                                     <div className="space-y-8">
-                                        <h2 className="text-2xl font-black uppercase tracking-tighter italic">Preview Area</h2>
-                                        {!generatedBlog ? (
-                                            <div className="aspect-video bg-white/5 border border-white/10 border-dashed rounded-[32px] flex flex-col items-center justify-center text-white/20">
-                                                <Wand2 size={48} className="mb-4 opacity-10" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Neural Link...</p>
+                                        <div className="flex justify-between items-center">
+                                            <h2 className="text-2xl font-black uppercase tracking-tighter italic">Preview & <span className="text-accent">Archive</span></h2>
+                                            {generatedBlog && (
+                                                <Button
+                                                    onClick={() => {
+                                                        setEditingBlog(generatedBlog)
+                                                        setGeneratedBlog(null)
+                                                    }}
+                                                    className="bg-accent text-black scale-75 uppercase font-black"
+                                                >
+                                                    Edit Generation
+                                                </Button>
+                                            )}
+                                        </div>
+
+                                        {!generatedBlog && !editingBlog ? (
+                                            <div className="space-y-4">
+                                                {blogs.map((blog) => (
+                                                    <div key={blog.id} className="bg-white/5 border border-white/10 p-6 rounded-3xl hover:border-accent/30 transition-all group">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`w-2 h-2 rounded-full ${blog.status === 'published' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                                                                <div>
+                                                                    <h3 className="text-sm font-black uppercase tracking-tight line-clamp-1">{blog.title}</h3>
+                                                                    <p className="text-[8px] font-bold opacity-30 uppercase tracking-[0.2em]">{new Date(blog.created_at).toLocaleDateString()}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <button onClick={() => setEditingBlog(blog)} className="p-2 text-white/20 hover:text-accent transition-colors"><Eye size={16} /></button>
+                                                                <button onClick={() => deleteBlog(blog.id)} className="p-2 text-white/20 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <span className="text-[8px] font-black px-2 py-1 bg-white/5 rounded-md opacity-40 uppercase">{blog.author_name || 'System'}</span>
+                                                            <span className="text-[8px] font-black px-2 py-1 bg-accent/20 text-accent rounded-md uppercase">SEO: {blog.seo_score}%</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {blogs.length === 0 && (
+                                                    <div className="aspect-video bg-white/5 border border-white/10 border-dashed rounded-[32px] flex flex-col items-center justify-center text-white/20">
+                                                        <Wand2 size={48} className="mb-4 opacity-10" />
+                                                        <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Neural Link...</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : editingBlog ? (
+                                            <div className="bg-white/5 border border-white/10 p-8 rounded-[32px] space-y-6">
+                                                <div className="flex justify-between items-center">
+                                                    <h3 className="text-xl font-black uppercase tracking-tighter italic text-accent">Edit Analysis</h3>
+                                                    <button onClick={() => setEditingBlog(null)} className="text-white/40 hover:text-white"><Plus className="rotate-45" /></button>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <InputGroup label="Title">
+                                                        <input className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none font-bold" value={editingBlog.title} onChange={e => setEditingBlog({ ...editingBlog, title: e.target.value })} />
+                                                    </InputGroup>
+                                                    <InputGroup label="Protocol Status">
+                                                        <select className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm focus:border-accent outline-none appearance-none font-black uppercase tracking-widest" value={editingBlog.status} onChange={e => setEditingBlog({ ...editingBlog, status: e.target.value })}>
+                                                            <option value="draft">Draft</option>
+                                                            <option value="published">Published</option>
+                                                        </select>
+                                                    </InputGroup>
+                                                    <InputGroup label="Neural Content">
+                                                        <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-xs focus:border-accent outline-none min-h-[300px] leading-relaxed font-mono" value={editingBlog.content} onChange={e => setEditingBlog({ ...editingBlog, content: e.target.value })} />
+                                                    </InputGroup>
+                                                    <div className="flex gap-4">
+                                                        <Button onClick={handleUpdateBlog} disabled={loading} className="flex-1 py-6 bg-accent text-black font-black uppercase">Commit Changes</Button>
+                                                        <Button onClick={() => setEditingBlog(null)} variant="outline" className="py-6 border-white/10 font-black uppercase">Cancel</Button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="bg-white/5 border border-white/10 p-8 rounded-[32px] space-y-6">
                                                 <img src={generatedBlog.featured_image} className="w-full aspect-video object-cover rounded-2xl" />
                                                 <h3 className="text-2xl font-bold">{generatedBlog.title}</h3>
                                                 <div className="prose prose-invert max-h-[400px] overflow-y-auto text-sm opacity-60" dangerouslySetInnerHTML={{ __html: generatedBlog.content }} />
+                                                <div className="flex gap-4">
+                                                    <Button onClick={() => {
+                                                        setEditingBlog(generatedBlog)
+                                                        setGeneratedBlog(null)
+                                                    }} className="flex-1 py-6 bg-accent text-black font-black uppercase">Refine & Save</Button>
+                                                    <Button onClick={() => setGeneratedBlog(null)} variant="outline" className="py-6 border-white/10 font-black uppercase">Dismiss</Button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
