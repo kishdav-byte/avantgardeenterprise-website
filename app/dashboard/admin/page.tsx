@@ -61,6 +61,7 @@ export default function AdminDashboard() {
         const { data, error } = await supabase
             .from('blogs')
             .select('*')
+            .order('published_at', { ascending: false, nullsFirst: false })
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -68,10 +69,7 @@ export default function AdminDashboard() {
             showMsg(error.message, 'error')
         }
         if (data) {
-            const sorted = [...data].sort((a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            )
-            setBlogs(sorted)
+            setBlogs(data)
         }
     }
 
