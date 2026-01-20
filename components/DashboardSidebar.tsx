@@ -20,6 +20,7 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
     const handleSignOut = async () => {
         await supabase.auth.signOut()
         router.push('/')
+        router.refresh()
     }
 
     return (

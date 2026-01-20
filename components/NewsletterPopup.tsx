@@ -12,15 +12,21 @@ export function NewsletterPopup() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
     useEffect(() => {
-        const hasJoined = localStorage.getItem("newsletter_joined")
-        const hasDismissed = localStorage.getItem("newsletter_dismissed")
+        const checkAuthAndShow = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            const hasJoined = localStorage.getItem("newsletter_joined")
+            const hasDismissed = localStorage.getItem("newsletter_dismissed")
 
-        if (!hasJoined && !hasDismissed) {
-            const timer = setTimeout(() => {
-                setIsVisible(true)
-            }, 5000) // Show after 5 seconds
-            return () => clearTimeout(timer)
+            // Only show if: not logged in AND hasn't joined AND hasn't dismissed
+            if (!session && !hasJoined && !hasDismissed) {
+                const timer = setTimeout(() => {
+                    setIsVisible(true)
+                }, 5000)
+                return () => clearTimeout(timer)
+            }
         }
+
+        checkAuthAndShow()
     }, [])
 
     const handleDismiss = () => {
