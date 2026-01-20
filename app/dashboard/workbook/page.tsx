@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { supabase } from "@/lib/supabaseClient"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -94,6 +95,11 @@ export default function WorkbookPage() {
             {/* Sidebar Navigation */}
             <aside className="w-72 border-r border-white/5 bg-black/40 backdrop-blur-xl p-6 hidden lg:flex flex-col gap-2 h-screen sticky top-0">
                 <div className="mb-8 px-4">
+                    <Link href="/dashboard" className="mb-6 block">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent hover:text-white transition-colors cursor-pointer">
+                            ← Return to Portal
+                        </span>
+                    </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-6 h-6 border border-accent rotate-45 flex items-center justify-center">
                             <div className="w-2 h-2 bg-accent" />
