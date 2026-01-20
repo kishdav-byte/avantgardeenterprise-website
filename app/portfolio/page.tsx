@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 
 const projects = [
     { title: "Neuro-Sync Platform", category: "AI Engineering", year: "2024", link: "#" },
-    { title: "Total Package Interview", category: "AI Career Coach", year: "2025", link: "https://totalpackageinterview.com" },
+    { title: "Total Package Interview", category: "AI Career Coach", year: "2025", link: "https://www.totalpackageinterview.com/" },
     { title: "Lumina Interface", category: "UX/UI Design", year: "2024", link: "#" },
     { title: "Ghost Protocol Security", category: "Cybersecurity", year: "2023", link: "#" },
 ]

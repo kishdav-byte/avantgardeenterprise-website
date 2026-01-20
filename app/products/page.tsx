@@ -174,11 +174,16 @@ export default function ProductsPage() {
                                 ))}
                             </ul>
 
-                            <button className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors flex items-center gap-2">
+                            <a
+                                href="https://www.totalpackageinterview.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors flex items-center gap-2 inline-flex"
+                            >
                                 <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                                 <span className="relative z-10 group-hover:text-black">Inquire About Access</span>
                                 <ArrowRight size={18} className="relative z-10" />
-                            </button>
+                            </a>
                         </div>
                     </motion.div>
 
