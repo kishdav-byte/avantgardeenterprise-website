@@ -208,9 +208,6 @@ export default function ProductsPage() {
                                 <a href="https://a.co/d/6oCHAhs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent transition-colors">
                                     Buy on Amazon <ArrowRight size={16} />
                                 </a>
-                                <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 border border-white/20 text-white font-bold uppercase tracking-widest text-xs hover:border-accent hover:text-accent transition-colors">
-                                    Contact for Bulk <ArrowRight size={16} />
-                                </Link>
                             </div>
                         </div>
                     </motion.div>
