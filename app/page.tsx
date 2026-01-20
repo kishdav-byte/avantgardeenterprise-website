@@ -6,12 +6,14 @@ import { About } from "@/components/sections/About"
 import { ContactForm } from "@/components/sections/ContactForm"
 import { NewsletterPopup } from "@/components/NewsletterPopup"
 import { ProductShowcase } from "@/components/sections/ProductShowcase"
+import { DiscoveryCTA } from "@/components/sections/DiscoveryCTA"
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
       <Navbar />
       <Hero />
+      <DiscoveryCTA />
       <NewsletterPopup />
       <Footer />
     </main>
