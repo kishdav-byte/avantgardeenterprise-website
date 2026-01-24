@@ -73,7 +73,7 @@ export function ContactForm() {
                         START THE CONVERSATION
                     </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 bg-white/5 p-8 rounded-2xl border border-white/10">
+                    <form onSubmit={handleSubmit} className="space-y-6 bg-white/5 p-6 md:p-8 rounded-2xl border border-white/10">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium mb-2 text-white/70">
                                 Name

@@ -95,7 +95,7 @@ export function NewsletterPopup() {
                             <X size={24} />
                         </button>
 
-                        <div className="p-8 md:p-12">
+                        <div className="p-6 md:p-12">
                             {status === 'success' ? (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
@@ -124,7 +124,7 @@ export function NewsletterPopup() {
                                         </div>
                                     </div>
 
-                                    <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 leading-[0.9] italic">
+                                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 leading-[0.9] italic">
                                         Unlock the <span className="text-accent underline decoration-white/10">AI Advantage Plan</span>
                                     </h2>
 

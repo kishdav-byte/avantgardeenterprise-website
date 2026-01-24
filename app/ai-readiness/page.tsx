@@ -170,7 +170,7 @@ Budget: ${answers.budget}
         <main className="min-h-screen bg-black text-white">
             <Navbar />
 
-            <section className="pt-32 pb-24 px-4 overflow-hidden relative">
+            <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-4 overflow-hidden relative">
                 {/* Background Grid/UI */}
                 <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{
                     backgroundImage: `linear-gradient(rgba(255, 95, 31, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 95, 31, 0.05) 1px, transparent 1px)`,
@@ -181,7 +181,7 @@ Budget: ${answers.budget}
                     {!isComplete ? (
                         <>
                             {/* Header / Meta */}
-                            <header className="mb-12 flex justify-between items-end">
+                            <header className="mb-8 md:mb-12 flex justify-between items-end">
                                 <div>
                                     <div className="text-accent text-[10px] font-black uppercase tracking-[0.4em] mb-4">Discovery Engine // 001</div>
                                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase italic italic">
@@ -195,7 +195,7 @@ Budget: ${answers.budget}
                             </header>
 
                             {/* Progress Bar */}
-                            <div className="w-full h-1 bg-white/5 mb-20 overflow-hidden rounded-full">
+                            <div className="w-full h-1 bg-white/5 mb-12 md:mb-20 overflow-hidden rounded-full">
                                 <motion.div
                                     className="h-full bg-accent shadow-[0_0_15px_rgba(255,95,31,0.5)]"
                                     initial={{ width: 0 }}
@@ -210,13 +210,13 @@ Budget: ${answers.budget}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-12"
+                                    className="space-y-8 md:space-y-12"
                                 >
-                                    <div className="space-y-4">
-                                        <div className="w-12 h-12 border border-accent rotate-45 flex items-center justify-center mb-8">
-                                            <span className="text-accent text-sm font-black -rotate-45">{step + 1}</span>
+                                    <div className="space-y-4 md:space-y-6">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 border border-accent rotate-45 flex items-center justify-center mb-6 md:mb-8">
+                                            <span className="text-accent text-xs md:text-sm font-black -rotate-45">{step + 1}</span>
                                         </div>
-                                        <h2 className="text-2xl md:text-4xl font-bold tracking-tight leading-tight uppercase">
+                                        <h2 className="text-xl md:text-4xl font-bold tracking-tight leading-tight uppercase">
                                             {questions[step].question}
                                         </h2>
                                         {questions[step].type === "multi" && (
@@ -236,7 +236,7 @@ Budget: ${answers.budget}
                                                     value={leadInfo.name}
                                                     onChange={(e) => setLeadInfo(prev => ({ ...prev, name: e.target.value }))}
                                                     placeholder="Enter your name"
-                                                    className="w-full bg-white/5 border border-white/10 p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
+                                                    className="w-full bg-white/5 border border-white/10 p-4 md:p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -247,13 +247,13 @@ Budget: ${answers.budget}
                                                     value={leadInfo.email}
                                                     onChange={(e) => setLeadInfo(prev => ({ ...prev, email: e.target.value }))}
                                                     placeholder="you@company.com"
-                                                    className="w-full bg-white/5 border border-white/10 p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
+                                                    className="w-full bg-white/5 border border-white/10 p-4 md:p-6 text-sm focus:border-accent outline-none transition-all placeholder:opacity-20"
                                                 />
                                             </div>
                                             <button
                                                 disabled={isSubmitting}
                                                 type="submit"
-                                                className="w-full bg-white text-black p-6 font-black uppercase tracking-widest text-xs hover:bg-accent transition-all flex items-center justify-center gap-2"
+                                                className="w-full bg-white text-black p-4 md:p-6 font-black uppercase tracking-widest text-xs hover:bg-accent transition-all flex items-center justify-center gap-2"
                                             >
                                                 {isSubmitting ? "Generating Profile..." : "Analyze My Results"}
                                                 {!isSubmitting && <ChevronRight size={18} />}
@@ -271,7 +271,7 @@ Budget: ${answers.budget}
                                                     <button
                                                         key={idx}
                                                         onClick={() => handleSelect(option)}
-                                                        className={`group relative p-6 text-left border transition-all duration-300 overflow-hidden ${isSelected
+                                                        className={`group relative p-4 md:p-6 text-left border transition-all duration-300 overflow-hidden ${isSelected
                                                             ? 'bg-accent/10 border-accent text-white shadow-[0_0_30px_rgba(255,95,31,0.1)]'
                                                             : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30 hover:bg-white/[0.07]'
                                                             }`}
@@ -363,16 +363,16 @@ Budget: ${answers.budget}
                 </div>
 
                 {/* Status Bar */}
-                <div className="fixed bottom-0 left-0 right-0 p-6 flex justify-between items-center pointer-events-none border-t border-white/5 bg-black/40 backdrop-blur-xl z-50">
+                <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 flex justify-between items-center pointer-events-none border-t border-white/5 bg-black/40 backdrop-blur-xl z-50">
                     <div className="flex items-center gap-4">
-                        <div className="flex gap-2">
+                        <div className="hidden sm:flex gap-2">
                             {[1, 2, 3].map(i => <div key={i} className="w-1 h-1 bg-accent rounded-full animate-pulse" />)}
                         </div>
-                        <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-40">System Analyzing: LIVE_STREAM_001</span>
+                        <span className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-40">System Analyzing: LIVE_STREAM_001</span>
                     </div>
-                    <div className="flex items-center gap-4 text-[8px] font-black uppercase tracking-[0.4em] opacity-40">
+                    <div className="flex items-center gap-4 text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-40">
                         <Activity size={10} className="text-accent" />
-                        <span>Data Secured via AES-256</span>
+                        <span className="hidden xs:inline">Data Secured via AES-256</span>
                     </div>
                 </div>
             </section>

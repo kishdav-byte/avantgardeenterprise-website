@@ -92,17 +92,17 @@ export function ChatBot() {
     }
 
     return (
-        <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-[100] flex flex-col items-end">
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
                         initial={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
                         animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                         exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
-                        className="mb-6 w-[400px] h-[600px] bg-black/95 border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-2xl backdrop-blur-xl"
+                        className="mb-4 md:mb-6 w-[calc(100vw-2rem)] md:w-[400px] h-[70vh] md:h-[600px] bg-black/95 border border-white/10 rounded-[24px] md:rounded-[32px] overflow-hidden flex flex-col shadow-2xl backdrop-blur-xl"
                     >
                         {/* Chat Header */}
-                        <div className="p-6 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                        <div className="p-4 md:p-6 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 border border-accent/40 rounded-full flex items-center justify-center relative overflow-hidden group">
                                     <div className="absolute inset-0 bg-accent/20 animate-pulse" />
@@ -125,7 +125,7 @@ export function ChatBot() {
                         </div>
 
                         {/* Messages Area */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 scrollbar-hide">
                             {messages.map((m, i) => (
                                 <motion.div
                                     key={i}
@@ -133,7 +133,7 @@ export function ChatBot() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
-                                    <div className={`max-w-[85%] p-4 rounded-2xl text-xs leading-relaxed uppercase tracking-widest font-bold ${m.role === "user"
+                                    <div className={`max-w-[85%] p-3 md:p-4 rounded-xl md:rounded-2xl text-[10px] md:text-xs leading-relaxed uppercase tracking-widest font-bold ${m.role === "user"
                                         ? "bg-white/10 text-white border border-white/10"
                                         : "bg-accent/5 text-accent border border-accent/20 italic"
                                         }`}>
@@ -159,7 +159,7 @@ export function ChatBot() {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-6 border-t border-white/10 bg-white/[0.02]">
+                        <div className="p-4 md:p-6 border-t border-white/10 bg-white/[0.02]">
                             <div className="relative group">
                                 <div className="absolute inset-0 bg-accent/5 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                                 <input

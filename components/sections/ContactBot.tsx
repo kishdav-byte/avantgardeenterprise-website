@@ -109,9 +109,9 @@ export function ContactBot() {
     }
 
     return (
-        <div className="w-full max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-[48px] overflow-hidden flex flex-col h-[700px] shadow-2xl backdrop-blur-3xl relative">
+        <div className="w-full max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden flex flex-col h-[500px] md:h-[700px] shadow-2xl backdrop-blur-3xl relative">
             {/* Header */}
-            <div className="p-8 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+            <div className="p-4 md:p-8 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <div className="w-14 h-14 border border-accent/40 rounded-full flex items-center justify-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-accent/20 animate-pulse" />
@@ -133,7 +133,7 @@ export function ContactBot() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide bg-[radial-gradient(circle_at_center,rgba(204,255,0,0.03)_0%,transparent_100%)]">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-4 md:space-y-8 scrollbar-hide bg-[radial-gradient(circle_at_center,rgba(204,255,0,0.03)_0%,transparent_100%)]">
                 {messages.map((m, i) => (
                     <motion.div
                         key={i}
@@ -141,7 +141,7 @@ export function ContactBot() {
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                     >
-                        <div className={`max-w-[80%] p-6 rounded-3xl text-sm leading-relaxed border ${m.role === "user"
+                        <div className={`max-w-[85%] md:max-w-[80%] p-4 md:p-6 rounded-2xl md:rounded-3xl text-xs md:text-sm leading-relaxed border ${m.role === "user"
                             ? "bg-white/10 text-white border-white/10"
                             : "bg-accent/5 text-accent border-accent/20 font-bold italic"
                             }`}>
@@ -167,7 +167,7 @@ export function ContactBot() {
             </div>
 
             {/* Input Area */}
-            <div className="p-10 border-t border-white/10 bg-white/[0.01]">
+            <div className="p-4 md:p-10 border-t border-white/10 bg-white/[0.01]">
                 {isComplete ? (
                     <div className="text-center py-4">
                         <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.4em]">Transmission Complete // Architect Sync Success</p>
@@ -179,8 +179,8 @@ export function ContactBot() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                            placeholder={step === 'info' ? "Enter your name or email..." : "Speak to the Architect..."}
-                            className="w-full relative z-10 bg-white/5 border border-white/10 rounded-[24px] px-8 py-6 text-sm font-bold placeholder:text-white/10 outline-none focus:border-accent/40 transition-all text-white pr-20"
+                            placeholder={step === 'info' ? "Enter name or email..." : "Speak to the Architect..."}
+                            className="w-full relative z-10 bg-white/5 border border-white/10 rounded-[16px] md:rounded-[24px] px-4 md:px-8 py-4 md:py-6 text-xs md:text-sm font-bold placeholder:text-white/10 outline-none focus:border-accent/40 transition-all text-white pr-16 md:pr-20"
                         />
                         <button
                             onClick={handleSend}
