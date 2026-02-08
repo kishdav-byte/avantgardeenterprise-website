@@ -1,8 +1,14 @@
 import { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://avant-gardeenterprise.com'
+
+    // Use a basic server-side client for sitemap generation to avoid browser-only errors
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     // Static routes
     const routes = [
