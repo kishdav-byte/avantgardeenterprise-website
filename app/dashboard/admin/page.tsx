@@ -220,15 +220,9 @@ export default function AdminDashboard() {
     }
 
     async function regenerateImage(blogToUpdate: any) {
+        console.log('Regenerating image for blog:', blogToUpdate.title)
         setIsRegeneratingImage(true)
         try {
-            const openai = await import('openai')
-            const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
-
-            if (!apiKey) {
-                throw new Error('OpenAI API key not configured')
-            }
-
             // Use the first selected style or default to Minimalist
             const style = selectedImageStyles[0] || 'Minimalist'
 
@@ -236,6 +230,8 @@ export default function AdminDashboard() {
 Do not include any text, numbers, letters, symbols, or writing in any language.
 Avoid branding, logos, or anything that resembles UI.
 Make it modern, appealing, and suited for a blog header — but it must be completely free of text.`
+
+            console.log('Calling /api/generate-image with style:', style)
 
             const response = await fetch('/api/generate-image', {
                 method: 'POST',
@@ -246,7 +242,14 @@ Make it modern, appealing, and suited for a blog header — but it must be compl
                 })
             })
 
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('API error response:', errorText)
+                throw new Error(`Failed to generate image: ${response.status} ${response.statusText}`)
+            }
+
             const data = await response.json()
+            console.log('Image generated:', data.imageUrl)
 
             if (data.error) throw new Error(data.error)
 
@@ -262,6 +265,7 @@ Make it modern, appealing, and suited for a blog header — but it must be compl
 
             showMsg('New image generated successfully!')
         } catch (error: any) {
+            console.error('Regenerate image error:', error)
             showMsg(error.message || 'Failed to regenerate image', 'error')
         } finally {
             setIsRegeneratingImage(false)
