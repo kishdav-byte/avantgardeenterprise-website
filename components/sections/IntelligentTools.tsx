@@ -31,29 +31,22 @@ const tools: Tool[] = [
 
 export function IntelligentTools() {
     return (
-        <section id="intelligent-tools" className="py-32 bg-black/40 border-y border-white/5 relative overflow-hidden">
+        <section id="intelligent-tools" className="relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent pointer-events-none" />
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="container mx-auto px-6 relative z-10">
+                {/* Separator with star */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center mb-16"
+                    className="flex items-center justify-center gap-3 mb-16"
                 >
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="w-12 h-px bg-accent" />
-                        <Sparkles className="text-accent" size={20} />
-                        <div className="w-12 h-px bg-accent" />
-                    </div>
-                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6 italic">
-                        Intelligent <span className="text-accent">Tools</span>
-                    </h2>
-                    <p className="text-white/60 text-sm md:text-base uppercase tracking-widest font-bold max-w-2xl mx-auto">
-                        Proprietary AI-powered applications built for real-world automation
-                    </p>
+                    <div className="w-12 h-px bg-accent" />
+                    <Sparkles className="text-accent" size={20} />
+                    <div className="w-12 h-px bg-accent" />
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
