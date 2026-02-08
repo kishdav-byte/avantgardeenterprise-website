@@ -8,8 +8,16 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://avant-gardeenterprise.com'),
   title: "Avant-Garde Enterprise",
   description: "Redefining the future with bold innovation.",
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 import { ChatBot } from "@/components/ChatBot";
