@@ -10,6 +10,7 @@ import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon, Save, Send, 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ImageStyleSelector, ImageSelectionGrid } from "@/components/admin/ImageStyleSelector"
+import { BlogPreview } from "@/components/admin/BlogPreview"
 
 type Tab = 'blog' | 'bot' | 'leads'
 
@@ -40,6 +41,8 @@ export default function AdminDashboard() {
     const [editingBlog, setEditingBlog] = useState<any>(null)
     const [publishDate, setPublishDate] = useState(new Date().toISOString().split('T')[0])
     const [refreshTrigger, setRefreshTrigger] = useState(0)
+    const [previewBlog, setPreviewBlog] = useState<any>(null)
+    const [isRegeneratingImage, setIsRegeneratingImage] = useState(false)
 
     // --- BOT STATE ---
     const [botGreeting, setBotGreeting] = useState("")
@@ -205,6 +208,55 @@ export default function AdminDashboard() {
             showMsg(error.message, 'error')
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function regenerateImage(blogToUpdate: any) {
+        setIsRegeneratingImage(true)
+        try {
+            const openai = await import('openai')
+            const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+
+            if (!apiKey) {
+                throw new Error('OpenAI API key not configured')
+            }
+
+            // Use the first selected style or default to Minimalist
+            const style = selectedImageStyles[0] || 'Minimalist'
+
+            const imagePrompt = `Generate a ${style.toLowerCase()} style illustration that visually captures the theme of: "${blogToUpdate.title}".
+Do not include any text, numbers, letters, symbols, or writing in any language.
+Avoid branding, logos, or anything that resembles UI.
+Make it modern, appealing, and suited for a blog header — but it must be completely free of text.`
+
+            const response = await fetch('/api/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: imagePrompt,
+                    style: style.toLowerCase() === 'realistic' ? 'natural' : 'vivid'
+                })
+            })
+
+            const data = await response.json()
+
+            if (data.error) throw new Error(data.error)
+
+            // Update the blog with new image
+            const updatedBlog = { ...blogToUpdate, featured_image: data.imageUrl }
+
+            if (previewBlog) {
+                setPreviewBlog(updatedBlog)
+            }
+            if (generatedBlog) {
+                setGeneratedBlog(updatedBlog)
+            }
+
+            showMsg('New image generated successfully!')
+        } catch (error: any) {
+            showMsg(error.message || 'Failed to regenerate image', 'error')
+        } finally {
+            setIsRegeneratingImage(false)
         }
     }
 
@@ -456,10 +508,44 @@ export default function AdminDashboard() {
                                             />
                                         ) : generatedBlog ? (
                                             <div className="bg-white/5 border border-white/10 p-8 rounded-[32px] space-y-6">
-                                                <img src={generatedBlog.featured_image} className="w-full aspect-video object-cover rounded-2xl" />
+                                                {/* Image thumbnail */}
+                                                <div className="relative group">
+                                                    <img src={generatedBlog.featured_image} className="w-full aspect-video object-cover rounded-2xl" />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => setPreviewBlog(generatedBlog)}
+                                                            className="px-6 py-3 bg-accent text-black font-black uppercase tracking-wider rounded-xl flex items-center gap-2 hover:bg-white transition-colors"
+                                                        >
+                                                            <Eye size={18} />
+                                                            Full Preview
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Title */}
                                                 <h3 className="text-2xl font-bold">{generatedBlog.title}</h3>
-                                                <div className="prose prose-invert max-h-[400px] overflow-y-auto text-sm opacity-60" dangerouslySetInnerHTML={{ __html: generatedBlog.content }} />
+
+                                                {/* Excerpt */}
+                                                {generatedBlog.excerpt && (
+                                                    <p className="text-white/60 text-sm italic">{generatedBlog.excerpt}</p>
+                                                )}
+
+                                                {/* Content preview (truncated) */}
+                                                <div className="prose prose-invert max-h-[200px] overflow-hidden text-sm opacity-60 relative">
+                                                    <div dangerouslySetInnerHTML={{ __html: generatedBlog.content }} />
+                                                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
+                                                </div>
+
+                                                {/* Actions */}
                                                 <div className="flex gap-4">
+                                                    <Button
+                                                        onClick={() => setPreviewBlog(generatedBlog)}
+                                                        variant="outline"
+                                                        className="flex-1 py-6 border-accent/30 text-accent font-black uppercase flex items-center justify-center gap-2"
+                                                    >
+                                                        <Eye size={18} />
+                                                        Preview Post
+                                                    </Button>
                                                     <Button onClick={() => {
                                                         setEditingBlog(generatedBlog)
                                                         setGeneratedBlog(null)
@@ -567,6 +653,16 @@ export default function AdminDashboard() {
                     </div>
                 </section>
             </div>
+
+            {/* Blog Preview Modal */}
+            {previewBlog && (
+                <BlogPreview
+                    blog={previewBlog}
+                    onClose={() => setPreviewBlog(null)}
+                    onRegenerateImage={() => regenerateImage(previewBlog)}
+                    isRegeneratingImage={isRegeneratingImage}
+                />
+            )}
         </main>
     )
 }
