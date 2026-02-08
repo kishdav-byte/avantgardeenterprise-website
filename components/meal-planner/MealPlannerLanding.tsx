@@ -2,11 +2,12 @@
 
 import { Upload, BookOpen, Utensils, Calendar } from 'lucide-react'
 import { MEAL_PLANNER_CONFIG } from '@/lib/meal-planner-config'
-import type { View } from '@/lib/meal-planner-types'
+import type { MealPlannerView } from '@/lib/meal-planner-types'
 
 interface MealPlannerLandingProps {
-    onNavigate: (view: View, payload?: { inventoryBypassed?: boolean; mode?: 'recipe' | 'meal' }) => void
+    onNavigate: (view: MealPlannerView, payload?: { inventoryBypassed?: boolean; mode?: 'recipe' | 'meal' }) => void
     hasReachedLimit: boolean
+    isAdmin: boolean
 }
 
 interface ActionCardProps {
@@ -49,7 +50,7 @@ function ActionCard({ icon, title, description, onClick, disabled }: ActionCardP
     )
 }
 
-export function MealPlannerLanding({ onNavigate, hasReachedLimit }: MealPlannerLandingProps) {
+export function MealPlannerLanding({ onNavigate, hasReachedLimit, isAdmin }: MealPlannerLandingProps) {
     const actions = [
         {
             icon: <Upload size={32} />,
@@ -61,13 +62,13 @@ export function MealPlannerLanding({ onNavigate, hasReachedLimit }: MealPlannerL
             icon: <BookOpen size={32} />,
             title: MEAL_PLANNER_CONFIG.ui.actions.createRecipe.title,
             description: MEAL_PLANNER_CONFIG.ui.actions.createRecipe.description,
-            onClick: () => onNavigate('recipeFinder', { mode: 'recipe' })
+            onClick: () => onNavigate('recipe', { mode: 'recipe' })
         },
         {
             icon: <Utensils size={32} />,
             title: MEAL_PLANNER_CONFIG.ui.actions.createMeal.title,
             description: MEAL_PLANNER_CONFIG.ui.actions.createMeal.description,
-            onClick: () => onNavigate('recipeFinder', { mode: 'meal' })
+            onClick: () => onNavigate('recipe', { mode: 'meal' })
         },
         {
             icon: <Calendar size={32} />,
@@ -89,7 +90,7 @@ export function MealPlannerLanding({ onNavigate, hasReachedLimit }: MealPlannerL
                     </p>
                 </div>
 
-                {hasReachedLimit && (
+                {hasReachedLimit && !isAdmin && (
                     <div className="mb-8 bg-red-500/10 border border-red-500/30 p-6 text-center max-w-2xl mx-auto">
                         <p className="text-red-400 font-bold mb-2">Monthly Limit Reached</p>
                         <p className="text-red-400/80 text-sm">
@@ -103,7 +104,7 @@ export function MealPlannerLanding({ onNavigate, hasReachedLimit }: MealPlannerL
                         <ActionCard
                             key={index}
                             {...action}
-                            disabled={hasReachedLimit}
+                            disabled={hasReachedLimit && !isAdmin}
                         />
                     ))}
                 </div>

@@ -69,4 +69,4 @@ export interface UserProfile {
     role: string
 }
 
-export type View = 'landing' | 'planner' | 'recipeFinder' | 'favorites'
+export type MealPlannerView = 'landing' | 'planner' | 'recipe' | 'favorites'

@@ -18,9 +18,10 @@ export function MealPlannerApp({ userId, isAdmin, hasReachedLimit }: MealPlanner
     const [recipeMode, setRecipeMode] = useState<'recipe' | 'meal'>('recipe')
     const [inventoryBypassed, setInventoryBypassed] = useState(false)
 
-    const handleNavigate = (view: MealPlannerView, mode?: 'recipe' | 'meal') => {
+    const handleNavigate = (view: MealPlannerView, payload?: { inventoryBypassed?: boolean; mode?: 'recipe' | 'meal' }) => {
         setCurrentView(view)
-        if (mode) setRecipeMode(mode)
+        if (payload?.mode) setRecipeMode(payload.mode)
+        if (payload?.inventoryBypassed !== undefined) setInventoryBypassed(payload.inventoryBypassed)
     }
 
     const handleToggleInventory = () => {
