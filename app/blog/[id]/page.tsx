@@ -24,18 +24,27 @@ export default function BlogPostPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        let mounted = true
         async function fetchBlog() {
-            const { data, error } = await supabase
-                .from('blogs')
-                .select('*')
-                .eq('id', params.id)
-                .eq('status', 'published')
-                .single()
+            try {
+                const { data, error } = await supabase
+                    .from('blogs')
+                    .select('*')
+                    .eq('id', params.id)
+                    .eq('status', 'published')
+                    .single()
 
-            if (data) setBlog(data)
-            setLoading(false)
+                if (mounted) {
+                    if (data) setBlog(data)
+                    setLoading(false)
+                }
+            } catch (err) {
+                console.error("Transmission Error:", err)
+                if (mounted) setLoading(false)
+            }
         }
         if (params.id) fetchBlog()
+        return () => { mounted = false }
     }, [params.id])
 
     if (loading) return (

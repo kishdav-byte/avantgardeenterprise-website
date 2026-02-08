@@ -26,14 +26,18 @@ export default function BlogPage() {
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
+        // SAFETY TIMEOUT: If nothing happens in 12 seconds, stop the spinner
         const timeoutId = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn("Blog transmission timed out.")
-                setLoading(false)
-                setError("Transmission timed out. Please check your connection.")
+            if (mounted) {
+                setLoading(currentLoading => {
+                    if (currentLoading) {
+                        console.warn("Blog transmission timed out.")
+                        setError("Transmission timed out. Signal lost.")
+                    }
+                    return false
+                })
             }
-        }, 10000)
+        }, 12000)
 
         const fetchBlogs = async () => {
             console.log("Transmission initiated: Fetching blogs...")
@@ -126,7 +130,7 @@ export default function BlogPage() {
                                             </Link>
                                         </h2>
                                         <p className="text-white/50 line-clamp-3 text-sm leading-relaxed mb-6 flex-grow">
-                                            {blog.excerpt || blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..."}
+                                            {blog.excerpt || (blog.content ? blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No content available.")}
                                         </p>
                                         <Link href={`/blog/${blog.id}`} className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white hover:text-accent transition-colors mt-auto">
                                             Read Full Article <span className="text-lg">→</span>
