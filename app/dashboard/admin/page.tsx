@@ -65,18 +65,26 @@ export default function AdminDashboard() {
 
     // --- BLOG FUNCTIONS ---
     async function fetchBlogs() {
-        const { data, error } = await supabase
-            .from('blogs')
-            .select('*')
-            .order('published_at', { ascending: false, nullsFirst: false })
-            .order('created_at', { ascending: false })
+        try {
+            console.log('Fetching blogs...')
+            const { data, error } = await supabase
+                .from('blogs')
+                .select('*')
+                .order('created_at', { ascending: false })
 
-        if (error) {
-            console.error('Fetch Blogs Error:', error)
-            showMsg(error.message, 'error')
-        }
-        if (data) {
-            setBlogs(data)
+            if (error) {
+                console.error('Fetch Blogs Error:', error)
+                showMsg(error.message, 'error')
+                return
+            }
+
+            console.log('Blogs fetched:', data?.length || 0)
+            if (data) {
+                setBlogs(data)
+            }
+        } catch (err: any) {
+            console.error('Fetch Blogs Exception:', err)
+            showMsg(err.message || 'Failed to fetch blogs', 'error')
         }
     }
 
