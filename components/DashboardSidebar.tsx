@@ -18,9 +18,21 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
     const pathname = usePathname()
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut()
-        router.push('/')
-        router.refresh()
+        try {
+            await supabase.auth.signOut()
+        } catch (e) {
+            console.warn("Sign out error in sidebar:", e)
+        } finally {
+            localStorage.clear()
+            sessionStorage.clear()
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            router.push('/')
+            router.refresh()
+        }
     }
 
     return (

@@ -32,7 +32,7 @@ export default function BlogPage() {
                 setLoading(currentLoading => {
                     if (currentLoading) {
                         console.warn("Blog transmission timed out via safety trigger.")
-                        setError("Transmission timed out. Signal lost or permission denied.")
+                        setError("Transmission timed out. The network is slow or the connection was interrupted.")
                     }
                     return false
                 })
@@ -43,17 +43,10 @@ export default function BlogPage() {
             console.log("Transmission initiated: Fetching blogs...")
             const startTime = Date.now()
 
-            // Pre-flight check: Can we even reach the Supabase domain?
             try {
-                const domain = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin
-                const check = await fetch(`${domain}/rest/v1/`, { method: 'HEAD', mode: 'no-cors' })
-                console.log("Supabase Domain Connectivity Check:", check.type)
-            } catch (e) {
-                console.warn("Supabase Domain Unreachable. Check AdBlockers or Firewall.")
-            }
-
-            try {
-                // Simplified query to ensure maximum speed and compatibility
+                // Fetch blogs with a specific timeout for the request itself if possible
+                // but Supabase client doesn't have a built-in per-request timeout.
+                // We rely on the safety trigger above for the UI.
                 const { data, error } = await supabase
                     .from('blogs')
                     .select('id, title, excerpt, content, published_at, featured_image, slug')
@@ -69,19 +62,24 @@ export default function BlogPage() {
                 }
 
                 if (mounted) {
-                    // Sort locally if needed to avoid DB-side slow orders on public access
+                    // Sort locally to ensure consistency
                     const sortedData = data ? [...data].sort((a, b) =>
                         new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
                     ) : []
 
                     setBlogs(sortedData as Blog[])
                     setLoading(false)
+                    setError(null)
                 }
             } catch (err: any) {
                 console.error("Transmission Failure:", err)
                 if (mounted) {
                     setError(err.message || "Connection timed out")
                     setLoading(false)
+                }
+            } finally {
+                if (mounted) {
+                    clearTimeout(timeoutId)
                 }
             }
         }

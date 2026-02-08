@@ -26,59 +26,113 @@ export default function DashboardPage() {
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
+        // SAFETY TIMEOUT: If nothing happens in 8 seconds, stop the spinner
+        // Reduced to 8s to be more responsive, and we'll show a retry if it fails.
         const timeoutId = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn("Dashboard loading timed out. Forcefully clearing state.")
-                setLoading(false)
+            if (mounted) {
+                setLoading(currentLoading => {
+                    if (currentLoading) {
+                        console.warn("Dashboard loading timed out. User identity may be pending.")
+                        return false
+                    }
+                    return currentLoading
+                })
             }
-        }, 10000)
+        }, 8000)
 
-        const getSession = async () => {
+        const syncProfile = async (sessionUser: any) => {
+            if (!sessionUser || !mounted) return;
+
             try {
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-                if (sessionError) throw sessionError
-
-                if (!session) {
-                    router.push('/login')
-                    return
-                }
-
-                if (mounted) setUser(session.user)
-
-                // Fetch profile data
-                const { data: profile, error } = await supabase
+                // Fetch profile data with getUser() verification for maximum consistency
+                const { data: profile, error: profileError } = await supabase
                     .from('clients')
                     .select('*')
-                    .eq('id', session.user.id)
+                    .eq('id', sessionUser.id)
                     .maybeSingle()
 
-                if (error) {
-                    console.error("Profile Fetch Error:", error)
-                }
+                if (profileError) throw profileError
 
                 if (mounted) {
-                    if (profile) setClientData(profile)
-                    setLoading(false)
+                    if (profile) {
+                        setClientData(profile)
+                        setLoading(false)
+                        clearTimeout(timeoutId)
+                    } else {
+                        // No profile found, but we have a user. 
+                        // Maybe they are new? Let's not hang.
+                        setLoading(false)
+                    }
                 }
             } catch (e) {
-                console.error("Dashboard Session Error:", e)
+                console.error("Profile Sync Error:", e)
                 if (mounted) setLoading(false)
             }
         }
 
-        getSession()
+        const initializeAuth = async () => {
+            try {
+                // Use getUser() instead of getSession() for the primary dashboard check
+                // as it's more definitive in SSR environments.
+                const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+
+                if (authError || !authUser) {
+                    console.log("No valid user found, redirecting to login.")
+                    if (mounted) router.push('/login')
+                    return
+                }
+
+                if (mounted) {
+                    setUser(authUser)
+                    await syncProfile(authUser)
+                }
+            } catch (e) {
+                console.error("Dashboard Init Error:", e)
+                if (mounted) {
+                    setLoading(false)
+                    // If everything fails, redirect to login as a safe fallback
+                    router.push('/login')
+                }
+            }
+        }
+
+        initializeAuth()
+
+        // Listen for auth changes to handle late-arriving sessions
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                if (session?.user && mounted) {
+                    setUser(session.user)
+                    await syncProfile(session.user)
+                }
+            } else if (event === 'SIGNED_OUT') {
+                if (mounted) router.push('/login')
+            }
+        })
 
         return () => {
             mounted = false
             clearTimeout(timeoutId)
+            subscription.unsubscribe()
         }
     }, [router])
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut()
-        router.push('/')
+        try {
+            await supabase.auth.signOut()
+        } catch (e) {
+            console.warn("Sign out error in dashboard:", e)
+        } finally {
+            localStorage.clear()
+            sessionStorage.clear()
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            router.push('/')
+            router.refresh()
+        }
     }
 
     if (loading) return (

@@ -25,62 +25,97 @@ export function Navbar() {
     const router = useRouter()
 
     React.useEffect(() => {
+        let mounted = true
+
+        const fetchProfile = async (userId: string) => {
+            if (!mounted) return
+            try {
+                // Use a proper abort signal to prevent long-hanging requests
+                const controller = new AbortController()
+                const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+                const { data, error } = await supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('id', userId)
+                    .maybeSingle()
+
+                clearTimeout(timeoutId)
+                if (mounted && !error) setProfile(data)
+            } catch (err) {
+                console.warn("Navbar profile fetch failed or timed out.")
+            }
+        }
+
         // Initial session check
         const checkSession = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession()
-                setUser(session?.user || null)
-
-                if (session?.user) {
-                    // Create a timeout for the profile fetch specifically
-                    const controller = new AbortController()
-                    const profileTimeout = setTimeout(() => controller.abort(), 5000)
-
-                    const { data, error } = await supabase
-                        .from('clients')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single()
-
-                    clearTimeout(profileTimeout)
-                    if (!error) setProfile(data)
+                const { data: { user: authUser } } = await supabase.auth.getUser()
+                if (mounted) {
+                    setUser(authUser)
+                    if (authUser) await fetchProfile(authUser.id)
                 }
             } catch (err) {
-                console.warn("Navbar session fetch timed out or failed.")
+                console.warn("Navbar initial auth check failed.")
             }
         }
 
         checkSession()
 
         // Real-time auth listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            setUser(session?.user || null)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (mounted) {
+                const sessionUser = session?.user || null
+                setUser(sessionUser)
 
-            if (session?.user && !profile) {
-                try {
-                    const { data } = await supabase
-                        .from('clients')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single()
-                    setProfile(data)
-                } catch (e) {
-                    console.warn("Auth change profile fetch failed.")
+                if (sessionUser && !profile) {
+                    await fetchProfile(sessionUser.id)
+                } else if (!sessionUser) {
+                    setProfile(null)
                 }
-            } else if (!session) {
-                setProfile(null)
             }
         })
 
-        return () => subscription.unsubscribe()
-    }, []) // Logic: Only run on mount to set up the listener. internal updates handle the state.
+        return () => {
+            mounted = false
+            subscription.unsubscribe()
+        }
+    }, []) // Run once on mount to setup listener
 
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut()
-        setIsOpen(false)
-        router.push('/')
-        router.refresh()
+        console.log("Initiating robust sign out...")
+        try {
+            // Force local state update immediately for better UX
+            setUser(null)
+            setProfile(null)
+            setIsOpen(false)
+
+            // Attempt to sign out globally
+            const { error } = await supabase.auth.signOut()
+            if (error) {
+                console.warn("Supabase signOut error (ignoring to continue cleanup):", error)
+            }
+        } catch (e) {
+            console.error("Critical sign out failure:", e)
+        } finally {
+            // Nuclear cleanup for cookies and storage to ensure "WELCOME, USER" doesn't return
+            localStorage.clear()
+            sessionStorage.clear()
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+
+            // Redirect and hard refresh
+            router.push('/')
+            router.refresh()
+            // Force a hard reload if we're already on home to ensure state is purged
+            if (window.location.pathname === '/') {
+                window.location.reload()
+            }
+        }
     }
 
     return (
