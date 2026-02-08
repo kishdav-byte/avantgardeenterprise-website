@@ -246,10 +246,17 @@ function getImagePrompt(title: string, style: string): string {
 
     const styleDesc = styleDescriptions[style] || 'modern and professional'
 
-    return `Generate a ${styleDesc} style illustration that visually captures the theme of: "${title}".
-Do not include any text, numbers, letters, symbols, or writing in any language.
-Avoid branding, logos, or anything that resembles UI.
-Make it ${styleDesc}, and suited for a blog header — but it must be completely free of text.`
+    return `Generate a ${styleDesc} style illustration that visually represents the concept of: "${title}".
+
+CRITICAL REQUIREMENTS:
+- DO NOT include any people, humans, faces, hands, or body parts
+- DO NOT include any text, numbers, letters, symbols, or writing in any language
+- DO NOT include branding, logos, or UI elements
+- Focus on: abstract concepts, objects, technology, nature, architecture, or symbolic representations
+- Use: geometric shapes, patterns, lighting effects, environments, or conceptual imagery
+- Make it ${styleDesc} and suited for a professional blog header
+
+Create a compelling visual metaphor using objects, environments, or abstract elements only.`
 }
 
 // New endpoint to save blog with selected image

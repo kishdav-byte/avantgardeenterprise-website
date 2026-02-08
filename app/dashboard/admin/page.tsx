@@ -226,10 +226,17 @@ export default function AdminDashboard() {
             // Use the first selected style or default to Minimalist
             const style = selectedImageStyles[0] || 'Minimalist'
 
-            const imagePrompt = `Generate a ${style.toLowerCase()} style illustration that visually captures the theme of: "${blogToUpdate.title}".
-Do not include any text, numbers, letters, symbols, or writing in any language.
-Avoid branding, logos, or anything that resembles UI.
-Make it modern, appealing, and suited for a blog header — but it must be completely free of text.`
+            const imagePrompt = `Generate a ${style.toLowerCase()} style illustration that visually represents the concept of: "${blogToUpdate.title}".
+
+CRITICAL REQUIREMENTS:
+- DO NOT include any people, humans, faces, hands, or body parts
+- DO NOT include any text, numbers, letters, symbols, or writing in any language
+- DO NOT include branding, logos, or UI elements
+- Focus on: abstract concepts, objects, technology, nature, architecture, or symbolic representations
+- Use: geometric shapes, patterns, lighting effects, environments, or conceptual imagery
+- Make it ${style.toLowerCase()} and suited for a professional blog header
+
+Create a compelling visual metaphor using objects, environments, or abstract elements only.`
 
             console.log('Calling /api/generate-image with style:', style)
 
