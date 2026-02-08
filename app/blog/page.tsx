@@ -43,6 +43,15 @@ export default function BlogPage() {
             console.log("Transmission initiated: Fetching blogs...")
             const startTime = Date.now()
 
+            // Pre-flight check: Can we even reach the Supabase domain?
+            try {
+                const domain = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin
+                const check = await fetch(`${domain}/rest/v1/`, { method: 'HEAD', mode: 'no-cors' })
+                console.log("Supabase Domain Connectivity Check:", check.type)
+            } catch (e) {
+                console.warn("Supabase Domain Unreachable. Check AdBlockers or Firewall.")
+            }
+
             try {
                 // Simplified query to ensure maximum speed and compatibility
                 const { data, error } = await supabase
@@ -83,6 +92,20 @@ export default function BlogPage() {
             clearTimeout(timeoutId)
         }
     }, [])
+
+    const handleHardReset = () => {
+        console.log("Initiating Secure Hard Reset...");
+        // Clear everything that could be causing a hang
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear specifically Supabase cookies if possible via JS
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        window.location.reload();
+    };
 
     return (
         <main className="min-h-screen bg-background text-foreground">
@@ -149,17 +172,29 @@ export default function BlogPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 flex flex-col items-center gap-4">
-                            <p className="text-white/30 uppercase tracking-widest text-sm">
-                                {error ? `Transmission Error: ${error}` : 'Transmission pending... No articles found yet.'}
-                            </p>
+                        <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 flex flex-col items-center gap-6">
+                            <div className="flex flex-col gap-2">
+                                <p className="text-white/30 uppercase tracking-widest text-sm font-bold">
+                                    {error ? `Transmission Error: ${error}` : 'Transmission pending... No articles found yet.'}
+                                </p>
+                                <p className="text-white/20 text-[11px] uppercase tracking-widest">Verify published status or check connection.</p>
+                            </div>
+
                             {error && (
-                                <button
-                                    onClick={() => window.location.reload()}
-                                    className="text-accent text-[10px] font-bold uppercase tracking-widest hover:underline"
-                                >
-                                    Re-Initiate Transmission
-                                </button>
+                                <div className="flex flex-col gap-4 items-center">
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="px-8 py-3 bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-widest hover:bg-accent hover:text-black transition-all"
+                                    >
+                                        Retry Connection
+                                    </button>
+                                    <button
+                                        onClick={handleHardReset}
+                                        className="text-white/30 text-[9px] font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-white/10"
+                                    >
+                                        Secure Hard Reset (Clear Cache)
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}
