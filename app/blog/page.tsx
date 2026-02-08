@@ -26,45 +26,54 @@ export default function BlogPage() {
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 12 seconds, stop the spinner
+        // SAFETY TRIGGER: If fetch hangs, force show error after 15s
         const timeoutId = setTimeout(() => {
             if (mounted) {
                 setLoading(currentLoading => {
                     if (currentLoading) {
-                        console.warn("Blog transmission timed out.")
-                        setError("Transmission timed out. Signal lost.")
+                        console.warn("Blog transmission timed out via safety trigger.")
+                        setError("Transmission timed out. Signal lost or permission denied.")
                     }
                     return false
                 })
             }
-        }, 12000)
+        }, 15000)
 
         const fetchBlogs = async () => {
             console.log("Transmission initiated: Fetching blogs...")
             const startTime = Date.now()
 
             try {
-                // Filter for published blogs and order by published_at
+                // Simplified query to ensure maximum speed and compatibility
                 const { data, error } = await supabase
                     .from('blogs')
                     .select('id, title, excerpt, content, published_at, featured_image, slug')
                     .eq('status', 'published')
-                    .order('published_at', { ascending: false })
-                    .limit(10)
+                    .limit(20)
 
                 const duration = Date.now() - startTime
                 console.log(`Transmission complete: ${duration}ms`)
 
-                if (error) throw error
+                if (error) {
+                    console.error("Supabase API Error:", error)
+                    throw error
+                }
 
-                if (mounted && data) {
-                    setBlogs(data as Blog[])
+                if (mounted) {
+                    // Sort locally if needed to avoid DB-side slow orders on public access
+                    const sortedData = data ? [...data].sort((a, b) =>
+                        new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
+                    ) : []
+
+                    setBlogs(sortedData as Blog[])
+                    setLoading(false)
                 }
             } catch (err: any) {
                 console.error("Transmission Failure:", err)
-                if (mounted) setError(err.message || "Connection timed out")
-            } finally {
-                if (mounted) setLoading(false)
+                if (mounted) {
+                    setError(err.message || "Connection timed out")
+                    setLoading(false)
+                }
             }
         }
 
@@ -140,10 +149,18 @@ export default function BlogPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                        <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 flex flex-col items-center gap-4">
                             <p className="text-white/30 uppercase tracking-widest text-sm">
                                 {error ? `Transmission Error: ${error}` : 'Transmission pending... No articles found yet.'}
                             </p>
+                            {error && (
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="text-accent text-[10px] font-bold uppercase tracking-widest hover:underline"
+                                >
+                                    Re-Initiate Transmission
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
