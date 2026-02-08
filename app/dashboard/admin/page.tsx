@@ -454,7 +454,20 @@ Make it modern, appealing, and suited for a blog header — but it must be compl
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
-                                                                <button onClick={() => setEditingBlog(blog)} className="p-2 text-white/20 hover:text-accent transition-colors"><Eye size={16} /></button>
+                                                                <button
+                                                                    onClick={() => setPreviewBlog(blog)}
+                                                                    className="p-2 text-white/20 hover:text-accent transition-colors"
+                                                                    title="Preview Blog"
+                                                                >
+                                                                    <Eye size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingBlog(blog)}
+                                                                    className="p-2 text-white/20 hover:text-blue-400 transition-colors"
+                                                                    title="Edit Blog"
+                                                                >
+                                                                    <Settings size={16} />
+                                                                </button>
                                                                 <button onClick={() => deleteBlog(blog.id)} className="p-2 text-white/20 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                                             </div>
                                                         </div>

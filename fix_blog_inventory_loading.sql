@@ -9,6 +9,7 @@ DROP POLICY IF EXISTS "Public can view published blogs" ON blogs;
 DROP POLICY IF EXISTS "Public can read blogs" ON blogs;
 DROP POLICY IF EXISTS "Enable read access for all users" ON blogs;
 DROP POLICY IF EXISTS "Admins can do everything with blogs" ON blogs;
+DROP POLICY IF EXISTS "Authors can manage their own blogs" ON blogs;
 
 -- 2. Ensure RLS is enabled
 ALTER TABLE blogs ENABLE ROW LEVEL SECURITY;
