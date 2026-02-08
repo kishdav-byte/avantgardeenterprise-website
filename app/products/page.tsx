@@ -7,6 +7,7 @@ import { ArrowRight, Bot, Cpu, Globe, Mic, ShieldCheck, Zap, BookOpen, Target } 
 import Link from "next/link"
 import { ProductShowcase } from "@/components/sections/ProductShowcase"
 import { DiscoveryCTA } from "@/components/sections/DiscoveryCTA"
+import { IntelligentTools } from "@/components/sections/IntelligentTools"
 
 const tpiSlides = [
     {
@@ -45,6 +46,11 @@ export default function ProductsPage() {
                             Specialized software engineered to replace manual bottlenecks.
                         </p>
                     </motion.div>
+
+                    {/* INTELLIGENT TOOLS SECTION */}
+                    <div className="mb-48">
+                        <IntelligentTools />
+                    </div>
 
                     {/* PRODUCT 1: AI COMMAND CENTER */}
                     <motion.div
