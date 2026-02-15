@@ -91,6 +91,7 @@ export default function DashboardPage() {
                                 id: sessionUser.id,
                                 email: sessionUser.email,
                                 first_name: sessionUser.user_metadata?.first_name || sessionUser.email.split('@')[0],
+                                last_name: sessionUser.user_metadata?.last_name || '',
                                 role: 'user'
                             })
                             .select()
