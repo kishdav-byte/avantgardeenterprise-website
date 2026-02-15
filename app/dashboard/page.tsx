@@ -65,10 +65,28 @@ export default function DashboardPage() {
                         setLoading(false)
                         clearTimeout(timeoutId)
                     } else {
-                        // No profile found, but we have a user. 
-                        // Maybe they are new? Let's not hang.
-                        console.warn("No profile found in 'clients' table for user:", sessionUser.id)
+                        // No profile found - AUTO-ASSIGN DEFAULT PROFILE
+                        console.warn("Auto-assigning default 'user' profile for:", sessionUser.id)
+
+                        const { data: newProfile, error: createError } = await supabase
+                            .from('clients')
+                            .insert({
+                                id: sessionUser.id,
+                                email: sessionUser.email,
+                                first_name: sessionUser.user_metadata?.first_name || sessionUser.email.split('@')[0],
+                                role: 'user'
+                            })
+                            .select()
+                            .single()
+
+                        if (createError) {
+                            console.error("Auto-assign failed:", createError)
+                        } else if (newProfile) {
+                            setClientData(newProfile)
+                        }
+
                         setLoading(false)
+                        clearTimeout(timeoutId)
                     }
                 }
             } catch (e) {
