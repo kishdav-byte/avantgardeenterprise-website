@@ -44,6 +44,7 @@ export default function DashboardPage() {
             if (!sessionUser || !mounted) return;
 
             try {
+                console.log("Syncing profile for user:", sessionUser.id)
                 // Fetch profile data with getUser() verification for maximum consistency
                 const { data: profile, error: profileError } = await supabase
                     .from('clients')
@@ -51,7 +52,12 @@ export default function DashboardPage() {
                     .eq('id', sessionUser.id)
                     .maybeSingle()
 
-                if (profileError) throw profileError
+                if (profileError) {
+                    console.error("Profile Fetch Error:", profileError)
+                    throw profileError
+                }
+
+                console.log("Profile Sync Complete. Data found:", !!profile)
 
                 if (mounted) {
                     if (profile) {
@@ -61,36 +67,49 @@ export default function DashboardPage() {
                     } else {
                         // No profile found, but we have a user. 
                         // Maybe they are new? Let's not hang.
+                        console.warn("No profile found in 'clients' table for user:", sessionUser.id)
                         setLoading(false)
                     }
                 }
             } catch (e) {
-                console.error("Profile Sync Error:", e)
+                console.error("Profile Sync Exception:", e)
                 if (mounted) setLoading(false)
             }
         }
 
         const initializeAuth = async () => {
             try {
-                // Use getUser() instead of getSession() for the primary dashboard check
-                // as it's more definitive in SSR environments.
-                const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+                console.log("Initializing Auth (Fast-Path)...")
 
-                if (authError || !authUser) {
-                    console.log("No valid user found, redirecting to login.")
-                    if (mounted) router.push('/login')
-                    return
-                }
+                // 1. Get Session FIRST (Instant from LocalStorage)
+                const { data: { session } } = await supabase.auth.getSession()
 
-                if (mounted) {
-                    setUser(authUser)
-                    await syncProfile(authUser)
+                if (!session?.user) {
+                    console.log("No cached session, checking network...")
+                    // 2. Fallback to getUser (Network verify)
+                    const { data: { user: authUser } } = await supabase.auth.getUser()
+                    if (!authUser) {
+                        console.log("No valid user found, redirecting to login.")
+                        if (mounted) router.push('/login')
+                        return
+                    }
+                    if (mounted) {
+                        setUser(authUser)
+                        syncProfile(authUser)
+                    }
+                } else {
+                    console.log("Found cached session for:", session.user.id)
+                    if (mounted) {
+                        setUser(session.user)
+                        // Don't wait for the profile to show the page
+                        syncProfile(session.user)
+                        setLoading(false)
+                    }
                 }
             } catch (e) {
-                console.error("Dashboard Init Error:", e)
+                console.error("Dashboard Init Exception:", e)
                 if (mounted) {
                     setLoading(false)
-                    // If everything fails, redirect to login as a safe fallback
                     router.push('/login')
                 }
             }
