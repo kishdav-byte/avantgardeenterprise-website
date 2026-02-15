@@ -114,26 +114,25 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                console.log("Initializing Auth (Standard Path)...")
+                console.log("Initializing Auth (Resilient Path)...")
 
-                // Use getUser() for the most reliable network-verified check
-                const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-
-                if (authError) {
-                    console.error("Auth Error:", authError)
+                // 1. Instant check from local memory
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session?.user && mounted) {
+                    console.log("Instant session found:", session.user.id)
+                    setUser(session.user)
+                    syncProfile(session.user)
                 }
 
-                if (!authUser) {
-                    console.log("No valid user found, redirecting to login.")
-                    if (mounted) router.push('/login')
-                    return
-                }
-
-                console.log("Auth User Found:", authUser.id)
-                if (mounted) {
+                // 2. Verified check in background
+                const { data: { user: authUser } } = await supabase.auth.getUser()
+                if (authUser && mounted) {
+                    console.log("Verified user found:", authUser.id)
                     setUser(authUser)
-                    // Sync the profile but don't hang the UI if it takes a moment
                     syncProfile(authUser)
+                } else if (!authUser && !session?.user) {
+                    console.log("No user found, redirecting to login.")
+                    if (mounted) router.push('/login')
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
