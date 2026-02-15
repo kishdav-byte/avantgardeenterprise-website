@@ -27,21 +27,33 @@ export function Navbar() {
     React.useEffect(() => {
         let mounted = true
 
-        const fetchProfile = async (userId: string) => {
+        const fetchProfile = async (userId: string, email?: string) => {
             if (!mounted) return
             try {
                 // Use a proper abort signal to prevent long-hanging requests
                 const controller = new AbortController()
                 const timeoutId = setTimeout(() => controller.abort(), 8000)
 
-                const { data, error } = await supabase
+                // 1. Try by ID
+                let { data, error } = await supabase
                     .from('clients')
                     .select('*')
                     .eq('id', userId)
                     .maybeSingle()
 
+                // 2. Try by Email fallback (for re-signed up users)
+                if (!data && !error && email) {
+                    console.log("Navbar: ID mismatch, trying email:", email)
+                    const { data: emailData } = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('email', email)
+                        .maybeSingle()
+                    if (emailData) data = emailData
+                }
+
                 clearTimeout(timeoutId)
-                if (mounted && !error) setProfile(data)
+                if (mounted && !error && data) setProfile(data)
             } catch (err) {
                 console.warn("Navbar profile fetch failed or timed out.")
             }
@@ -53,7 +65,7 @@ export function Navbar() {
                 const { data: { user: authUser } } = await supabase.auth.getUser()
                 if (mounted) {
                     setUser(authUser)
-                    if (authUser) await fetchProfile(authUser.id)
+                    if (authUser) await fetchProfile(authUser.id, authUser.email)
                 }
             } catch (err) {
                 console.warn("Navbar initial auth check failed.")
@@ -69,7 +81,7 @@ export function Navbar() {
                 setUser(sessionUser)
 
                 if (sessionUser && !profile) {
-                    await fetchProfile(sessionUser.id)
+                    await fetchProfile(sessionUser.id, sessionUser.email)
                 } else if (!sessionUser) {
                     setProfile(null)
                 }
