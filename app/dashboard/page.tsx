@@ -45,12 +45,29 @@ export default function DashboardPage() {
 
             try {
                 console.log("Syncing profile for user:", sessionUser.id)
-                // Fetch profile data with getUser() verification for maximum consistency
-                const { data: profile, error: profileError } = await supabase
+                // 1. Try by ID
+                let { data: profile, error: profileError } = await supabase
                     .from('clients')
                     .select('*')
                     .eq('id', sessionUser.id)
                     .maybeSingle()
+
+                // 2. FALLBACK: Check by Email (Fixes "ID Mismatch" for re-signed up admins)
+                if (!profile && !profileError && sessionUser.email) {
+                    console.log("ID mismatch detected, checking by email:", sessionUser.email)
+                    const { data: emailProfile } = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('email', sessionUser.email)
+                        .maybeSingle()
+
+                    if (emailProfile) {
+                        console.log("Found profile by email. Updating ID to current session.")
+                        // Create a updated profile record for this session
+                        // (We don't update DB ID since it's a PK, we just treat this row as the current user's)
+                        profile = emailProfile
+                    }
+                }
 
                 if (profileError) {
                     console.error("Profile Fetch Error:", profileError)
