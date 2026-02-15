@@ -79,32 +79,26 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                console.log("Initializing Auth (Fast-Path)...")
+                console.log("Initializing Auth (Standard Path)...")
 
-                // 1. Get Session FIRST (Instant from LocalStorage)
-                const { data: { session } } = await supabase.auth.getSession()
+                // Use getUser() for the most reliable network-verified check
+                const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-                if (!session?.user) {
-                    console.log("No cached session, checking network...")
-                    // 2. Fallback to getUser (Network verify)
-                    const { data: { user: authUser } } = await supabase.auth.getUser()
-                    if (!authUser) {
-                        console.log("No valid user found, redirecting to login.")
-                        if (mounted) router.push('/login')
-                        return
-                    }
-                    if (mounted) {
-                        setUser(authUser)
-                        syncProfile(authUser)
-                    }
-                } else {
-                    console.log("Found cached session for:", session.user.id)
-                    if (mounted) {
-                        setUser(session.user)
-                        // Don't wait for the profile to show the page
-                        syncProfile(session.user)
-                        setLoading(false)
-                    }
+                if (authError) {
+                    console.error("Auth Error:", authError)
+                }
+
+                if (!authUser) {
+                    console.log("No valid user found, redirecting to login.")
+                    if (mounted) router.push('/login')
+                    return
+                }
+
+                console.log("Auth User Found:", authUser.id)
+                if (mounted) {
+                    setUser(authUser)
+                    // Sync the profile but don't hang the UI if it takes a moment
+                    syncProfile(authUser)
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
