@@ -2,6 +2,13 @@ import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { Hero } from "@/components/sections/Hero"
 import { NewsletterPopup } from "@/components/NewsletterPopup"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+}
 
 export default function Home() {
   return (

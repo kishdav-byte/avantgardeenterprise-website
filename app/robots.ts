@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/dashboard/', '/api/', '/auth/'],
         },
-        sitemap: 'https://avant-gardeenterprise.com/sitemap.xml',
+        sitemap: 'https://www.avant-gardeenterprise.com/sitemap.xml',
     }
 }

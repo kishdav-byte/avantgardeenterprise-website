@@ -54,7 +54,7 @@ export function Hero() {
                             <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-black" />
 
                             <span className="text-accent text-[14px] font-black tracking-[0.3em] uppercase">
-                                Join the Mission
+                                SIGN UP / SIGN IN
                             </span>
                         </div>
                     </div>
