@@ -1,6 +1,6 @@
 "use client"
 
-import { Upload, BookOpen, Utensils, Calendar } from 'lucide-react'
+import { Upload, BookOpen, Utensils, Calendar, Heart } from 'lucide-react'
 import { MEAL_PLANNER_CONFIG } from '@/lib/meal-planner-config'
 import type { MealPlannerView } from '@/lib/meal-planner-types'
 
@@ -99,7 +99,7 @@ export function MealPlannerLanding({ onNavigate, hasReachedLimit, isAdmin }: Mea
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {actions.map((action, index) => (
                         <ActionCard
                             key={index}
@@ -107,6 +107,12 @@ export function MealPlannerLanding({ onNavigate, hasReachedLimit, isAdmin }: Mea
                             disabled={hasReachedLimit && !isAdmin}
                         />
                     ))}
+                    <ActionCard
+                        icon={<Heart size={32} />}
+                        title="Your Favorites"
+                        description="View and manage your culinary archive of saved recipes and meal plans."
+                        onClick={() => onNavigate('favorites')}
+                    />
                 </div>
 
                 {/* Beta Notice */}
