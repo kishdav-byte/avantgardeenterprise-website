@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { Loader2, Search, Sparkles, Heart, Plus, Minus, Camera } from 'lucide-react'
+import { Loader2, Search, Sparkles, Heart, Plus, Minus, Camera, Printer } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { ImageUploader } from './ImageUploader'
 import { PreferenceSelector } from './PreferenceSelector'
@@ -113,6 +113,10 @@ export function RecipeFinder({ userId, isAdmin, hasReachedLimit, mode }: RecipeF
         } finally {
             setIsSaving(false)
         }
+    }
+
+    const handlePrint = () => {
+        window.print()
     }
 
     const incrementServings = () => setServings(prev => Math.min(prev + 1, 12))
@@ -256,17 +260,26 @@ export function RecipeFinder({ userId, isAdmin, hasReachedLimit, mode }: RecipeF
                                 )}
                             </div>
                         </div>
-                        <button
-                            onClick={handleSaveFavorite}
-                            disabled={isSaving || saveSuccess}
-                            className={`flex items-center gap-2 px-6 py-3 border transition-all uppercase font-black tracking-widest text-xs ${saveSuccess
+                        <div className="flex flex-wrap gap-4">
+                            <button
+                                onClick={handlePrint}
+                                className="flex items-center gap-2 px-6 py-3 border border-white/10 text-white hover:border-accent hover:text-accent transition-all uppercase font-black tracking-widest text-xs"
+                            >
+                                <Printer size={16} />
+                                Print
+                            </button>
+                            <button
+                                onClick={handleSaveFavorite}
+                                disabled={isSaving || saveSuccess}
+                                className={`flex items-center gap-2 px-6 py-3 border transition-all uppercase font-black tracking-widest text-xs ${saveSuccess
                                     ? 'bg-accent/20 border-accent/40 text-accent'
                                     : 'border-white/10 text-white hover:border-accent hover:text-accent'
-                                }`}
-                        >
-                            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Heart size={16} className={saveSuccess ? 'fill-accent' : ''} />}
-                            {saveSuccess ? 'Saved' : 'Save Favorite'}
-                        </button>
+                                    }`}
+                            >
+                                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Heart size={16} className={saveSuccess ? 'fill-accent' : ''} />}
+                                {saveSuccess ? 'Saved' : 'Save Favorite'}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -323,6 +336,36 @@ export function RecipeFinder({ userId, isAdmin, hasReachedLimit, mode }: RecipeF
                     )}
                 </div>
             )}
+
+            {/* Print Styles */}
+            <style jsx global>{`
+                @media print {
+                    nav, footer, .border-b, button, .bg-white\/5.p-8, form {
+                        display: none !important;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .bg-white\/5 {
+                        background: transparent !important;
+                        border: none !important;
+                        padding: 0 !important;
+                    }
+                    .text-white, .text-white\/40, .text-white\/70 {
+                        color: black !important;
+                    }
+                    .text-accent {
+                        color: #000 !important;
+                        text-decoration: underline;
+                    }
+                    .animate-in {
+                        animation: none !important;
+                        opacity: 1 !important;
+                        transform: none !important;
+                    }
+                }
+            `}</style>
         </div>
     )
 }

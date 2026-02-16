@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Trash2, ChevronRight, Clock, Users, X } from 'lucide-react'
+import { Loader2, Trash2, ChevronRight, Clock, Users, X, Printer } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface FavoritesViewProps {
@@ -53,6 +53,10 @@ export function FavoritesView({ userId }: FavoritesViewProps) {
             console.error(e)
             alert("Failed to delete favorite.")
         }
+    }
+
+    const handlePrint = () => {
+        window.print()
     }
 
     if (isLoading) {
@@ -146,12 +150,21 @@ export function FavoritesView({ userId }: FavoritesViewProps) {
                                     </h3>
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent mt-2">Favorite Recipe Entry</p>
                                 </div>
-                                <button
-                                    onClick={() => setSelectedRecipe(null)}
-                                    className="p-2 border border-white/10 hover:border-accent text-white/60 hover:text-accent transition-all"
-                                >
-                                    <X size={24} />
-                                </button>
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={handlePrint}
+                                        className="p-2 border border-white/10 hover:border-accent text-white/60 hover:text-accent transition-all flex items-center gap-2 px-4 text-xs font-black uppercase tracking-widest"
+                                    >
+                                        <Printer size={18} />
+                                        Print
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedRecipe(null)}
+                                        className="p-2 border border-white/10 hover:border-accent text-white/60 hover:text-accent transition-all"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="p-8 md:p-12">
@@ -209,6 +222,42 @@ export function FavoritesView({ userId }: FavoritesViewProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Print Styles */}
+            <style jsx global>{`
+                @media print {
+                    nav, footer, .border-b, button, .max-w-5xl > div:first-child, .grid {
+                        display: none !important;
+                    }
+                    .fixed.inset-0 {
+                        position: relative !important;
+                        background: white !important;
+                        display: block !important;
+                        paddding: 0 !important;
+                    }
+                    .max-h-\[90vh\] {
+                        max-height: none !important;
+                        overflow: visible !important;
+                    }
+                    .bg-neutral-900 {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .text-white, .text-white\/70, .text-white\/40 {
+                        color: black !important;
+                    }
+                    .text-accent {
+                        color: black !important;
+                        text-decoration: underline !important;
+                    }
+                    .border, .border-white\/10, .border-white\/5 {
+                        border-color: #eee !important;
+                    }
+                    body {
+                        background: white !important;
+                    }
+                }
+            `}</style>
         </div>
     )
 }
