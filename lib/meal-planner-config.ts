@@ -80,6 +80,7 @@ export const DIETARY_PREFERENCES = [
     "Paleo",
     "Halal",
     "Kosher",
+    "Galveston",
 ]
 
 // Cuisine preferences options
