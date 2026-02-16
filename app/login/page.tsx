@@ -64,6 +64,20 @@ export default function LoginPage() {
         }
     }
 
+    const handleDeepReset = () => {
+        console.log("Initiating Deep System Reset...");
+        // Clear everything that could be causing a session mismatch or cookie loop
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear all cookies
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        window.location.reload();
+    };
+
     return (
         <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decoration */}
@@ -164,6 +178,13 @@ export default function LoginPage() {
                             {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
                         </button>
                     </form>
+                    <button
+                        type="button"
+                        onClick={handleDeepReset}
+                        className="w-full mt-4 text-[9px] text-white/20 hover:text-accent font-black uppercase tracking-widest transition-colors"
+                    >
+                        Trouble signing in? Run Access Recovery (Clear Session)
+                    </button>
                 </div>
 
                 <div className="mt-8 text-center">
