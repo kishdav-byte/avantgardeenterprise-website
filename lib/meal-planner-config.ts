@@ -7,8 +7,8 @@
 
 export const MEAL_PLANNER_CONFIG = {
     // Branding
-    name: "AI Meal Planner",
-    shortName: "Meal Planner",
+    name: "ButlerAI",
+    shortName: "ButlerAI",
     tagline: "Your AI-Powered Culinary Assistant",
     description: "Transform your kitchen inventory into personalized weekly meal plans",
 

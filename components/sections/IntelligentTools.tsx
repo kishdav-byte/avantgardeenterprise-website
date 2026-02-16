@@ -18,7 +18,7 @@ interface Tool {
 const tools: Tool[] = [
     {
         id: "meal-planner",
-        name: "AI Meal Planner",
+        name: "ButlerAI",
         description: "Transform your kitchen inventory into personalized weekly meal plans. Upload photos of your fridge, pantry, and spices—or skip inventory and discover new recipes based on your preferences.",
         icon: <ChefHat className="w-8 h-8" />,
         href: "/tools/meal-planner",

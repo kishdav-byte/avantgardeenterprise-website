@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'AI Meal Planner | Avant-Garde Enterprise',
+    title: 'ButlerAI | Avant-Garde Enterprise',
     description: 'Optimize your nutrition with our AI-powered meal planning tool. Professional grade dietary engineering.',
     alternates: {
         canonical: '/tools/meal-planner',
