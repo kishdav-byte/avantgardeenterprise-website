@@ -24,72 +24,73 @@ export default function BlogPage() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        let mounted = true
+        let mounted = true;
+        const TIMEOUT_DURATION = 25000; // Increased to 25s for slower connections/cold starts
 
-        // SAFETY TRIGGER: If fetch hangs, force show error after 15s
         const timeoutId = setTimeout(() => {
             if (mounted) {
                 setLoading(currentLoading => {
                     if (currentLoading) {
-                        console.warn("Blog transmission timed out via safety trigger.")
-                        setError("Transmission timed out. The network is slow or the connection was interrupted.")
+                        console.warn("Blog transmission timed out via safety trigger.");
+                        setError("The neural link is unstable. The connection timed out waiting for data. This usually happens on slow networks or during a system cold-start.");
                     }
                     return false
-                })
+                });
             }
-        }, 15000)
+        }, TIMEOUT_DURATION);
 
         const fetchBlogs = async () => {
-            console.log("Transmission initiated: Fetching blogs...")
-            const startTime = Date.now()
+            console.log("Transmission initiated: Fetching blogs...");
+            const startTime = Date.now();
 
             try {
-                // Fetch blogs with a specific timeout for the request itself if possible
-                // but Supabase client doesn't have a built-in per-request timeout.
-                // We rely on the safety trigger above for the UI.
-                const { data, error } = await supabase
+                // Ensure we handle potential connection drops
+                const { data, error: supabaseError } = await supabase
                     .from('blogs')
                     .select('id, title, excerpt, content, published_at, featured_image, slug')
                     .eq('status', 'published')
-                    .limit(20)
+                    .limit(20);
 
-                const duration = Date.now() - startTime
-                console.log(`Transmission complete: ${duration}ms`)
+                const duration = Date.now() - startTime;
+                console.log(`Transmission complete: ${duration}ms`);
 
-                if (error) {
-                    console.error("Supabase API Error:", error)
-                    throw error
+                if (supabaseError) {
+                    console.error("Supabase API Error:", supabaseError);
+                    throw new Error(supabaseError.message || "Database connection error");
                 }
 
                 if (mounted) {
-                    // Sort locally to ensure consistency
-                    const sortedData = data ? [...data].sort((a, b) =>
-                        new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
-                    ) : []
-
-                    setBlogs(sortedData as Blog[])
-                    setLoading(false)
-                    setError(null)
+                    if (!data || data.length === 0) {
+                        console.log("No published articles found.");
+                        setBlogs([]);
+                    } else {
+                        const sortedData = [...data].sort((a, b) =>
+                            new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
+                        );
+                        setBlogs(sortedData as Blog[]);
+                    }
+                    setError(null);
+                    setLoading(false);
                 }
             } catch (err: any) {
-                console.error("Transmission Failure:", err)
+                console.error("Transmission Failure:", err);
                 if (mounted) {
-                    setError(err.message || "Connection timed out")
-                    setLoading(false)
+                    setError(err.message || "Connection timed out");
+                    setLoading(false);
                 }
             } finally {
                 if (mounted) {
-                    clearTimeout(timeoutId)
+                    clearTimeout(timeoutId);
                 }
             }
-        }
+        };
 
-        fetchBlogs()
+        fetchBlogs();
         return () => {
-            mounted = false
-            clearTimeout(timeoutId)
-        }
-    }, [])
+            mounted = false;
+            clearTimeout(timeoutId);
+        };
+    }, []);
 
     const handleHardReset = () => {
         console.log("Initiating Secure Hard Reset...");
