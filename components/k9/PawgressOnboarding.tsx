@@ -117,6 +117,7 @@ export default function PawgressOnboarding({
             }
 
             let dogId = initialData?.id;
+            let resolvedGoalId = null;
 
             if (dogId) {
                 // Update Dog
@@ -132,13 +133,15 @@ export default function PawgressOnboarding({
                         desired_outcome: formData.desired_outcome
                     }).eq('id', goalData.id)
                     if (gErr) throw gErr
+                    resolvedGoalId = goalData.id;
                 } else {
-                    const { error: gErr } = await supabase.from('k9_training_goals').insert({
+                    const { data: newGoal, error: gErr } = await supabase.from('k9_training_goals').insert({
                         dog_id: dogId,
                         desired_outcome: formData.desired_outcome,
                         status: 'active'
-                    })
+                    }).select('id').single()
                     if (gErr) throw gErr
+                    resolvedGoalId = newGoal.id;
                 }
 
             } else {
@@ -148,12 +151,27 @@ export default function PawgressOnboarding({
                 dogId = dogData.id
 
                 // Insert Goal
-                const { error: goalError } = await supabase.from('k9_training_goals').insert({
+                const { data: newGoal, error: goalError } = await supabase.from('k9_training_goals').insert({
                     dog_id: dogId,
                     desired_outcome: formData.desired_outcome,
                     status: 'active'
-                })
+                }).select('id').single()
                 if (goalError) throw goalError
+                resolvedGoalId = newGoal.id
+            }
+
+            // Generate initial baseline plan automatically
+            if (!initialData) {
+                const res = await fetch('/api/k9/generate-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dogId: dogId, goalId: resolvedGoalId })
+                });
+
+                if (!res.ok) {
+                    const errObj = await res.json();
+                    throw new Error(errObj.error || "Failed to generate initial plan.");
+                }
             }
 
             onComplete()
