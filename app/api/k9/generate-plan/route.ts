@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from "@supabase/ssr";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { cookies } from "next/headers";
 import drills from '../../../../data/k9_drill_library.json';
 
-const apiKey = process.env.OPENAI_API_KEY || '';
-const openai = new OpenAI({ apiKey });
+const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req: Request) {
     try {
@@ -47,14 +47,20 @@ export async function POST(req: Request) {
 
         const allowedDrills = drills.map(d => `'${d.name}'`).join(", ");
 
-        const systemInstruction = `You are an expert dog trainer AI called Pawgress AI. 
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-pro",
+            systemInstruction: `You are an expert dog trainer AI called Pawgress AI. 
       You will be provided with a dog's profile and the handler's overarching goal. 
       There is NO video provided for this initial baseline prompt.
       Generate a progressive 30-day interactive calendar (training plan) tailored to this specific dog's baseline. 
       IMPORTANT: For the 'drills' array inside each calendar day, you MUST select from this exact list of library drills: [${allowedDrills}]. If none fit perfectly, pick the closest one.
-      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include { "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ] }`;
+      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include { "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ] }`,
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
 
-        const userPrompt = `Dog Context: ${dogData?.name} is a ${dogData?.age_months} month old ${dogData?.color} ${dogData?.breed} with ${dogData?.energy_level} energy.
+        const prompt = `Dog Context: ${dogData?.name} is a ${dogData?.age_months} month old ${dogData?.color} ${dogData?.breed} with ${dogData?.energy_level} energy.
     Current Skill Level: ${dogData?.current_skill_level}.
     Current Concerns: ${dogData?.current_concerns || 'None'}.
     Training Goal: ${goalData?.desired_outcome}.
@@ -62,16 +68,8 @@ export async function POST(req: Request) {
 
     Please generate the 30-day baseline 'training_plan' JSON array. Make it highly progressive based on their specific concerns and goals. Include rest days based on their schedule of ${dogData?.training_days_per_week} days/week.`;
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                { role: "system", content: systemInstruction },
-                { role: "user", content: userPrompt }
-            ],
-            response_format: { type: "json_object" },
-        });
-
-        const resJsonRaw = completion.choices[0].message.content || '{}';
+        const result = await model.generateContent(prompt);
+        const resJsonRaw = result.response.text();
 
         let resJson;
         try {
