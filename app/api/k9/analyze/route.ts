@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import drills from '../../../../data/k9_drill_library.json';
 
 // Polyfill fetch for Node if needed, but NextApp gives native fetch
 const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
@@ -106,12 +107,14 @@ export async function POST(req: Request) {
         const { data: goalData } = await supabase.from('k9_training_goals').select('*').eq('id', goalId).single();
         const { data: dogData } = await supabase.from('k9_dogs').select('*').eq('id', dogId).single();
 
-        // Call Model with JSON structure
+        const allowedDrills = drills.map(d => `'${d.name}'`).join(", ");
+
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-pro",
             systemInstruction: `You are an expert dog trainer AI called Pawgress AI. 
       You will be provided a video of a dog and handler, along with the dog's details and the handler's overarching goal.
       Evaluate the dog's behavior and the handler's technique. Then generate a 30-day interactive calendar (training plan). 
+      IMPORTANT: For the 'drills' array inside each calendar day, you MUST select from this exact list of library drills: [${allowedDrills}]. If none fit perfectly, pick the closest one.
       Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks.`,
             generationConfig: {
                 responseMimeType: "application/json",
