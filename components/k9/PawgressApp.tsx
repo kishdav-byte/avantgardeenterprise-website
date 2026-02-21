@@ -12,20 +12,58 @@ import {
     Upload,
     ChevronRight,
     ChevronLeft,
-    CheckCircle2
+    CheckCircle2,
+    Loader2
 } from 'lucide-react'
-
-// Dummy Data
-const MOCK_PROFILE = {
-    name: "Bowie",
-    details: "Black Labrador, 11 Weeks Old",
-    img: "https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?auto=format&fit=crop&q=80&w=400"
-}
+import PawgressOnboarding from './PawgressOnboarding'
+import { useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function PawgressApp({ userId }: { userId: string }) {
+    const [isLoading, setIsLoading] = useState(true)
+    const [needsOnboarding, setNeedsOnboarding] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [dogProfile, setDogProfile] = useState<any>(null)
     const [activeTab, setActiveTab] = useState<'dashboard' | 'plan' | 'video' | 'scrapbook' | 'settings'>('dashboard')
-    const [desiredOutcome, setDesiredOutcome] = useState("Hunting dog and family companion that obeys commands and is well behaved.")
+    const [desiredOutcome, setDesiredOutcome] = useState("")
     const [isEditingOutcome, setIsEditingOutcome] = useState(false)
+
+    const fetchDogData = async () => {
+        setIsLoading(true)
+        const { data: dog } = await supabase.from('k9_dogs').select('*').eq('user_id', userId).single()
+        if (!dog) {
+            setNeedsOnboarding(true)
+        } else {
+            setDogProfile(dog)
+            setNeedsOnboarding(false)
+
+            const { data: goal } = await supabase.from('k9_training_goals').select('*').eq('dog_id', dog.id).eq('status', 'active').single()
+            if (goal) {
+                setDesiredOutcome(goal.desired_outcome)
+            }
+        }
+        setIsLoading(false)
+    }
+
+    useEffect(() => {
+        fetchDogData()
+    }, [userId])
+
+    if (isLoading) return <div className="flex w-full items-center justify-center p-32"><Loader2 className="animate-spin text-[#2D2D2D] w-12 h-12" /></div>
+    if (needsOnboarding || isEditing) {
+        return <PawgressOnboarding
+            userId={userId}
+            onComplete={() => {
+                setIsEditing(false)
+                fetchDogData()
+            }}
+            initialData={isEditing ? { ...dogProfile, desired_outcome: desiredOutcome } : null}
+            onCancel={isEditing ? () => setIsEditing(false) : undefined}
+        />
+    }
+
+    const displayImage = "https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?auto=format&fit=crop&q=80&w=400"
+
 
     // Layout configuration
     const navItems = [
@@ -66,7 +104,7 @@ export default function PawgressApp({ userId }: { userId: string }) {
                 </nav>
 
                 <div className="mt-auto px-4 py-3 border border-[#2D2D2D]/10 rounded-2xl bg-white shadow-sm flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors">
-                    <img src={MOCK_PROFILE.img} className="w-10 h-10 rounded-full object-cover" alt="User Profile" />
+                    <img src={displayImage} className="w-10 h-10 rounded-full object-cover grayscale" alt="User Profile" />
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-[#2D2D2D] truncate">David K.</p>
                         <p className="text-xs text-[#2D2D2D]/50 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Pro Tier</p>
@@ -96,10 +134,13 @@ export default function PawgressApp({ userId }: { userId: string }) {
 
                             {/* Profile Card */}
                             <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                                <img src={MOCK_PROFILE.img} className="w-32 h-32 rounded-2xl object-cover shadow-sm" alt="Dog Profile" />
+                                <img src={displayImage} className="w-32 h-32 rounded-2xl object-cover shadow-sm bg-gray-100" alt="Dog Profile" />
                                 <div className="flex-1 w-full">
-                                    <h3 className="text-3xl font-bold tracking-tight mb-1">{MOCK_PROFILE.name}</h3>
-                                    <p className="text-[#2D2D2D]/60 text-sm font-medium mb-6">{MOCK_PROFILE.details}</p>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h3 className="text-3xl font-bold tracking-tight">{dogProfile?.name}</h3>
+                                        <button onClick={() => setIsEditing(true)} className="text-xs font-bold px-3 py-1.5 bg-[#2D2D2D]/5 hover:bg-[#2D2D2D]/10 rounded-full transition-colors text-[#2D2D2D]/60 hover:text-[#2D2D2D]">Edit Profile</button>
+                                    </div>
+                                    <p className="text-[#2D2D2D]/60 text-sm font-medium mb-6">{dogProfile?.color ? `${dogProfile?.color} ` : ''}{dogProfile?.breed}, {dogProfile?.age_months} Months Old</p>
 
                                     <div className="w-full">
                                         <label className="text-xs font-bold tracking-wider uppercase text-[#2D2D2D]/40 mb-2 block">Desired Outcome:</label>
@@ -185,14 +226,14 @@ export default function PawgressApp({ userId }: { userId: string }) {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 mb-4">
-                                    <div className="h-20 bg-gray-100 rounded-xl overflow-hidden"><img src={MOCK_PROFILE.img} className="w-full h-full object-cover opacity-80" /></div>
+                                    <div className="h-20 bg-gray-100 rounded-xl overflow-hidden"><img src={displayImage} className="w-full h-full object-cover opacity-80 mix-blend-multiply" /></div>
                                     <div className="h-20 bg-gray-100 rounded-xl overflow-hidden"><img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=200" className="w-full h-full object-cover opacity-80" /></div>
                                     <div className="col-span-2 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-bold text-[#2D2D2D]/40 border border-dashed border-[#2D2D2D]/10">
                                         + Add Memory
                                     </div>
                                 </div>
                                 <p className="text-xs font-medium text-[#2D2D2D]/60 leading-relaxed">
-                                    "Bowie mastered his crate acclimation today. He walked right in without needing a treat lure!"
+                                    "{dogProfile?.name} mastered crate acclimation today..."
                                 </p>
                             </div>
 
