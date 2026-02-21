@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChefHat, Lock, Sparkles, ArrowRight } from "lucide-react"
+import { ChefHat, Lock, Sparkles, ArrowRight, Dog } from "lucide-react"
 
 interface Tool {
     id: string
@@ -24,6 +24,16 @@ const tools: Tool[] = [
         href: "/tools/meal-planner",
         status: "beta",
         isFree: true,
+        requiresAuth: true
+    },
+    {
+        id: "k9-training",
+        name: "Pawgress AI",
+        description: "AI-powered dog training Micro-SaaS. Analyze your dog's behavior via video and generate dynamic 30-day training regimens tailored to your specific goals.",
+        icon: <Dog className="w-8 h-8" />,
+        href: "/product/k9-training",
+        status: "beta",
+        isFree: false,
         requiresAuth: true
     },
     // Add more tools here as they're developed

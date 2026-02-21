@@ -1,0 +1,224 @@
+"use client"
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import {
+    LayoutDashboard,
+    CalendarDays,
+    Video,
+    BookImage,
+    Settings,
+    Bell,
+    Upload,
+    ChevronRight,
+    ChevronLeft,
+    CheckCircle2
+} from 'lucide-react'
+
+// Dummy Data
+const MOCK_PROFILE = {
+    name: "Bowie",
+    details: "Black Labrador, 11 Weeks Old",
+    img: "https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?auto=format&fit=crop&q=80&w=400"
+}
+
+export default function PawgressApp({ userId }: { userId: string }) {
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'plan' | 'video' | 'scrapbook' | 'settings'>('dashboard')
+    const [desiredOutcome, setDesiredOutcome] = useState("Hunting dog and family companion that obeys commands and is well behaved.")
+    const [isEditingOutcome, setIsEditingOutcome] = useState(false)
+
+    // Layout configuration
+    const navItems = [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'plan', label: 'Training Plan', icon: CalendarDays },
+        { id: 'video', label: 'Video Analysis', icon: Video },
+        { id: 'scrapbook', label: 'Scrapbook', icon: BookImage },
+        { id: 'settings', label: 'Settings', icon: Settings },
+    ] as const
+
+    return (
+        <div className="max-w-[1400px] mx-auto p-4 md:p-8 flex gap-8">
+            {/* Sidebar Navbar */}
+            <aside className="w-64 shrink-0 flex flex-col gap-6 sticky top-24 h-[calc(100vh-8rem)]">
+                <div className="flex items-center gap-2 px-2 pb-6">
+                    <div className="w-8 h-8 bg-[#2D2D2D] rounded-lg flex items-center justify-center">
+                        <span className="text-white font-black text-xs">PAW</span>
+                    </div>
+                    <span className="font-extrabold tracking-widest uppercase text-xl">Flow</span>
+                </div>
+
+                <nav className="flex flex-col gap-1 flex-1">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm
+                                ${activeTab === item.id
+                                    ? 'bg-[#2D2D2D] text-white shadow-lg'
+                                    : 'text-[#2D2D2D]/60 hover:bg-[#2D2D2D]/5 hover:text-[#2D2D2D]'
+                                }
+                            `}
+                        >
+                            <item.icon size={18} className={activeTab === item.id ? "text-white/80" : "text-current"} />
+                            {item.label}
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="mt-auto px-4 py-3 border border-[#2D2D2D]/10 rounded-2xl bg-white shadow-sm flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors">
+                    <img src={MOCK_PROFILE.img} className="w-10 h-10 rounded-full object-cover" alt="User Profile" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#2D2D2D] truncate">David K.</p>
+                        <p className="text-xs text-[#2D2D2D]/50 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Pro Tier</p>
+                    </div>
+                    <Settings size={16} className="text-[#2D2D2D]/40" />
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 min-w-0 flex flex-col gap-6">
+
+                {/* Top Header */}
+                <header className="flex items-center justify-between bg-white rounded-3xl p-4 shadow-sm border border-[#2D2D2D]/5 h-20">
+                    <h2 className="text-2xl font-bold tracking-tight capitalize ml-4">{activeTab.replace('-', ' ')}</h2>
+                    <div className="flex items-center gap-4 mr-4">
+                        <button className="p-2 hover:bg-[#2D2D2D]/5 rounded-full transition-colors relative">
+                            <Bell size={20} className="text-[#2D2D2D]/60" />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full border border-white"></span>
+                        </button>
+                    </div>
+                </header>
+
+                {activeTab === 'dashboard' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col xl:flex-row gap-6">
+                        {/* Left Column (Profile & Calendar) */}
+                        <div className="flex-1 flex flex-col gap-6">
+
+                            {/* Profile Card */}
+                            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                                <img src={MOCK_PROFILE.img} className="w-32 h-32 rounded-2xl object-cover shadow-sm" alt="Dog Profile" />
+                                <div className="flex-1 w-full">
+                                    <h3 className="text-3xl font-bold tracking-tight mb-1">{MOCK_PROFILE.name}</h3>
+                                    <p className="text-[#2D2D2D]/60 text-sm font-medium mb-6">{MOCK_PROFILE.details}</p>
+
+                                    <div className="w-full">
+                                        <label className="text-xs font-bold tracking-wider uppercase text-[#2D2D2D]/40 mb-2 block">Desired Outcome:</label>
+                                        {isEditingOutcome ? (
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    autoFocus
+                                                    type="text"
+                                                    value={desiredOutcome}
+                                                    onChange={(e) => setDesiredOutcome(e.target.value)}
+                                                    onBlur={() => setIsEditingOutcome(false)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && setIsEditingOutcome(false)}
+                                                    className="flex-1 border-2 border-[#2D2D2D] rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none transition-all"
+                                                />
+                                                <button onClick={() => setIsEditingOutcome(false)} className="p-2.5 bg-[#2D2D2D] text-white rounded-xl"><CheckCircle2 size={18} /></button>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={() => setIsEditingOutcome(true)}
+                                                className="w-full border border-[#2D2D2D]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#2D2D2D] bg-gray-50/50 hover:border-[#2D2D2D]/30 hover:bg-white cursor-text transition-all"
+                                            >
+                                                {desiredOutcome || "e.g., 'Master off-leash recall...'"}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Calendar Widget */}
+                            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-lg font-bold">Daily Drills</h3>
+                                    <div className="flex items-center gap-1 text-sm font-medium text-[#2D2D2D]/60">
+                                        <button className="p-1 hover:text-[#2D2D2D] transition-colors"><ChevronLeft size={16} /></button>
+                                        <span>30 Day Timeline</span>
+                                        <button className="p-1 hover:text-[#2D2D2D] transition-colors"><ChevronRight size={16} /></button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-7 gap-y-6 gap-x-2 text-center text-sm">
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                        <div key={day} className="text-xs font-bold text-[#2D2D2D]/40 uppercase tracking-wider">{day}</div>
+                                    ))}
+                                    {/* Mock Calendar Grid */}
+                                    {Array.from({ length: 31 }).map((_, i) => (
+                                        <div key={i} className="relative group flex items-center justify-center">
+                                            {i === 28 ? ( // Today Example
+                                                <div className="w-10 h-10 rounded-xl bg-[#2D2D2D] text-white font-bold flex items-center justify-center shadow-md cursor-pointer relative">
+                                                    {i + 1}
+                                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full border-2 border-white"></span>
+                                                </div>
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-xl bg-gray-50 font-medium text-[#2D2D2D]/80 flex flex-col items-center justify-center border border-[#2D2D2D]/5 hover:border-[#2D2D2D]/20 hover:bg-white cursor-pointer transition-colors">
+                                                    <span className="text-[10px] text-[#2D2D2D]/30 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">Drill</span>
+                                                    {i + 1}
+                                                    {i < 15 && <div className="w-4 h-0.5 bg-emerald-400 rounded-full mt-1"></div>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* Right Column (Upload & Summary) */}
+                        <div className="w-full xl:w-[340px] flex flex-col gap-6">
+
+                            {/* Upload Dropzone */}
+                            <div className="bg-[#FAF9F5] border border-[#2D2D2D]/10 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:bg-white transition-colors cursor-pointer min-h-[260px] group">
+                                <div className="w-16 h-16 bg-[#2D2D2D]/5 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-[#2D2D2D] group-hover:text-white transition-all text-[#2D2D2D]">
+                                    <Upload size={24} />
+                                </div>
+                                <h4 className="font-bold text-[#2D2D2D] mb-2 uppercase tracking-tight text-sm">Upload Video <br />For AI Analysis</h4>
+                                <p className="text-xs text-[#2D2D2D]/50">MP4, MOV up to 200MB</p>
+                            </div>
+
+                            {/* Scrapbook Mini Summary */}
+                            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5 flex-1">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-bold opacity-60 uppercase tracking-widest">Scrapbook</h3>
+                                    <button onClick={() => setActiveTab('scrapbook')} className="text-xs font-bold hover:underline">View All</button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <div className="h-20 bg-gray-100 rounded-xl overflow-hidden"><img src={MOCK_PROFILE.img} className="w-full h-full object-cover opacity-80" /></div>
+                                    <div className="h-20 bg-gray-100 rounded-xl overflow-hidden"><img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=200" className="w-full h-full object-cover opacity-80" /></div>
+                                    <div className="col-span-2 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-bold text-[#2D2D2D]/40 border border-dashed border-[#2D2D2D]/10">
+                                        + Add Memory
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium text-[#2D2D2D]/60 leading-relaxed">
+                                    "Bowie mastered his crate acclimation today. He walked right in without needing a treat lure!"
+                                </p>
+                            </div>
+
+                        </div>
+                    </motion.div>
+                )}
+
+                {activeTab !== 'dashboard' && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 bg-white rounded-3xl p-12 shadow-sm border border-[#2D2D2D]/5 flex items-center justify-center text-center">
+                        <div className="max-w-md">
+                            <div className="w-20 h-20 bg-[#2D2D2D]/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#2D2D2D]/40">
+                                {navItems.find(i => i.id === activeTab)?.icon({ size: 32 })}
+                            </div>
+                            <h3 className="text-2xl font-bold mb-2">{navItems.find(i => i.id === activeTab)?.label} Module</h3>
+                            <p className="text-[#2D2D2D]/60 text-sm leading-relaxed">
+                                This section is actively being populated and analyzed by Pawgress AI. Once video uploads have been analyzed, full readouts will appear here.
+                            </p>
+                            {activeTab === 'video' && (
+                                <button className="mt-8 px-6 py-3 bg-[#2D2D2D] text-white font-bold rounded-xl hover:bg-black transition-all text-sm">
+                                    Start New Analysis
+                                </button>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </main>
+        </div>
+    )
+}
