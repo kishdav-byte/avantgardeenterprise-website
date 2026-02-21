@@ -47,14 +47,16 @@ export async function POST(req: Request) {
 
         const allowedDrills = drills.map(d => `'${d.name}'`).join(", ");
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-pro",
-            systemInstruction: `You are an expert dog trainer AI called Pawgress AI. 
+        const systemInstruction = `You are an expert dog trainer AI called Pawgress AI. 
       You will be provided with a dog's profile and the handler's overarching goal. 
       There is NO video provided for this initial baseline prompt.
       Generate a progressive 30-day interactive calendar (training plan) tailored to this specific dog's baseline. 
       IMPORTANT: For the 'drills' array inside each calendar day, you MUST select from this exact list of library drills: [${allowedDrills}]. If none fit perfectly, pick the closest one.
-      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include { "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ] }`,
+      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include { "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ] }`;
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            systemInstruction: systemInstruction,
             generationConfig: {
                 responseMimeType: "application/json",
             },
