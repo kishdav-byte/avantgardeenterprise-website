@@ -1,0 +1,119 @@
+[
+    {
+        "id": "drill_name_game",
+        "name": "The Name Game",
+        "category": "Foundations",
+        "difficulty": 1,
+        "duration": "5 minutes",
+        "instructions": "Say the dog's name once. The moment they look at you, mark with a 'Yes!' or a click, and deliver a high-value treat. Repeat 10-15 times per session in low-distraction environments.",
+        "mediaUrl": "/k9-drills/name-game.webp"
+    },
+    {
+        "id": "drill_leash_pressure",
+        "name": "Leash Pressure Yielding",
+        "category": "Foundations",
+        "difficulty": 2,
+        "duration": "10 minutes",
+        "instructions": "Apply slow, steady pressure on the leash sideways or backwards. Do not pull the dog, just hold tension. The exact second the dog steps into the pressure to create slack, mark 'Yes!' and reward.",
+        "mediaUrl": "/k9-drills/leash-pressure.webp"
+    },
+    {
+        "id": "drill_place",
+        "name": "The Place Command",
+        "category": "Foundations",
+        "difficulty": 2,
+        "duration": "10-30 minutes",
+        "instructions": "Lure the dog onto a raised bed or specific mat. Say 'Place'. Reward for all four paws on. Build duration slowly. If they break early, calmly redirect them back without a reward.",
+        "mediaUrl": "/k9-drills/place-command.webp"
+    },
+    {
+        "id": "drill_sit_stay",
+        "name": "Sit & Stay",
+        "category": "Obedience",
+        "difficulty": 2,
+        "duration": "10 minutes",
+        "instructions": "Command 'Sit'. Introduce the 'Stay' hand signal (flat hand towards face). Take one step back. If they hold, return and reward. Slowly increase the distance and duration (the 'Three Ds': Distance, Duration, Distraction).",
+        "mediaUrl": "/k9-drills/sit-stay.webp"
+    },
+    {
+        "id": "drill_down_stay",
+        "name": "Down & Stay",
+        "category": "Obedience",
+        "difficulty": 3,
+        "duration": "10-20 minutes",
+        "instructions": "From a sit, lure the dog down to the floor. Command 'Down'. Introduce 'Stay'. The Down is a naturally more relaxed state, aim for longer durations here while you walk around the room.",
+        "mediaUrl": "/k9-drills/down-stay.webp"
+    },
+    {
+        "id": "drill_fetch",
+        "name": "Fetch & Retrieve",
+        "category": "Advanced",
+        "difficulty": 3,
+        "duration": "15 minutes",
+        "instructions": "Throw a low-value toy a short distance. When the dog picks it up, enthusiastically call them back. Show a higher-value toy or treat to encourage them to run to you and drop the first object.",
+        "mediaUrl": "/k9-drills/fetch.webp"
+    },
+    {
+        "id": "drill_drop_it",
+        "name": "Drop It (Trade Game)",
+        "category": "Obedience",
+        "difficulty": 2,
+        "duration": "5 minutes",
+        "instructions": "While the dog has a toy, present a high-value treat right at their nose. As they open their mouth to take the treat, say 'Drop It'. Let them eat the treat, and give the toy back to build trust.",
+        "mediaUrl": "/k9-drills/drop-it.webp"
+    },
+    {
+        "id": "drill_search",
+        "name": "Nosework: Search",
+        "category": "Enrichment",
+        "difficulty": 3,
+        "duration": "15 minutes",
+        "instructions": "Put the dog in a stay or have someone hold them. Hide a smelly treat or favorite toy in a different room. Release with 'Search!' Start easy (visible) and progressively make the hiding spots harder.",
+        "mediaUrl": "/k9-drills/search.webp"
+    },
+    {
+        "id": "drill_confidence_walking",
+        "name": "Confidence: Tactile Walking",
+        "category": "Enrichment",
+        "difficulty": 3,
+        "duration": "10 minutes",
+        "instructions": "Lure the dog to walk over strange, safe surfaces (wobbly boards, bubble wrap, grates, low tables). Reward heavily for interacting with the scary object. Do not force them.",
+        "mediaUrl": "/k9-drills/confidence-walk.webp"
+    },
+    {
+        "id": "drill_agility_jump",
+        "name": "Agility: Basic Jump",
+        "category": "Advanced",
+        "difficulty": 4,
+        "duration": "10 minutes",
+        "instructions": "Set a jump bar very low (or use a broomstick on books). With the dog on leash, jog toward it and say 'Hup' or 'Jump' as you both go over it. Reward heavily on the landing side.",
+        "mediaUrl": "/k9-drills/agility-jump.webp"
+    },
+    {
+        "id": "drill_heel",
+        "name": "Structured Heel",
+        "category": "Obedience",
+        "difficulty": 4,
+        "duration": "15 minutes",
+        "instructions": "Hold leash short. Command 'Heel'. The dog's shoulder should align with your leg. If they drift ahead, stop immediately and walk backward, patting your leg until they return to position.",
+        "mediaUrl": "/k9-drills/heel.webp"
+    },
+    {
+        "id": "drill_threshold",
+        "name": "Threshold Boundaries",
+        "category": "Foundations",
+        "difficulty": 2,
+        "duration": "5 minutes",
+        "instructions": "Walk to an exterior door. Command 'Sit'. Slowly open the door. If the dog breaks the sit to rush out, immediately close the door. Repeat until the door is wide open and the dog remains seated.",
+        "mediaUrl": "/k9-drills/threshold.webp"
+    },
+    {
+        "id": "drill_leave_it",
+        "name": "Leave It",
+        "category": "Obedience",
+        "difficulty": 3,
+        "duration": "10 minutes",
+        "instructions": "Place a low-value treat on the floor and cover it with your hand. The dog will sniff/paw. Wait. The moment they pull away and look at you, say 'Yes!', pick it up, and give them a *different*, better treat from your other hand.",
+        "mediaUrl": "/k9-drills/leave-it.webp"
+    }
+]
