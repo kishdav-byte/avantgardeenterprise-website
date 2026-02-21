@@ -366,14 +366,25 @@ export default function PawgressOnboarding({
 
                             <div className="space-y-6">
                                 <div className="flex flex-wrap gap-2">
-                                    {COMMON_OUTCOMES.map(outcome => (
-                                        <button key={outcome} onClick={() => updateForm('desired_outcome', outcome)}
-                                            className={`px-4 py-2 font-medium text-sm rounded-full border-2 transition-all
-                                                ${formData.desired_outcome === outcome ? 'bg-[#2D2D2D] border-[#2D2D2D] text-white' : 'bg-transparent border-[#2D2D2D]/10 text-[#2D2D2D]/60 hover:border-[#2D2D2D]/30'}`
-                                            }>
-                                            {outcome}
-                                        </button>
-                                    ))}
+                                    {COMMON_OUTCOMES.map(outcome => {
+                                        const outArray = formData.desired_outcome ? formData.desired_outcome.split(', ') : []
+                                        const isSelected = outArray.includes(outcome)
+
+                                        return (
+                                            <button key={outcome} onClick={() => {
+                                                if (isSelected) {
+                                                    updateForm('desired_outcome', outArray.filter((o: string) => o !== outcome).join(', '))
+                                                } else {
+                                                    updateForm('desired_outcome', [...outArray, outcome].join(', '))
+                                                }
+                                            }}
+                                                className={`px-4 py-2 font-medium text-sm rounded-full border-2 transition-all
+                                                    ${isSelected ? 'bg-[#2D2D2D] border-[#2D2D2D] text-white' : 'bg-transparent border-[#2D2D2D]/10 text-[#2D2D2D]/60 hover:border-[#2D2D2D]/30'}`
+                                                }>
+                                                {outcome}
+                                            </button>
+                                        )
+                                    })}
                                 </div>
 
                                 <div className="relative">
@@ -382,7 +393,7 @@ export default function PawgressOnboarding({
                                     </div>
                                     <input type="text" value={formData.desired_outcome} onChange={e => updateForm('desired_outcome', e.target.value)}
                                         className="w-full border-2 border-[#2D2D2D]/10 rounded-xl pl-10 pr-4 py-4 focus:border-[#2D2D2D] focus:outline-none transition-colors font-medium text-[#2D2D2D]"
-                                        placeholder="Or type a highly specific outcome here..." />
+                                        placeholder="Or type/edit a highly specific outcome here..." />
                                 </div>
 
                                 {error && (
