@@ -9,7 +9,7 @@ import os from 'os';
 import drills from '../../../../data/k9_drill_library.json';
 
 // Polyfill fetch for Node if needed, but NextApp gives native fetch
-const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
+const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key || process.env.OPENAI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 

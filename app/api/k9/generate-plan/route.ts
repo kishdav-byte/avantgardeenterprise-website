@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { cookies } from "next/headers";
 import drills from '../../../../data/k9_drill_library.json';
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
+const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key || process.env.OPENAI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req: Request) {
