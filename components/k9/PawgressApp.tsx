@@ -16,6 +16,7 @@ import {
     Loader2
 } from 'lucide-react'
 import PawgressOnboarding from './PawgressOnboarding'
+import PawgressPlanView from './PawgressPlanView'
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -241,7 +242,16 @@ export default function PawgressApp({ userId }: { userId: string }) {
                     </motion.div>
                 )}
 
-                {activeTab !== 'dashboard' && (
+                {activeTab === 'plan' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1">
+                        <PawgressPlanView
+                            dogId={dogProfile?.id}
+                            onAddVideo={() => setActiveTab('video')}
+                        />
+                    </motion.div>
+                )}
+
+                {activeTab !== 'dashboard' && activeTab !== 'plan' && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 bg-white rounded-3xl p-12 shadow-sm border border-[#2D2D2D]/5 flex items-center justify-center text-center">
                         <div className="max-w-md">
                             <div className="w-20 h-20 bg-[#2D2D2D]/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#2D2D2D]/40">
