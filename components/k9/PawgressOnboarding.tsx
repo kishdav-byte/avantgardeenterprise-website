@@ -160,18 +160,16 @@ export default function PawgressOnboarding({
                 resolvedGoalId = newGoal.id
             }
 
-            // Generate initial baseline plan automatically
-            if (!initialData) {
-                const res = await fetch('/api/k9/generate-plan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dogId: dogId, goalId: resolvedGoalId })
-                });
+            // Generate baseline/updated plan automatically after filling form
+            const res = await fetch('/api/k9/generate-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dogId: dogId, goalId: resolvedGoalId })
+            });
 
-                if (!res.ok) {
-                    const errObj = await res.json();
-                    throw new Error(errObj.error || "Failed to generate initial plan.");
-                }
+            if (!res.ok) {
+                const errObj = await res.json();
+                throw new Error(errObj.error || "Failed to generate initial plan.");
             }
 
             onComplete()
