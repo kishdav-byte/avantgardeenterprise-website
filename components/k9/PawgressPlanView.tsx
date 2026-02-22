@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award } from 'lucide-react'
+import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle } from 'lucide-react'
 import drillLibrary from '@/data/k9_drill_library.json'
 
 const PHASE_COLORS: Record<string, string> = {
@@ -27,6 +27,7 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
     const [isLoading, setIsLoading] = useState(true)
     const [aiLog, setAiLog] = useState<any>(null)
     const [selectedWeek, setSelectedWeek] = useState(1)
+    const [selectedDrill, setSelectedDrill] = useState<any>(null)
 
     useEffect(() => {
         const fetchPlan = async () => {
@@ -257,15 +258,22 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                                         {currentWeekData.daily_routine?.length > 0 ? currentWeekData.daily_routine.map((drillName: string, idx: number) => {
                                             const drillDetail = (drillLibrary as any[]).find((d) => d.name === drillName)
                                             return (
-                                                <div key={idx} className="bg-white p-3 rounded-xl border border-[#2D2D2D]/10 shadow-sm flex flex-col justify-between">
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => { if (drillDetail) setSelectedDrill(drillDetail) }}
+                                                    className="bg-white p-3 rounded-xl border border-[#2D2D2D]/10 shadow-sm flex flex-col justify-between cursor-pointer hover:border-[#2D2D2D]/30 transition-all hover:shadow-md group"
+                                                >
                                                     <div>
-                                                        <div className="font-bold text-[#2D2D2D] text-sm mb-1 leading-tight">{drillName}</div>
+                                                        <div className="font-bold text-[#2D2D2D] text-sm mb-1 leading-tight group-hover:text-amber-600 transition-colors">{drillName}</div>
                                                         <p className="text-[11px] text-[#2D2D2D]/50 leading-relaxed mb-3 line-clamp-2">
                                                             {drillDetail?.instructions || 'Follow standard procedures.'}
                                                         </p>
                                                     </div>
-                                                    <div className="text-[10px] font-bold tracking-widest uppercase text-[#2D2D2D]/40 bg-[#FAF9F5] px-2 py-1 rounded-md w-fit">
-                                                        {drillDetail?.duration || '10 mins'}
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="text-[10px] font-bold tracking-widest uppercase text-[#2D2D2D]/40 bg-[#FAF9F5] px-2 py-1 rounded-md w-fit">
+                                                            {drillDetail?.duration || '10 mins'}
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">View Guide &rarr;</span>
                                                     </div>
                                                 </div>
                                             )
@@ -296,12 +304,100 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                 </div>
             </div>
 
+            {/* Drill Detail Modal */}
+            <AnimatePresence>
+                {selectedDrill && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto w-full pt-10 pb-10">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedDrill(null)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl relative z-10 flex flex-col max-h-[90vh]"
+                        >
+                            <button onClick={() => setSelectedDrill(null)} className="absolute top-6 right-6 p-2 bg-black/5 hover:bg-black/10 rounded-full transition-colors z-20">
+                                <X size={20} className="text-[#2D2D2D]" />
+                            </button>
+
+                            <div className="h-48 bg-gradient-to-br from-[#2D2D2D] to-black relative flex items-end p-8 shrink-0">
+                                <div className="absolute inset-0 bg-black/20" />
+                                <div className="relative z-10 text-white w-full">
+                                    <div className="text-xs font-bold tracking-widest uppercase text-white/60 mb-2 flex items-center gap-3">
+                                        <span className="bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">{selectedDrill.category}</span>
+                                        <span className="flex items-center gap-1"><Clock size={14} /> {selectedDrill.duration}</span>
+                                    </div>
+                                    <h2 className="text-3xl font-black tracking-tight">{selectedDrill.name}</h2>
+                                </div>
+                            </div>
+
+                            <div className="p-8 overflow-y-auto styled-scrollbar flex-1 bg-[#FAF9F5]/30">
+                                <div className="bg-white rounded-2xl p-6 border border-[#2D2D2D]/5 shadow-sm mb-6">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-3 flex items-center gap-2">
+                                        <Target size={14} /> Core Objective
+                                    </h3>
+                                    <p className="text-sm font-medium text-[#2D2D2D]/80 leading-relaxed">
+                                        {selectedDrill.instructions}
+                                    </p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-white rounded-2xl p-5 border border-[#2D2D2D]/5 shadow-sm">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">Handler Action</h4>
+                                        <p className="text-sm font-medium text-[#2D2D2D] leading-relaxed">{selectedDrill.command_human || "N/A"}</p>
+                                    </div>
+                                    <div className="bg-white rounded-2xl p-5 border border-[#2D2D2D]/5 shadow-sm">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">Dog Action</h4>
+                                        <p className="text-sm font-medium text-[#2D2D2D] leading-relaxed">{selectedDrill.command_dog || "N/A"}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                            <MapPin size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-1">Environment</h4>
+                                            <p className="text-sm font-medium text-[#2D2D2D]/80">{selectedDrill.environment || "Any safe space."}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                                            <Bone size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-1">Reward System</h4>
+                                            <p className="text-sm font-medium text-[#2D2D2D]/80">{selectedDrill.reward || "Praise and high-value treat."}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                                            <AlertCircle size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-1">Key Attributes to Note</h4>
+                                            <p className="text-sm font-medium text-[#2D2D2D]">{selectedDrill.key_attributes || "Be calm and strictly consistent."}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             <style jsx global>{`
                 .styled-scrollbar::-webkit-scrollbar { width: 5px; }
                 .styled-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .styled-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(45,45,45,0.1); border-radius: 10px; }
                 .styled-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
             `}</style>
-        </div>
+        </div >
     )
 }

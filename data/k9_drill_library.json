@@ -6,6 +6,11 @@
         "difficulty": 1,
         "duration": "5 minutes",
         "instructions": "Say the dog's name once. The moment they look at you, mark with a 'Yes!' or a click, and deliver a high-value treat. Repeat 10-15 times per session in low-distraction environments.",
+        "command_human": "Say the dog's name in an upbeat tone (e.g., 'Fido!').",
+        "command_dog": "Immediate eye contact with the handler.",
+        "environment": "Quiet room, no distractions.",
+        "reward": "High-value treat + enthusiastic verbal praise.",
+        "key_attributes": "Do not repeat the name if they ignore you. Instead, make a kissing noise, and reward when they look.",
         "mediaUrl": "/k9-drills/name-game.webp"
     },
     {
@@ -15,6 +20,11 @@
         "difficulty": 2,
         "duration": "10 minutes",
         "instructions": "Apply slow, steady pressure on the leash sideways or backwards. Do not pull the dog, just hold tension. The exact second the dog steps into the pressure to create slack, mark 'Yes!' and reward.",
+        "command_human": "No verbal command. Purely physical leash pressure.",
+        "command_dog": "Step into the direction of the leash pull to create slack.",
+        "environment": "Indoors or a quiet backyard.",
+        "reward": "Treat delivered close to your leg, reinforcing closeness.",
+        "key_attributes": "Never jerk the leash. It must be slow, escalating tension until they yield.",
         "mediaUrl": "/k9-drills/leash-pressure.webp"
     },
     {
@@ -24,6 +34,11 @@
         "difficulty": 2,
         "duration": "10-30 minutes",
         "instructions": "Lure the dog onto a raised bed or specific mat. Say 'Place'. Reward for all four paws on. Build duration slowly. If they break early, calmly redirect them back without a reward.",
+        "command_human": "'Place' while pointing at the bed.",
+        "command_dog": "All four paws on the bed, holding position until released.",
+        "environment": "Living room or visible household area.",
+        "reward": "Treat delivered strictly ON the bed.",
+        "key_attributes": "Duration is more important than distance at first. Reward them periodically for just staying there.",
         "mediaUrl": "/k9-drills/place-command.webp"
     },
     {
@@ -32,7 +47,12 @@
         "category": "Obedience",
         "difficulty": 2,
         "duration": "10 minutes",
-        "instructions": "Command 'Sit'. Introduce the 'Stay' hand signal (flat hand towards face). Take one step back. If they hold, return and reward. Slowly increase the distance and duration (the 'Three Ds': Distance, Duration, Distraction).",
+        "instructions": "Command 'Sit'. Introduce the 'Stay' hand signal (flat hand towards face). Take one step back. If they hold, return and reward. Slowly increase the distance and duration.",
+        "command_human": "'Sit' followed by 'Stay' with a stop-sign hand signal.",
+        "command_dog": "Maintain the sit position despite handler movement.",
+        "environment": "Driveway or quiet park.",
+        "reward": "Treat and calm praise (do not over-excite).",
+        "key_attributes": "Master the 'Three Ds': Distance, Duration, Distraction. Increase only one at a time.",
         "mediaUrl": "/k9-drills/sit-stay.webp"
     },
     {
@@ -42,6 +62,11 @@
         "difficulty": 3,
         "duration": "10-20 minutes",
         "instructions": "From a sit, lure the dog down to the floor. Command 'Down'. Introduce 'Stay'. The Down is a naturally more relaxed state, aim for longer durations here while you walk around the room.",
+        "command_human": "'Down' with a point to the floor, then 'Stay'.",
+        "command_dog": "Lie completely flat, elbows touching the ground.",
+        "environment": "Inside the house with mild family distractions.",
+        "reward": "Treat placed between their front paws.",
+        "key_attributes": "If they pop up, immediately reset them without saying a word. Consistency is key.",
         "mediaUrl": "/k9-drills/down-stay.webp"
     },
     {
@@ -51,6 +76,11 @@
         "difficulty": 3,
         "duration": "15 minutes",
         "instructions": "Throw a low-value toy a short distance. When the dog picks it up, enthusiastically call them back. Show a higher-value toy or treat to encourage them to run to you and drop the first object.",
+        "command_human": "'Fetch' on throw, 'Here' or dog's name for return.",
+        "command_dog": "Pick up item, return to handler immediately.",
+        "environment": "Backyard or open field on a long line.",
+        "reward": "Tug-of-war with a second toy or a high-value treat.",
+        "key_attributes": "Never chase a dog that won't bring it back. Run away from them to trigger their chase instinct.",
         "mediaUrl": "/k9-drills/fetch.webp"
     },
     {
@@ -60,6 +90,11 @@
         "difficulty": 2,
         "duration": "5 minutes",
         "instructions": "While the dog has a toy, present a high-value treat right at their nose. As they open their mouth to take the treat, say 'Drop It'. Let them eat the treat, and give the toy back to build trust.",
+        "command_human": "'Drop It' exactly as they open their mouth.",
+        "command_dog": "Release object willingly.",
+        "environment": "Indoor play setting.",
+        "reward": "High-value treat PLUS returning the toy.",
+        "key_attributes": "The dog needs to learn that 'drop it' doesn't mean playtime is over; it means they get paid, and playtime continues.",
         "mediaUrl": "/k9-drills/drop-it.webp"
     },
     {
@@ -69,6 +104,11 @@
         "difficulty": 3,
         "duration": "15 minutes",
         "instructions": "Put the dog in a stay or have someone hold them. Hide a smelly treat or favorite toy in a different room. Release with 'Search!' Start easy (visible) and progressively make the hiding spots harder.",
+        "command_human": "'Search!' or 'Find It!' in an excited tone.",
+        "command_dog": "Use nose to locate hidden object.",
+        "environment": "Around the house, moving to different rooms.",
+        "reward": "The hidden treat itself, or a massive tug-party when they find the toy.",
+        "key_attributes": "Mental exhaustion is often better than physical exhaustion. This will tire your dog out fast.",
         "mediaUrl": "/k9-drills/search.webp"
     },
     {
@@ -78,6 +118,11 @@
         "difficulty": 3,
         "duration": "10 minutes",
         "instructions": "Lure the dog to walk over strange, safe surfaces (wobbly boards, bubble wrap, grates, low tables). Reward heavily for interacting with the scary object. Do not force them.",
+        "command_human": "Encouraging praise, no strict commands.",
+        "command_dog": "Engage bravely with a new, weird surface.",
+        "environment": "Garage, park benches, hardware store floors.",
+        "reward": "Continuous stream of small treats as they conquer the obstacle.",
+        "key_attributes": "Never drag them. Let them investigate on their own terms. Confidence is built through self-discovery.",
         "mediaUrl": "/k9-drills/confidence-walk.webp"
     },
     {
@@ -87,6 +132,11 @@
         "difficulty": 4,
         "duration": "10 minutes",
         "instructions": "Set a jump bar very low (or use a broomstick on books). With the dog on leash, jog toward it and say 'Hup' or 'Jump' as you both go over it. Reward heavily on the landing side.",
+        "command_human": "'Hup!' right before the liftoff.",
+        "command_dog": "Clear the obstacle without knocking it down.",
+        "environment": "Backyard or grass field. Soft landings only.",
+        "reward": "Thrown toy or treat to encourage forward momentum.",
+        "key_attributes": "Keep jumps low to protect their developing joints, especially in dogs under 18 months.",
         "mediaUrl": "/k9-drills/agility-jump.webp"
     },
     {
@@ -96,6 +146,11 @@
         "difficulty": 4,
         "duration": "15 minutes",
         "instructions": "Hold leash short. Command 'Heel'. The dog's shoulder should align with your leg. If they drift ahead, stop immediately and walk backward, patting your leg until they return to position.",
+        "command_human": "'Heel' when stepping off on your left foot.",
+        "command_dog": "Walk in strict parallel with the handler, shoulder at handler's seam.",
+        "environment": "Sidewalk or low-traffic street.",
+        "reward": "Treat delivered directly down at the seam of your pants.",
+        "key_attributes": "Heeling is active work. Do not let them sniff or pee while under the Heel command. Give them a separate 'Break' or 'Free' command for casual walking.",
         "mediaUrl": "/k9-drills/heel.webp"
     },
     {
@@ -105,6 +160,11 @@
         "difficulty": 2,
         "duration": "5 minutes",
         "instructions": "Walk to an exterior door. Command 'Sit'. Slowly open the door. If the dog breaks the sit to rush out, immediately close the door. Repeat until the door is wide open and the dog remains seated.",
+        "command_human": "'Sit'. Hand block if they rush.",
+        "command_dog": "Wait patiently at the open door until explicitly invited out.",
+        "environment": "Front door or car crate door.",
+        "reward": "The reward is the permission to go outside ('Free!').",
+        "key_attributes": "This is a life-saving drill preventing dogs from darting into traffic. Be incredibly strict.",
         "mediaUrl": "/k9-drills/threshold.webp"
     },
     {
@@ -114,6 +174,11 @@
         "difficulty": 3,
         "duration": "10 minutes",
         "instructions": "Place a low-value treat on the floor and cover it with your hand. The dog will sniff/paw. Wait. The moment they pull away and look at you, say 'Yes!', pick it up, and give them a *different*, better treat from your other hand.",
+        "command_human": "'Leave It' in a firm, calm tone.",
+        "command_dog": "Disengage completely from the object of interest.",
+        "environment": "Kitchen or controlled indoor area.",
+        "reward": "A totally separate, much better treat.",
+        "key_attributes": "Never reward them with the object they were told to leave. It teaches them that 'Leave It' just means 'Wait'.",
         "mediaUrl": "/k9-drills/leave-it.webp"
     },
     {
@@ -123,6 +188,11 @@
         "difficulty": 1,
         "duration": "All Day",
         "instructions": "Take the dog outside to the exact same spot immediately after waking, eating, playing, and every 1-2 hours. Stand still and wait 5 minutes. The *second* they eliminate, praise enthusiastically and give a high-value treat.",
+        "command_human": "'Go Potty' when outside in the grass.",
+        "command_dog": "Eliminate in the designated outdoor area.",
+        "environment": "A specific, boring patch of grass in the yard.",
+        "reward": "Massive treat party directly after finishing (not inside).",
+        "key_attributes": "Do not play with them until the bathroom transaction is complete. Business first, fun second.",
         "mediaUrl": "/k9-drills/house-training.webp"
     },
     {
@@ -132,6 +202,11 @@
         "difficulty": 2,
         "duration": "15 minutes",
         "instructions": "When you cannot 100% supervise the dog, they belong in a properly sized crate (big enough to stand and turn around, no bigger). Feed meals in the crate to build positive association. Never use it as punishment.",
+        "command_human": "'Crate' or 'Kennel' while pointing inside.",
+        "command_dog": "Enter crate willingly and settle down quietly.",
+        "environment": "Bedroom or quiet corner of the house.",
+        "reward": "KONG stuffed with peanut butter or their normal meals.",
+        "key_attributes": "Dogs inherently do not want to soil their den. A properly sized crate is the #1 tool for potty training.",
         "mediaUrl": "/k9-drills/crate-training.webp"
     },
     {
@@ -141,6 +216,11 @@
         "difficulty": 3,
         "duration": "5 minutes",
         "instructions": "Hang bells on the door. Every single time you take the dog out for a potty break, take their paw or nose and ring the bell, say 'Outside', and open the door. Soon they will ring it themselves to request a break.",
+        "command_human": "'Outside' as the bell rings.",
+        "command_dog": "Nudge the bell with paw/nose when needing to eliminate.",
+        "environment": "Back door.",
+        "reward": "The door opens immediately.",
+        "key_attributes": "If they start ringing the bell just to play outside, put them on a leash, take them to pee, and go back inside immediately. It is for business only.",
         "mediaUrl": "/k9-drills/bell-game.webp"
     },
     {
@@ -150,6 +230,11 @@
         "difficulty": 1,
         "duration": "Ongoing",
         "instructions": "When the puppy bites your hands/clothes during play, make a high-pitched 'Yip!' sound and immediately stop all play and ignore them for 10 seconds. Resume play with an appropriate chew toy.",
+        "command_human": "A sharp 'Yip!' or 'Ouch!'",
+        "command_dog": "Release pressure immediately upon hearing the sound.",
+        "environment": "Anywhere playful interaction occurs.",
+        "reward": "Resuming play with an allowed toy.",
+        "key_attributes": "Consistency among all family members is required. The puppy must learn human skin is extremely fragile.",
         "mediaUrl": "/k9-drills/bite-inhibition.webp"
     },
     {
@@ -159,6 +244,11 @@
         "difficulty": 3,
         "duration": "15 minutes",
         "instructions": "Drag a high-value scent (like a hotdog or specific training scent) through short grass in a straight line for 10 feet. Bring the dog to the start line and say 'Find It'. Reward heavily at the end of the track.",
+        "command_human": "'Find It' or 'Search' at the start of the trail.",
+        "command_dog": "Keep nose to the ground, following the exact trail.",
+        "environment": "Short grass field.",
+        "reward": "A pile of treats at the very end of the trail.",
+        "key_attributes": "Walk the trail with the wind at your back so the scent blows forward, forcing them to use the ground track instead of air scenting.",
         "mediaUrl": "/k9-drills/hunt-scent.webp"
     },
     {
@@ -168,6 +258,11 @@
         "difficulty": 4,
         "duration": "20 minutes",
         "instructions": "Command 'Sit/Stay' next to you. Throw a bumper or toy out into the yard. The dog must NOT break the hold to chase it. They must wait for your specific release command (e.g. 'Back') before retrieving.",
+        "command_human": "'Sit' followed by 'Back' to release.",
+        "command_dog": "Mark the fall of the object visually without breaking the sit.",
+        "environment": "Field or body of water.",
+        "reward": "Getting to retrieve the bumper is the primary reward.",
+        "key_attributes": "If they break early to chase it, intercept them or have a helper pick it up before they can get it. Breaking breaks the game.",
         "mediaUrl": "/k9-drills/hunt-steadiness.webp"
     },
     {
@@ -177,6 +272,11 @@
         "difficulty": 3,
         "duration": "10 minutes",
         "instructions": "Wrap a hard bumper in slightly uncomfortable material (like tough wire mesh or zip ties, cut safe) to discourage hard biting. Praise the dog for gently carrying the object back to the hand without chomping.",
+        "command_human": "'Hold' gently.",
+        "command_dog": "Carry object with a soft grip, no teeth puncturing.",
+        "environment": "Controlled yard.",
+        "reward": "Praise and a treat upon successful gentle delivery to hand.",
+        "key_attributes": "Do not play tug-of-war with a hunting dog. It encourages hard biting and thrashing.",
         "mediaUrl": "/k9-drills/soft-mouth.webp"
     },
     {
@@ -186,6 +286,11 @@
         "difficulty": 5,
         "duration": "10 minutes",
         "instructions": "While the dog is highly engaged in positive play or eating from far away (50+ yards), have a helper make a simulated popping noise (like a clap or starter pistol). If the dog ignores it, reward heavily. Slowly move closer over weeks.",
+        "command_human": "No verbal command. Purely associative.",
+        "command_dog": "Ignore loud noises and remain focused on the task/food.",
+        "environment": "Wide open field.",
+        "reward": "Continuous feed or high-drive play during the noise.",
+        "key_attributes": "Never shoot right over a fresh dog. Start incredibly far away and watch for signs of fear. Move closer only when they don't even flinch.",
         "mediaUrl": "/k9-drills/gunfire.webp"
     },
     {
@@ -195,6 +300,11 @@
         "difficulty": 5,
         "duration": "15 minutes",
         "instructions": "Place a bumper in a known location while the dog cannot see. Line the dog up facing the exact direction. Use your hand to cast a straight line over their head and command 'Back'. Stop them with a whistle if they veer off course.",
+        "command_human": "'Back' with a solid hand cast.",
+        "command_dog": "Run straight on a frozen line, trusting the handler completely.",
+        "environment": "Long, clean field like a soccer pitch.",
+        "reward": "Retrieval of the hidden bumper.",
+        "key_attributes": "This requires massive trust. Start very short (10 yards) with highly visible bumpers, eventually moving to long distances where the dog must trust you blindly.",
         "mediaUrl": "/k9-drills/blind-retrieve.webp"
     }
 ]
