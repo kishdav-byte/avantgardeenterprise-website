@@ -45,6 +45,18 @@ export async function POST(req: Request) {
 
         if (!submission) throw new Error("Could not create baseline tracking record");
 
+        const { data: pastLogs } = await supabase
+            .from('k9_training_logs')
+            .select('drill_name, score, notes')
+            .eq('dog_id', dogId)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        let pastPerformanceStr = "No previous training logs available.";
+        if (pastLogs && pastLogs.length > 0) {
+            pastPerformanceStr = pastLogs.map(l => `- Drill: ${l.drill_name} | Score: ${l.score}/5 | Notes: ${l.notes || 'None'}`).join('\n');
+        }
+
         const allowedDrills = drills.map(d => `'${d.name}'`).join(", ");
 
         const systemInstruction = `You are Pawgress AI — a world-class canine training expert with deep knowledge of animal behavior science, breed-specific psychology, developmental stages, and professional training methodologies used by military, law enforcement, and champion competition handlers.
@@ -130,13 +142,17 @@ HANDLER'S STATED AVAILABILITY:
 - ${dogData?.training_minutes_per_day} minutes per day
 - ${dogData?.training_days_per_week} days per week
 
+PREVIOUS TRAINING PERFORMANCE LOGS:
+${pastPerformanceStr}
+
 Your job:
 1. Analyze this dog's profile and create a highly customized plan.
 2. If "House Training" is requested or the dog is a puppy, MAKE IT A PRIORITY.
 3. If "Hunting Dog" is requested, map a true field dog progression.
 4. Don't be repetitive. Explain the 3 D's progression.
 5. Encourage pacing flexibility (they can go faster if the dog is crushing it).
-6. Generate the entire timeline up to recommended_program_weeks.`;
+6. ADAPT TO LOGS: If you see previous logs with high scores (4-5), immediately advance the difficulty of those drills in this new plan. If you see low scores (1-2), regress the difficulty, simplify the drill, and provide encouraging notes.
+7. Generate the entire timeline up to recommended_program_weeks.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-4o",
