@@ -13,7 +13,10 @@ import {
     ChevronRight,
     ChevronLeft,
     CheckCircle2,
-    Loader2
+    Loader2,
+    Camera,
+    Wand2,
+    Dog
 } from 'lucide-react'
 import PawgressOnboarding from './PawgressOnboarding'
 import PawgressPlanView from './PawgressPlanView'
@@ -28,6 +31,9 @@ export default function PawgressApp({ userId }: { userId: string }) {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'plan' | 'video' | 'scrapbook' | 'settings'>('dashboard')
     const [desiredOutcome, setDesiredOutcome] = useState("")
     const [isEditingOutcome, setIsEditingOutcome] = useState(false)
+
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false)
+    const [isUploadingImage, setIsUploadingImage] = useState(false)
 
     const fetchDogData = async () => {
         setIsLoading(true)
@@ -44,6 +50,62 @@ export default function PawgressApp({ userId }: { userId: string }) {
             }
         }
         setIsLoading(false)
+    }
+
+    const generateAIImage = async () => {
+        if (!dogProfile) return
+        setIsGeneratingImage(true)
+        try {
+            const res = await fetch('/api/k9/generate-dog-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dogId: dogProfile.id })
+            })
+            if (!res.ok) {
+                const err = await res.json()
+                throw new Error(err.error || 'Failed to generate image.')
+            }
+            const data = await res.json()
+            setDogProfile({ ...dogProfile, profile_image_url: data.imageUrl })
+        } catch (error: any) {
+            console.error(error)
+            alert(error.message)
+        } finally {
+            setIsGeneratingImage(false)
+        }
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file || !dogProfile) return
+
+        setIsUploadingImage(true)
+        try {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${userId}/${dogProfile.id}-${Date.now()}.${fileExt}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('k9-images')
+                .upload(fileName, file)
+
+            if (uploadError) throw uploadError
+
+            const { data: publicUrlData } = supabase.storage.from('k9-images').getPublicUrl(fileName)
+            const imageUrl = publicUrlData.publicUrl
+
+            const { error: updateError } = await supabase.from('k9_dogs')
+                .update({ profile_image_url: imageUrl })
+                .eq('id', dogProfile.id)
+
+            if (updateError) throw updateError
+
+            setDogProfile({ ...dogProfile, profile_image_url: imageUrl })
+        } catch (error: any) {
+            console.error(error)
+            alert('Error uploading image: ' + error.message)
+        } finally {
+            setIsUploadingImage(false)
+        }
     }
 
     useEffect(() => {
@@ -105,7 +167,7 @@ export default function PawgressApp({ userId }: { userId: string }) {
                 </nav>
 
                 <div className="mt-auto px-4 py-3 border border-[#2D2D2D]/10 rounded-2xl bg-white shadow-sm flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors">
-                    <img src={displayImage} className="w-10 h-10 rounded-full object-cover grayscale" alt="User Profile" />
+                    <img src={dogProfile?.profile_image_url || displayImage} className="w-10 h-10 rounded-full object-cover grayscale" alt="User Profile" />
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-[#2D2D2D] truncate">David K.</p>
                         <p className="text-xs text-[#2D2D2D]/50 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Pro Tier</p>
@@ -135,7 +197,30 @@ export default function PawgressApp({ userId }: { userId: string }) {
 
                             {/* Profile Card */}
                             <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                                <img src={displayImage} className="w-32 h-32 rounded-2xl object-cover shadow-sm bg-gray-100" alt="Dog Profile" />
+                                <div className="relative group shrink-0">
+                                    {dogProfile?.profile_image_url ? (
+                                        <img src={dogProfile.profile_image_url} className="w-32 h-32 rounded-2xl object-cover shadow-sm bg-[#FAF9F5] border border-[#2D2D2D]/10" alt="Dog Profile" />
+                                    ) : (
+                                        <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border border-[#2D2D2D]/10 text-gray-400 overflow-hidden relative">
+                                            {isGeneratingImage || isUploadingImage ? (
+                                                <Loader2 className="w-8 h-8 animate-spin text-[#2D2D2D]" />
+                                            ) : (
+                                                <Dog className="w-12 h-12 opacity-50" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Image Actions Overlay */}
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex flex-col items-center justify-center gap-2">
+                                        <label className="text-xs font-bold text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full cursor-pointer transition-colors flex items-center gap-1.5">
+                                            <Camera size={14} /> Upload
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isGeneratingImage || isUploadingImage} />
+                                        </label>
+                                        <button onClick={generateAIImage} disabled={isGeneratingImage || isUploadingImage} className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-amber-300 transition-colors flex items-center gap-1">
+                                            <Wand2 size={12} /> AI Generate
+                                        </button>
+                                    </div>
+                                </div>
                                 <div className="flex-1 w-full">
                                     <div className="flex items-center justify-between mb-1">
                                         <h3 className="text-3xl font-bold tracking-tight">{dogProfile?.name}</h3>

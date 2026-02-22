@@ -1,0 +1,1 @@
+ALTER TABLE k9_dogs ADD COLUMN IF NOT EXISTS profile_image_url TEXT;
