@@ -52,7 +52,11 @@ export async function POST(req: Request) {
       There is NO video provided for this initial baseline prompt.
       Generate a progressive 30-day interactive calendar (training plan) tailored to this specific dog's baseline. 
       IMPORTANT: For the 'drills' array inside each calendar day, you MUST select from this exact list of library drills: [${allowedDrills}]. If none fit perfectly, pick the closest one.
-      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include { "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ] }`;
+      Return ONLY a JSON response matching the required schema exactly, with NO markdown formatting, NO backticks. Schema must include:
+      {
+        "initial_feedback": "A 2-4 sentence personalized evaluation of their goals vs their available schedule. If they have lofty goals but very low time (e.g. 10 mins/day for a Protection Dog), kindly suggest splitting it into multiple sessions or adding more time. Be encouraging but realistic.",
+        "training_plan": [ { "day": 1, "focus": "...", "description": "...", "drills": ["The Name Game", ...] } ]
+      }`;
 
         const userPrompt = `Dog Context: ${dogData?.name} is a ${dogData?.age_months} month old ${dogData?.color} ${dogData?.breed} with ${dogData?.energy_level} energy.
     Current Skill Level: ${dogData?.current_skill_level}.
@@ -82,12 +86,17 @@ export async function POST(req: Request) {
         }
 
         // Log the plan
-        await supabase.from('k9_ai_feedback_logs').insert({
+        const { error: logError } = await supabase.from('k9_ai_feedback_logs').insert({
             submission_id: submission.id,
             raw_json_response: resJson,
-            behavior_evaluation: "Initial Baseline Assessment generated from textual profile.",
+            behavior_evaluation: resJson?.initial_feedback || "Initial Baseline Assessment generated from textual profile.",
             handler_evaluation: "No video provided yet. Focus on building consistency."
         });
+
+        if (logError) {
+            console.error("DB Log Error:", logError);
+            throw new Error(`Failed to save AI log: ${logError.message}`);
+        }
 
         return NextResponse.json(resJson);
 
