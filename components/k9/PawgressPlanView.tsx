@@ -79,13 +79,23 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
         )
     }
 
-    const rawJson = aiLog.raw_json_response
-    const assessment = rawJson?.assessment
-    const weeklyPlan: any[] = Array.isArray(rawJson?.weekly_plan) ? rawJson.weekly_plan : []
+    let rawJson = aiLog.raw_json_response
+    if (typeof rawJson === 'string') {
+        try { rawJson = JSON.parse(rawJson) } catch (e) { console.error("Could not parse json string", e) }
+    }
+
+    // Sometimes OpenAI wraps JSON in an outer object, or an array directly. Safe destructuring:
+    const assessment = rawJson?.assessment || rawJson?.pawgress_plan?.assessment || rawJson?.plan?.assessment;
+    let weeklyPlan: any[] = [];
+    if (Array.isArray(rawJson)) weeklyPlan = rawJson;
+    else if (Array.isArray(rawJson?.weekly_plan)) weeklyPlan = rawJson.weekly_plan;
+    else if (Array.isArray(rawJson?.pawgress_plan?.weekly_plan)) weeklyPlan = rawJson.pawgress_plan.weekly_plan;
+    else if (Array.isArray(rawJson?.plan?.weekly_plan)) weeklyPlan = rawJson.plan.weekly_plan;
 
     const totalWeeks = assessment?.recommended_program_weeks || weeklyPlan.length || 24
 
-    let currentWeekData: any = weeklyPlan.find((w: any) => w.week === selectedWeek) || {
+    // Use loose equality (==) just in case the AI generated "week": "1" instead of "week": 1
+    let currentWeekData: any = weeklyPlan.find((w: any) => w.week == selectedWeek) || {
         week: selectedWeek,
         phase: 'Rest',
         focus: 'Rest & Consolidation',
@@ -96,8 +106,16 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
 
     const phaseColor = getPhaseColor(currentWeekData.phase || '')
 
+    const noPlanDataWarning = weeklyPlan.length === 0;
+
     return (
         <div className="flex flex-col gap-6">
+            {noPlanDataWarning && process.env.NODE_ENV === 'development' && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-xs font-mono overflow-auto max-h-64">
+                    <strong>Dev Warning: Failed to parse valid weekly_plan from AI response.</strong><br />
+                    <pre>{JSON.stringify(rawJson, null, 2)}</pre>
+                </div>
+            )}
 
             {/* AI Expert Assessment Panel */}
             {assessment && (
