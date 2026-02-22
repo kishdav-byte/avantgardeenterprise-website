@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle, Star, Home } from 'lucide-react'
+import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle, Star, Home, Trophy, Medal, Flag } from 'lucide-react'
 import drillLibrary from '@/data/k9_drill_library.json'
 
 const PHASE_COLORS: Record<string, string> = {
@@ -149,6 +149,29 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
 
     const noPlanDataWarning = weeklyPlan.length === 0;
 
+    // Badging Logic
+    const calculateBadges = () => {
+        const badges = [];
+        if (drillLogs.length > 0) {
+            badges.push({ id: 'first_step', name: 'First Step', desc: 'Logged your first training session.', color: 'bg-emerald-100 text-emerald-700', icon: Flag });
+        }
+        if (drillLogs.some((l: any) => l.score === 5)) {
+            badges.push({ id: 'perfect_rep', name: 'Perfect Rep', desc: 'Scored a perfect 5/5 on a drill.', color: 'bg-yellow-100 text-yellow-700', icon: Star });
+        }
+        if (drillLogs.length >= 10) {
+            badges.push({ id: 'consistent', name: 'Consistent Handler', desc: 'Logged 10+ training sessions.', color: 'bg-purple-100 text-purple-700', icon: Medal });
+        }
+        if (drillLogs.some((l: any) => l.drill_name.toLowerCase().includes('crate'))) {
+            badges.push({ id: 'crate', name: 'Crate Boss', desc: 'Started Crate Training protocol.', color: 'bg-blue-100 text-blue-700', icon: Home });
+        }
+        if (drillLogs.some((l: any) => l.drill_name.toLowerCase().includes('interval') || l.drill_name.toLowerCase().includes('bell'))) {
+            badges.push({ id: 'potty', name: 'Potty Pro', desc: 'Started House Training protocols.', color: 'bg-amber-100 text-amber-700', icon: Award });
+        }
+        return badges;
+    };
+
+    const earnedBadges = calculateBadges();
+
     return (
         <div className="flex flex-col gap-6">
             {noPlanDataWarning && process.env.NODE_ENV === 'development' && (
@@ -222,6 +245,43 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                         </div>
                     </div>
                 </motion.div>
+            )}
+
+            {/* Gamification / Badging Section */}
+            {earnedBadges.length > 0 && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#2D2D2D]/5 mb-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 bg-yellow-100 rounded-xl text-yellow-600">
+                            <Trophy className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black tracking-tight text-[#2D2D2D]">Trophy Case</h3>
+                            <p className="text-[#2D2D2D]/60 text-sm font-medium">Earn badges by logging sessions and mastering protocols.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {earnedBadges.map((badge) => (
+                            <div key={badge.id} className="p-4 rounded-2xl border border-[#2D2D2D]/10 hover:border-[#2D2D2D]/20 transition-all flex flex-col items-center text-center bg-[#FAF9F5]/30">
+                                <div className={`w-12 h-12 flex items-center justify-center rounded-full mb-3 shadow-sm ${badge.color}`}>
+                                    <badge.icon size={22} />
+                                </div>
+                                <h4 className="font-bold text-[#2D2D2D] text-sm mb-1">{badge.name}</h4>
+                                <p className="text-[10px] text-[#2D2D2D]/60 leading-tight">{badge.desc}</p>
+                            </div>
+                        ))}
+                        {/* Grayed-out placeholder for visual encouragement */}
+                        {earnedBadges.length < 5 && (
+                            <div className="p-4 rounded-2xl border border-dashed border-[#2D2D2D]/20 flex flex-col items-center justify-center text-center bg-gray-50/50 opacity-50">
+                                <div className="w-12 h-12 flex items-center justify-center rounded-full mb-3 bg-gray-200 text-gray-400">
+                                    <Trophy size={20} />
+                                </div>
+                                <h4 className="font-bold text-[#2D2D2D]/50 text-sm mb-1">More to unlock...</h4>
+                                <p className="text-[10px] text-[#2D2D2D]/40">Keep training to earn.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
 
             {/* Plan Section - Weekly Calendar View */}
