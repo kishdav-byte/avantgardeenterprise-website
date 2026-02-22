@@ -29,6 +29,19 @@ const COMMON_OUTCOMES = [
     "Therapy Dog"
 ]
 
+const COMMON_CONCERNS = [
+    "Leash Pulling",
+    "Jumping on Guests",
+    "Excessive Barking",
+    "Separation Anxiety",
+    "Resource Guarding",
+    "Reactivity (Dogs/People)",
+    "Counter Surfing",
+    "Recall/Not Coming",
+    "Destructive Chewing",
+    "House Training"
+]
+
 const COMMON_BREEDS = [
     "Labrador Retriever",
     "German Shepherd",
@@ -353,11 +366,35 @@ export default function PawgressOnboarding({
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-[#2D2D2D]">Current Behavioral Concerns <span className="text-[#2D2D2D]/40 font-normal">(Optional)</span></label>
+                                <div className="space-y-4 pt-2">
+                                    <div>
+                                        <label className="text-sm font-bold text-[#2D2D2D] mb-3 block">Current Behavioral Concerns <span className="text-[#2D2D2D]/40 font-normal">(Optional)</span></label>
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {COMMON_CONCERNS.map(concern => {
+                                                const concernArray = formData.current_concerns ? formData.current_concerns.split(', ') : []
+                                                const isSelected = concernArray.includes(concern)
+
+                                                return (
+                                                    <button key={concern} onClick={() => {
+                                                        if (isSelected) {
+                                                            updateForm('current_concerns', concernArray.filter((c: string) => c !== concern).join(', '))
+                                                        } else {
+                                                            updateForm('current_concerns', [...concernArray, concern].filter(Boolean).join(', '))
+                                                        }
+                                                    }}
+                                                        className={`px-3 py-1.5 font-medium text-xs rounded-full border-2 transition-all
+                                                            ${isSelected ? 'bg-red-500 border-red-500 text-white' : 'bg-transparent border-[#2D2D2D]/10 text-[#2D2D2D]/60 hover:border-[#2D2D2D]/30'}`
+                                                        }>
+                                                        {concern}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
                                     <textarea value={formData.current_concerns} onChange={e => updateForm('current_concerns', e.target.value)}
                                         className="w-full border-2 border-[#2D2D2D]/10 rounded-xl px-4 py-3 focus:border-[#2D2D2D] focus:outline-none transition-colors h-24 resize-none"
-                                        placeholder="e.g., Pulling on leash, reactive to other dogs, separation anxiety..." />
+                                        placeholder="Type or edit specific concerns here..." />
                                 </div>
                             </div>
 
@@ -391,7 +428,7 @@ export default function PawgressOnboarding({
                                                 if (isSelected) {
                                                     updateForm('desired_outcome', outArray.filter((o: string) => o !== outcome).join(', '))
                                                 } else {
-                                                    updateForm('desired_outcome', [...outArray, outcome].join(', '))
+                                                    updateForm('desired_outcome', [...outArray, outcome].filter(Boolean).join(', '))
                                                 }
                                             }}
                                                 className={`px-4 py-2 font-medium text-sm rounded-full border-2 transition-all
