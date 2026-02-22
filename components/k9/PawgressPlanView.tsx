@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle, Star } from 'lucide-react'
+import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle, Star, Home } from 'lucide-react'
 import drillLibrary from '@/data/k9_drill_library.json'
 
 const PHASE_COLORS: Record<string, string> = {
@@ -271,6 +271,43 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                             <p className="text-amber-900/80 leading-relaxed font-medium text-sm">
                                 {currentWeekData.trainer_tip}
                             </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* All-Day Lifestyle Management Section */}
+                {currentWeekData.lifestyle_management && currentWeekData.lifestyle_management.length > 0 && (
+                    <div className="mb-8">
+                        <div className="flex items-center gap-3 mb-4">
+                            <h4 className="text-lg font-black tracking-tight text-[#2D2D2D]">Lifestyle & Management Protocols</h4>
+                            <span className="text-[10px] font-bold tracking-widest uppercase text-[#2D2D2D]/40 bg-[#FAF9F5] px-2 py-1 rounded-md">All Day</span>
+                        </div>
+                        <p className="text-sm text-[#2D2D2D]/60 mb-4 font-medium">
+                            Unlike brief 10-minute drills, these protocols represent how the dog should live throughout the entire day.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {currentWeekData.lifestyle_management.map((protocolName: string, idx: number) => {
+                                const detail = (drillLibrary as any[]).find((d) => d.name === protocolName);
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => { if (detail) setSelectedDrill({ ...detail, dayIndex: 0 }) }} /* dayIndex 0 for passive tracking */
+                                        className="bg-[#FAF9F5] p-4 rounded-2xl border border-[#2D2D2D]/10 hover:border-[#2D2D2D]/30 transition-all cursor-pointer group flex gap-4"
+                                    >
+                                        <div className="mt-1">
+                                            <div className="w-8 h-8 rounded-full bg-white border border-[#2D2D2D]/10 flex items-center justify-center shadow-sm text-[#2D2D2D]/50 group-hover:text-amber-600 transition-colors">
+                                                <Home size={14} />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[#2D2D2D] text-sm mb-1 leading-tight group-hover:text-amber-600 transition-colors">{protocolName}</div>
+                                            <p className="text-[11px] text-[#2D2D2D]/60 leading-relaxed line-clamp-2">
+                                                {detail?.instructions || "Maintain consistency throughout the day."}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
                         </div>
                     </div>
                 )}

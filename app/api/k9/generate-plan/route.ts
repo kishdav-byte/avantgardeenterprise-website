@@ -97,7 +97,7 @@ DRILL RULES:
 2. DO NOT BE OVERLY REPETITIVE: While consistency is good, repeating exactly the same 2 drills for an entire month is boring. Provide a varied but consistent mix of 3-5 distinct drills per day.
 3. PROGRESSION AND THE "THREE Ds": It is true that real training requires weeks of repetition to reach fluency. However, for the user experience, you MUST clearly explain HOW the drill gets harder each week (increasing Distance, Duration, or Distraction). Do not just copy-paste "Sit & Stay" for 3 weeks without explaining in the 'description' or 'trainer_tip' how this week is harder than last week.
 4. PACING & FAST-TRACKING: This plan is a baseline. You must explicitly tell the handler (in the trainer_note and in some trainer_tips) that if the dog masters the skill early, they SHOULD accelerate to the next week's difficulty. Similarly, if they have extra time, encourage them to add additional short, low-stress training sessions throughout the day.
-5. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
+5. If they need multiple things (like generic obedience PLUS house training), separate the active 10-minute drills into the 'daily_routine' array, and put the all-day routines (like "House Training: Scheduled Intervals", "House Training: Crate Acclimation") into the new 'lifestyle_management' array.
 6. Each week MUST have a unique trainer_tip — specific, expert-level insight.
 
 === STRICT JSON RESPONSE SCHEMA ===
@@ -118,7 +118,8 @@ DRILL RULES:
       "phase": "Foundation",
       "focus": "...",
       "description": "...",
-      "daily_routine": ["Drill 1", "Drill 2", "Drill 3"],
+      "daily_routine": ["Drill 1", "Drill 2"],
+      "lifestyle_management": ["House Training: Crate Acclimation", "House Training: Scheduled Intervals"],
       "trainer_tip": "..."
     }
   ]
@@ -147,7 +148,7 @@ ${pastPerformanceStr}
 
 Your job:
 1. Analyze this dog's profile and create a highly customized plan.
-2. If "House Training" is requested or the dog is a puppy, MAKE IT A PRIORITY.
+2. If "House Training" is requested or the dog is a puppy, MAKE IT A PRIORITY. Use the 'lifestyle_management' array for all-day protocols like crate training or scheduled potty intervals.
 3. If "Hunting Dog" is requested, map a true field dog progression.
 4. Don't be repetitive. Explain the 3 D's progression.
 5. Encourage pacing flexibility (they can go faster if the dog is crushing it).
