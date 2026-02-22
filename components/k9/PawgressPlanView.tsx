@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle } from 'lucide-react'
+import { Loader2, Calendar as CalendarIcon, ChevronRight, ChevronLeft, Target, CheckCircle2, Brain, Clock, Lightbulb, Award, X, MapPin, Bone, AlertCircle, Star } from 'lucide-react'
 import drillLibrary from '@/data/k9_drill_library.json'
 
 const PHASE_COLORS: Record<string, string> = {
@@ -28,6 +28,10 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
     const [aiLog, setAiLog] = useState<any>(null)
     const [selectedWeek, setSelectedWeek] = useState(1)
     const [selectedDrill, setSelectedDrill] = useState<any>(null)
+    const [drillLogs, setDrillLogs] = useState<any[]>([])
+    const [logScore, setLogScore] = useState<number>(3)
+    const [logNotes, setLogNotes] = useState<string>('')
+    const [isSubmittingLog, setIsSubmittingLog] = useState(false)
 
     useEffect(() => {
         const fetchPlan = async () => {
@@ -52,10 +56,46 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
             if (submissionData?.k9_ai_feedback_logs && submissionData.k9_ai_feedback_logs.length > 0) {
                 setAiLog(submissionData.k9_ai_feedback_logs[0])
             }
+
+            const { data: logsData } = await supabase
+                .from('k9_training_logs')
+                .select('*')
+                .eq('dog_id', dogId)
+
+            if (logsData) setDrillLogs(logsData)
             setIsLoading(false)
         }
         fetchPlan()
     }, [dogId])
+
+    const handleLogSubmit = async () => {
+        if (!selectedDrill) return;
+        setIsSubmittingLog(true)
+        try {
+            const payload = {
+                dogId,
+                weekNumber: selectedWeek,
+                dayNumber: selectedDrill.dayIndex,
+                drillName: selectedDrill.name,
+                score: logScore,
+                notes: logNotes
+            }
+            const res = await fetch('/api/k9/log-drill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            if (res.ok) {
+                const updatedLogs = drillLogs.filter(l => !(l.week_number === selectedWeek && l.day_number === selectedDrill.dayIndex && l.drill_name === selectedDrill.name));
+                setDrillLogs([...updatedLogs, payload]);
+                setSelectedDrill(null);
+            }
+        } catch (e) {
+            console.error("Failed to log drill", e)
+        } finally {
+            setIsSubmittingLog(false)
+        }
+    }
 
     if (isLoading) {
         return <div className="flex w-full min-h-[400px] items-center justify-center"><Loader2 className="animate-spin text-[#2D2D2D] w-10 h-10" /></div>
@@ -257,14 +297,24 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                                     <div className="flex-1 space-y-3">
                                         {currentWeekData.daily_routine?.length > 0 ? currentWeekData.daily_routine.map((drillName: string, idx: number) => {
                                             const drillDetail = (drillLibrary as any[]).find((d) => d.name === drillName)
+                                            const hasLogged = drillLogs.find(l => l.week_number === selectedWeek && l.day_number === dayIndex && l.drill_name === drillName)
                                             return (
                                                 <div
                                                     key={idx}
-                                                    onClick={() => { if (drillDetail) setSelectedDrill(drillDetail) }}
-                                                    className="bg-white p-3 rounded-xl border border-[#2D2D2D]/10 shadow-sm flex flex-col justify-between cursor-pointer hover:border-[#2D2D2D]/30 transition-all hover:shadow-md group"
+                                                    onClick={() => {
+                                                        if (drillDetail) {
+                                                            setSelectedDrill({ ...drillDetail, dayIndex, existingLog: hasLogged })
+                                                            setLogScore(hasLogged?.score || 3)
+                                                            setLogNotes(hasLogged?.notes || '')
+                                                        }
+                                                    }}
+                                                    className={`p-3 rounded-xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:shadow-md group ${hasLogged ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-[#2D2D2D]/10 hover:border-[#2D2D2D]/30'}`}
                                                 >
                                                     <div>
-                                                        <div className="font-bold text-[#2D2D2D] text-sm mb-1 leading-tight group-hover:text-amber-600 transition-colors">{drillName}</div>
+                                                        <div className="font-bold text-[#2D2D2D] text-sm mb-1 leading-tight flex justify-between items-start gap-2">
+                                                            <span className="group-hover:text-amber-600 transition-colors line-clamp-1">{drillName}</span>
+                                                            {hasLogged && <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />}
+                                                        </div>
                                                         <p className="text-[11px] text-[#2D2D2D]/50 leading-relaxed mb-3 line-clamp-2">
                                                             {drillDetail?.instructions || 'Follow standard procedures.'}
                                                         </p>
@@ -384,6 +434,44 @@ export default function PawgressPlanView({ dogId, onAddVideo }: { dogId: string,
                                             <h4 className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-1">Key Attributes to Note</h4>
                                             <p className="text-sm font-medium text-[#2D2D2D]">{selectedDrill.key_attributes || "Be calm and strictly consistent."}</p>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Scoring & Logging Section */}
+                                <div className="mt-8 pt-6 border-t border-[#2D2D2D]/10">
+                                    <h3 className="text-lg font-black tracking-tight text-[#2D2D2D] mb-4">
+                                        {selectedDrill.existingLog ? 'Update Session Score' : 'Log Session Score'}
+                                    </h3>
+                                    <div className="bg-white rounded-2xl p-6 border border-[#2D2D2D]/10 shadow-sm">
+                                        <p className="text-sm text-[#2D2D2D]/60 mb-3 font-medium">How successful was this drill?</p>
+                                        <div className="flex gap-2 mb-6">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => setLogScore(star)}
+                                                    className={`p-2 rounded-xl border transition-all ${logScore >= star ? 'bg-amber-50 border-amber-300 text-amber-500' : 'bg-gray-50 border-gray-200 text-gray-300 hover:border-amber-200 hover:text-amber-400'}`}
+                                                >
+                                                    <Star size={24} className={logScore >= star ? 'fill-amber-500' : ''} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="text-xs font-black uppercase tracking-widest text-[#2D2D2D]/40 mb-2 block">Handler Notes (Optional)</label>
+                                            <textarea
+                                                value={logNotes}
+                                                onChange={(e) => setLogNotes(e.target.value)}
+                                                placeholder="e.g., Struggled with the down stay today..."
+                                                className="w-full bg-[#FAF9F5] border border-[#2D2D2D]/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D2D2D]/20 resize-none h-20"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleLogSubmit}
+                                            disabled={isSubmittingLog}
+                                            className="w-full py-3.5 bg-[#2D2D2D] text-white rounded-xl font-bold hover:bg-black transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                                        >
+                                            {isSubmittingLog ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                            {selectedDrill.existingLog ? 'Update Log' : 'Save Session Log'}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
