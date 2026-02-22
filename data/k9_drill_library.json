@@ -115,5 +115,86 @@
         "duration": "10 minutes",
         "instructions": "Place a low-value treat on the floor and cover it with your hand. The dog will sniff/paw. Wait. The moment they pull away and look at you, say 'Yes!', pick it up, and give them a *different*, better treat from your other hand.",
         "mediaUrl": "/k9-drills/leave-it.webp"
+    },
+    {
+        "id": "drill_house_schedule",
+        "name": "House Training: Scheduled Intervals",
+        "category": "Foundations",
+        "difficulty": 1,
+        "duration": "All Day",
+        "instructions": "Take the dog outside to the exact same spot immediately after waking, eating, playing, and every 1-2 hours. Stand still and wait 5 minutes. The *second* they eliminate, praise enthusiastically and give a high-value treat.",
+        "mediaUrl": "/k9-drills/house-training.webp"
+    },
+    {
+        "id": "drill_house_crate",
+        "name": "House Training: Crate Acclimation",
+        "category": "Foundations",
+        "difficulty": 2,
+        "duration": "15 minutes",
+        "instructions": "When you cannot 100% supervise the dog, they belong in a properly sized crate (big enough to stand and turn around, no bigger). Feed meals in the crate to build positive association. Never use it as punishment.",
+        "mediaUrl": "/k9-drills/crate-training.webp"
+    },
+    {
+        "id": "drill_house_bell",
+        "name": "House Training: The Bell Game",
+        "category": "Intermediate",
+        "difficulty": 3,
+        "duration": "5 minutes",
+        "instructions": "Hang bells on the door. Every single time you take the dog out for a potty break, take their paw or nose and ring the bell, say 'Outside', and open the door. Soon they will ring it themselves to request a break.",
+        "mediaUrl": "/k9-drills/bell-game.webp"
+    },
+    {
+        "id": "drill_puppy_bite",
+        "name": "Puppy: Bite Inhibition",
+        "category": "Foundations",
+        "difficulty": 1,
+        "duration": "Ongoing",
+        "instructions": "When the puppy bites your hands/clothes during play, make a high-pitched 'Yip!' sound and immediately stop all play and ignore them for 10 seconds. Resume play with an appropriate chew toy.",
+        "mediaUrl": "/k9-drills/bite-inhibition.webp"
+    },
+    {
+        "id": "drill_hunt_scent",
+        "name": "Hunting: Scent Tracking Intro",
+        "category": "Advanced",
+        "difficulty": 3,
+        "duration": "15 minutes",
+        "instructions": "Drag a high-value scent (like a hotdog or specific training scent) through short grass in a straight line for 10 feet. Bring the dog to the start line and say 'Find It'. Reward heavily at the end of the track.",
+        "mediaUrl": "/k9-drills/hunt-scent.webp"
+    },
+    {
+        "id": "drill_hunt_steadiness",
+        "name": "Hunting: Steadiness",
+        "category": "Advanced",
+        "difficulty": 4,
+        "duration": "20 minutes",
+        "instructions": "Command 'Sit/Stay' next to you. Throw a bumper or toy out into the yard. The dog must NOT break the hold to chase it. They must wait for your specific release command (e.g. 'Back') before retrieving.",
+        "mediaUrl": "/k9-drills/hunt-steadiness.webp"
+    },
+    {
+        "id": "drill_hunt_soft_mouth",
+        "name": "Hunting: Soft-Mouth Retrieve",
+        "category": "Intermediate",
+        "difficulty": 3,
+        "duration": "10 minutes",
+        "instructions": "Wrap a hard bumper in slightly uncomfortable material (like tough wire mesh or zip ties, cut safe) to discourage hard biting. Praise the dog for gently carrying the object back to the hand without chomping.",
+        "mediaUrl": "/k9-drills/soft-mouth.webp"
+    },
+    {
+        "id": "drill_hunt_gunfire",
+        "name": "Hunting: Gunfire Desensitization",
+        "category": "Advanced",
+        "difficulty": 5,
+        "duration": "10 minutes",
+        "instructions": "While the dog is highly engaged in positive play or eating from far away (50+ yards), have a helper make a simulated popping noise (like a clap or starter pistol). If the dog ignores it, reward heavily. Slowly move closer over weeks.",
+        "mediaUrl": "/k9-drills/gunfire.webp"
+    },
+    {
+        "id": "drill_hunt_blind",
+        "name": "Hunting: Blind Retrieve Line Drill",
+        "category": "Real-World",
+        "difficulty": 5,
+        "duration": "15 minutes",
+        "instructions": "Place a bumper in a known location while the dog cannot see. Line the dog up facing the exact direction. Use your hand to cast a straight line over their head and command 'Back'. Stop them with a whistle if they veer off course.",
+        "mediaUrl": "/k9-drills/blind-retrieve.webp"
     }
 ]

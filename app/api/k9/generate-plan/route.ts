@@ -56,43 +56,37 @@ Before generating any plan, you MUST analyze:
 
 A) BREED ANALYSIS: What is this breed's natural aptitude, trainability, typical attention span, prey drive, energy requirements, and known training challenges? Be specific to this actual breed.
 
-B) AGE & DEVELOPMENTAL STAGE — YOU MUST FOLLOW THESE RULES STRICTLY:
-   - Under 4 months (under 16 weeks): Socialization window. Sessions MUST be 5-10 min max, 3-4 short sessions/day. ONLY socialization, name recognition, touch tolerance, threshold exercises. NO complex obedience.
-   - 4-8 months (16-32 weeks): Early adolescence. Sessions 10-15 min, 2-3x/day. Foundation obedience only (sit, stay, leash pressure, name game).
-   - 8-18 months (32-72 weeks): Peak adolescent drive. Sessions 15-25 min, 2x/day. Begin intermediate skills.
-   - 18+ months (72+ weeks): Adult capacity. Sessions 20-45 min, 1-2x/day. Advanced disciplines fully accessible.
-   - CRITICAL: YOU MUST OVERRIDE the user's stated session length if it is developmentally inappropriate. A 3-month-old puppy cannot do 30-minute sessions — it is harmful to the dog's training development. Explain this kindly.
+B) NEW PUPPIES vs ADULTS — STRICT RULES:
+   - Under 4 months (under 16 weeks): DO NOT assign complex obedience (Heel, Advanced retrieve). The plan MUST focus heavily on House Training, crate acclimation, name recognition, bite inhibition, and tactile socialization. A puppy's brain cannot handle advanced pressure.
+   - 4-8 months (16-32 weeks): Early adolescence. Begin structural obedience and yielding to leash pressure.
+   - CRITICAL: YOU MUST OVERRIDE the user's stated session length if it is developmentally inappropriate. A 3-month-old puppy cannot do 30-minute sessions. Give them 5-10 minute micro-sessions. Explain this kindly in the trainer_note.
 
-C) GOAL COMPLEXITY — Use these real-world benchmarks to set the program duration:
-   - Family Companion (basic manners, leash, sit/stay): 12-24 weeks
-   - Family Companion (off-leash reliability, full obedience): 24-48 weeks
-   - Hunting Dog (basic marks, yard work, force fetch introduction): 24-40 weeks
-   - Hunting Dog (advanced blind retrieves, field trial ready): 48-96 weeks
-   - Protection Dog (bark on command, alert behavior): 48-72 weeks
-   - Protection Dog (full apprehension, real-world scenarios): 96-156 weeks
-   - Service Dog (basic task work): 52-104 weeks
-   - Therapy Dog (temperament + public access): 24-48 weeks
-   - Search and Rescue: 48-104 weeks
+C) SPECIFIC PROFILES — GOLD STANDARD INTEGRATION:
+   - If the user selects "House Training" or mentions bathroom issues: You MUST map the initial weeks heavily around "House Training: Scheduled Intervals", "House Training: Crate Acclimation", and "House Training: The Bell Game".
+   - If the user selects "Hunting Dog": You MUST structure the long-term plan using gold-standard retriever/pointer fundamentals, including "Hunting: Scent Tracking Intro", "Hunting: Steadiness", "Hunting: Soft-Mouth Retrieve", and eventually "Hunting: Gunfire Desensitization" and "Hunting: Blind Retrieve Line Drill".
 
-D) CURRENT SKILL LEVEL: If the dog is already Intermediate or Advanced, skip foundational phases and begin at the correct stage.
+D) GOAL COMPLEXITY TIMELINES:
+   - House Training / Puppy Basics: 4-8 weeks
+   - Family Companion (basic manners): 12-24 weeks
+   - Hunting Dog (marks, steadiness, scent): 24-48 weeks
+   - Protection/Service Dog: 52-104 weeks
 
 E) RECOMMENDED SCHEDULE: You MUST recommend:
    - How many minutes per session
    - How many sessions per day
-   - How many days per week (you may recommend more than the user stated if the goal warrants it)
+   - How many days per week
    - The total program duration in weeks
 
-=== STEP 2: GENERATE THE FULL WEEKLY PLAN ===
-Generate a complete weekly_plan for ALL weeks of the program (up to your recommended_program_weeks).
+=== STEP 2: GENERATE THE WEEKLY PLAN ===
+Generate a complete weekly_plan for ALL weeks.
 
 DRILL RULES:
-- ONLY use drills from this approved library: [${allowedDrills}]
-- Each drill takes approximately 10 minutes. Assign enough drills in daily_routine to fill the RECOMMENDED session time.
-- REPETITION: Same drills repeat for a full week (or 2-3 weeks for foundational stages). Real trainers do NOT introduce new drills every day.
-- PROGRESSION: Early weeks = foundations. Mid-program = building on foundations with distraction. Later weeks = real-world application specific to the goal.
-- Each week MUST have a trainer_tip — a specific, expert-level insight a professional trainer would give in-person for this specific week's training.
+1. ONLY use drills from this exact list: [${allowedDrills}]
+2. DO NOT BE OVERLY REPETITIVE: While consistency is good, repeating exactly the same 2 drills for an entire month is boring. Provide a varied but consistent mix of 3-5 distinct drills per day.
+3. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
+4. Each week MUST have a unique trainer_tip — specific, expert-level insight.
 
-=== STRICT JSON RESPONSE SCHEMA — NO MARKDOWN, NO BACKTICKS ===
+=== STRICT JSON RESPONSE SCHEMA ===
 {
   "assessment": {
     "breed_notes": "Expert breed-specific analysis...",
@@ -102,16 +96,16 @@ DRILL RULES:
     "recommended_sessions_per_day": 2,
     "recommended_days_per_week": 5,
     "recommended_program_weeks": 32,
-    "trainer_note": "An honest, warm, expert-level summary of what this handler should expect. Address any conflicts between their stated schedule and what is developmentally appropriate. Be encouraging but truthful about the real time commitment required."
+    "trainer_note": "Honest, warm summary. Correct their schedule expectations if inappropriate."
   },
   "weekly_plan": [
     {
       "week": 1,
       "phase": "Foundation",
-      "focus": "Socialization & Name Recognition",
-      "description": "Detailed description of what to focus on this week and WHY it matters at this stage...",
-      "daily_routine": ["The Name Game", "Leash Pressure Yielding"],
-      "trainer_tip": "Specific, actionable expert advice for this week."
+      "focus": "...",
+      "description": "...",
+      "daily_routine": ["Drill 1", "Drill 2", "Drill 3"],
+      "trainer_tip": "..."
     }
   ]
 }`;
@@ -135,12 +129,11 @@ HANDLER'S STATED AVAILABILITY:
 - ${dogData?.training_days_per_week} days per week
 
 Your job:
-1. Analyze this dog's breed, age, and goal with genuine expertise — not a generic response.
-2. Determine the appropriate developmental stage. Override the handler's schedule if needed (and explain kindly why).
-3. Set the REALISTIC program duration based on the goal complexity benchmarks provided.
-4. Generate ALL weeks of the program up to your recommended_program_weeks — this should be a truly comprehensive plan.
-5. Make every week's trainer_tip specific and actionable — the kind of advice a professional would charge hundreds of dollars for.
-6. Do NOT rush the progression. Every milestone must be genuinely earned before moving on.`;
+1. Analyze this dog's profile and create a highly customized plan.
+2. If "House Training" is requested or the dog is a puppy, MAKE IT A PRIORITY.
+3. If "Hunting Dog" is requested, map a true field dog progression.
+4. Don't be repetitive. Give the dog an engaging daily routine mixing 3-5 drills where appropriate.
+5. Generate the entire timeline up to recommended_program_weeks.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-4o",
