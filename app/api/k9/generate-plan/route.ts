@@ -83,8 +83,9 @@ Generate a complete weekly_plan for ALL weeks.
 DRILL RULES:
 1. ONLY use drills from this exact list: [${allowedDrills}]
 2. DO NOT BE OVERLY REPETITIVE: While consistency is good, repeating exactly the same 2 drills for an entire month is boring. Provide a varied but consistent mix of 3-5 distinct drills per day.
-3. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
-4. Each week MUST have a unique trainer_tip — specific, expert-level insight.
+3. PROGRESSION AND THE "THREE Ds": It is true that real training requires weeks of repetition to reach fluency. However, for the user experience, you MUST clearly explain HOW the drill gets harder each week (increasing Distance, Duration, or Distraction). Do not just copy-paste "Sit & Stay" for 3 weeks without explaining in the 'description' or 'trainer_tip' how this week is harder than last week.
+4. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
+5. Each week MUST have a unique trainer_tip — specific, expert-level insight.
 
 === STRICT JSON RESPONSE SCHEMA ===
 {
