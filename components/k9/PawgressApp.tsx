@@ -255,39 +255,22 @@ export default function PawgressApp({ userId }: { userId: string }) {
                                 </div>
                             </div>
 
-                            {/* Calendar Widget */}
-                            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#2D2D2D]/5">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold">Daily Drills</h3>
-                                    <div className="flex items-center gap-1 text-sm font-medium text-[#2D2D2D]/60">
-                                        <button className="p-1 hover:text-[#2D2D2D] transition-colors"><ChevronLeft size={16} /></button>
-                                        <span>30 Day Timeline</span>
-                                        <button className="p-1 hover:text-[#2D2D2D] transition-colors"><ChevronRight size={16} /></button>
+                            {/* Training Plan Teaser Widget */}
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-[#2D2D2D]/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-[#FAF9F5] border border-[#2D2D2D]/10 flex items-center justify-center text-[#2D2D2D] shrink-0">
+                                        <CalendarDays size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold tracking-tight mb-2 text-[#2D2D2D]">Your Training Roadmap is Ready</h3>
+                                        <p className="text-[#2D2D2D]/60 text-sm max-w-sm leading-relaxed font-medium">
+                                            The AI has generated a tailored, multi-week training plan for {dogProfile?.name || 'your dog'}. View your daily drills, weekly focus, and expert trainer tips.
+                                        </p>
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-7 gap-y-6 gap-x-2 text-center text-sm">
-                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                        <div key={day} className="text-xs font-bold text-[#2D2D2D]/40 uppercase tracking-wider">{day}</div>
-                                    ))}
-                                    {/* Mock Calendar Grid */}
-                                    {Array.from({ length: 31 }).map((_, i) => (
-                                        <div key={i} className="relative group flex items-center justify-center">
-                                            {i === 28 ? ( // Today Example
-                                                <div className="w-10 h-10 rounded-xl bg-[#2D2D2D] text-white font-bold flex items-center justify-center shadow-md cursor-pointer relative">
-                                                    {i + 1}
-                                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full border-2 border-white"></span>
-                                                </div>
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-xl bg-gray-50 font-medium text-[#2D2D2D]/80 flex flex-col items-center justify-center border border-[#2D2D2D]/5 hover:border-[#2D2D2D]/20 hover:bg-white cursor-pointer transition-colors">
-                                                    <span className="text-[10px] text-[#2D2D2D]/30 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">Drill</span>
-                                                    {i + 1}
-                                                    {i < 15 && <div className="w-4 h-0.5 bg-emerald-400 rounded-full mt-1"></div>}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
+                                <button onClick={() => setActiveTab('plan')} className="px-6 py-4 bg-[#2D2D2D] text-white font-bold rounded-xl shadow-lg hover:bg-black transition-all flex items-center gap-2 shrink-0 md:w-auto w-full justify-center">
+                                    Open Training Plan <ChevronRight size={18} />
+                                </button>
                             </div>
 
                         </div>
