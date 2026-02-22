@@ -84,8 +84,9 @@ DRILL RULES:
 1. ONLY use drills from this exact list: [${allowedDrills}]
 2. DO NOT BE OVERLY REPETITIVE: While consistency is good, repeating exactly the same 2 drills for an entire month is boring. Provide a varied but consistent mix of 3-5 distinct drills per day.
 3. PROGRESSION AND THE "THREE Ds": It is true that real training requires weeks of repetition to reach fluency. However, for the user experience, you MUST clearly explain HOW the drill gets harder each week (increasing Distance, Duration, or Distraction). Do not just copy-paste "Sit & Stay" for 3 weeks without explaining in the 'description' or 'trainer_tip' how this week is harder than last week.
-4. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
-5. Each week MUST have a unique trainer_tip — specific, expert-level insight.
+4. PACING & FAST-TRACKING: This plan is a baseline. You must explicitly tell the handler (in the trainer_note and in some trainer_tips) that if the dog masters the skill early, they SHOULD accelerate to the next week's difficulty. Similarly, if they have extra time, encourage them to add additional short, low-stress training sessions throughout the day.
+5. If they need multiple things (like generic obedience PLUS house training), layer them together. For example: ["House Training: Scheduled Intervals", "The Name Game", "Sit & Stay"].
+6. Each week MUST have a unique trainer_tip — specific, expert-level insight.
 
 === STRICT JSON RESPONSE SCHEMA ===
 {
@@ -97,7 +98,7 @@ DRILL RULES:
     "recommended_sessions_per_day": 2,
     "recommended_days_per_week": 5,
     "recommended_program_weeks": 32,
-    "trainer_note": "Honest, warm summary. Correct their schedule expectations if inappropriate."
+    "trainer_note": "Honest, warm summary. Correct their schedule expectations if inappropriate. Explicitly empower them to fast-track if the dog is excelling or add sessions if they have the time."
   },
   "weekly_plan": [
     {
@@ -133,8 +134,9 @@ Your job:
 1. Analyze this dog's profile and create a highly customized plan.
 2. If "House Training" is requested or the dog is a puppy, MAKE IT A PRIORITY.
 3. If "Hunting Dog" is requested, map a true field dog progression.
-4. Don't be repetitive. Give the dog an engaging daily routine mixing 3-5 drills where appropriate.
-5. Generate the entire timeline up to recommended_program_weeks.`;
+4. Don't be repetitive. Explain the 3 D's progression.
+5. Encourage pacing flexibility (they can go faster if the dog is crushing it).
+6. Generate the entire timeline up to recommended_program_weeks.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-4o",
