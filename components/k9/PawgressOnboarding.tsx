@@ -69,6 +69,44 @@ const COMMON_COLORS = [
     "Other"
 ]
 
+const OWNER_EXPERIENCE_LEVELS = [
+    { label: 'First-Time', description: 'Never owned or trained a dog before.' },
+    { label: 'Previous Owner', description: 'Had dogs before, no formal training.' },
+    { label: 'Experienced', description: 'Have taken basic formal obedience classes.' },
+    { label: 'Advanced', description: 'Deep knowledge of dog training.' }
+]
+
+const HOUSEHOLD_TYPES = [
+    "Adults Only",
+    "With Young Children",
+    "With Teens",
+    "Multi-Dog",
+    "With Cats/Other Pets"
+]
+
+const LIVING_SITUATIONS = [
+    "Apartment/Condo",
+    "Townhouse",
+    "House w/ Small Yard",
+    "House w/ Large Yard",
+    "Rural/Farm"
+]
+
+const COMMON_SUPPLIES = [
+    "Flat Collar",
+    "Martingale",
+    "Prong Collar",
+    "E-Collar",
+    "Harness",
+    "6ft Leash",
+    "Long Line (15ft+)",
+    "Treats",
+    "Clicker",
+    "Crate",
+    "Place Cot",
+    "Toys"
+]
+
 export default function PawgressOnboarding({
     userId,
     onComplete,
@@ -95,14 +133,18 @@ export default function PawgressOnboarding({
         training_days_per_week: initialData?.training_days_per_week || 5,
         current_skill_level: initialData?.current_skill_level || '',
         current_concerns: initialData?.current_concerns || '',
-        desired_outcome: initialData?.desired_outcome || ''
+        desired_outcome: initialData?.desired_outcome || '',
+        owner_experience: initialData?.owner_experience || '',
+        household_type: initialData?.household_type || '',
+        living_situation: initialData?.living_situation || '',
+        supplies: initialData?.supplies || []
     })
 
-    const updateForm = (key: keyof typeof formData, value: string | number) => {
+    const updateForm = (key: keyof typeof formData, value: any) => {
         setFormData(prev => ({ ...prev, [key]: value }))
     }
 
-    const nextStep = () => setStep(s => Math.min(4, s + 1))
+    const nextStep = () => setStep(s => Math.min(5, s + 1))
     const prevStep = () => setStep(s => Math.max(1, s - 1))
 
     const handleSubmit = async () => {
@@ -126,7 +168,11 @@ export default function PawgressOnboarding({
                 training_minutes_per_day: formData.training_minutes_per_day,
                 training_days_per_week: formData.training_days_per_week,
                 current_concerns: formData.current_concerns,
-                current_skill_level: formData.current_skill_level
+                current_skill_level: formData.current_skill_level,
+                owner_experience: formData.owner_experience,
+                household_type: formData.household_type,
+                living_situation: formData.living_situation,
+                supplies: formData.supplies
             }
 
             let dogId = initialData?.id;
@@ -195,8 +241,10 @@ export default function PawgressOnboarding({
     }
 
     const isStep1Valid = formData.name && formData.breed && formData.birth_date && formData.energy_level
-    const isStep3Valid = formData.current_skill_level
-    const isStep4Valid = formData.desired_outcome
+    const isStep2Valid = formData.owner_experience && formData.household_type && formData.living_situation
+    const isStep3Valid = true // Range inputs always have values
+    const isStep4Valid = formData.current_skill_level
+    const isStep5Valid = formData.desired_outcome
 
     return (
         <div className="w-full max-w-2xl mx-auto min-h-[600px] flex flex-col justify-center py-12 px-4">
@@ -204,7 +252,7 @@ export default function PawgressOnboarding({
             {/* Progress Bar */}
             <div className="mb-12">
                 <div className="flex justify-between mb-4">
-                    {[1, 2, 3, 4].map(i => (
+                    {[1, 2, 3, 4, 5].map(i => (
                         <div key={i} className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all shadow-sm
                               ${step === i ? 'bg-[#2D2D2D] text-white' : step > i ? 'bg-[#2D2D2D]/10 text-[#2D2D2D]' : 'bg-white text-[#2D2D2D]/30 border border-[#2D2D2D]/10'}`}>
                             {step > i ? '✓' : i}
@@ -213,8 +261,8 @@ export default function PawgressOnboarding({
                 </div>
                 <div className="h-2 bg-[#2D2D2D]/10 rounded-full overflow-hidden">
                     <motion.div
-                        initial={{ width: '25%' }}
-                        animate={{ width: `${(step / 4) * 100}%` }}
+                        initial={{ width: '20%' }}
+                        animate={{ width: `${(step / 5) * 100}%` }}
                         className="h-full bg-[#2D2D2D]"
                     />
                 </div>
@@ -302,6 +350,82 @@ export default function PawgressOnboarding({
                     {step === 2 && (
                         <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                             <div className="flex items-center gap-3 mb-8">
+                                <div className="p-3 bg-indigo-100 rounded-xl text-indigo-700"><Loader2 size={24} /></div>
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight text-[#2D2D2D]">Home & Handler</h2>
+                                    <p className="text-[#2D2D2D]/60 text-sm">Tell us about {formData.name}'s environment.</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold text-[#2D2D2D]">Your Experience Level</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {OWNER_EXPERIENCE_LEVELS.map(level => (
+                                            <div key={level.label} onClick={() => updateForm('owner_experience', level.label)}
+                                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.owner_experience === level.label ? 'border-[#2D2D2D] bg-[#2D2D2D]/5' : 'border-[#2D2D2D]/10 hover:border-[#2D2D2D]/30'}`}>
+                                                <div className="font-bold text-[#2D2D2D] text-sm mb-1">{level.label}</div>
+                                                <div className="text-xs text-[#2D2D2D]/60">{level.description}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-2">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-[#2D2D2D]">Living Situation</label>
+                                        <select value={formData.living_situation} onChange={e => updateForm('living_situation', e.target.value)}
+                                            className="w-full border-2 border-[#2D2D2D]/10 rounded-xl px-4 py-3 focus:border-[#2D2D2D] focus:outline-none transition-colors appearance-none bg-white font-medium">
+                                            <option value="" disabled>Select situation...</option>
+                                            {LIVING_SITUATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-[#2D2D2D]">Household Type</label>
+                                        <select value={formData.household_type} onChange={e => updateForm('household_type', e.target.value)}
+                                            className="w-full border-2 border-[#2D2D2D]/10 rounded-xl px-4 py-3 focus:border-[#2D2D2D] focus:outline-none transition-colors appearance-none bg-white font-medium">
+                                            <option value="" disabled>Select type...</option>
+                                            {HOUSEHOLD_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-[#2D2D2D]/10">
+                                    <label className="text-sm font-bold text-[#2D2D2D] block">Training Supplies (Optional)</label>
+                                    <div className="flex flex-wrap gap-2 text-[#2D2D2D]/80">
+                                        {COMMON_SUPPLIES.map(supply => {
+                                            const isSelected = formData.supplies.includes(supply)
+                                            return (
+                                                <button key={supply} onClick={() => {
+                                                    if (isSelected) {
+                                                        updateForm('supplies', formData.supplies.filter((s: string) => s !== supply))
+                                                    } else {
+                                                        updateForm('supplies', [...formData.supplies, supply])
+                                                    }
+                                                }}
+                                                    className={`px-3 py-1.5 font-medium text-xs rounded-full border-2 transition-all
+                                                        ${isSelected ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-transparent border-[#2D2D2D]/10 hover:border-[#2D2D2D]/30'}`
+                                                    }>
+                                                    {supply}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-10 flex justify-between items-center">
+                                <button onClick={prevStep} className="text-[#2D2D2D]/60 font-bold hover:text-[#2D2D2D] transition-colors p-2 flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+                                <button onClick={nextStep} disabled={!isStep2Valid} className="flex items-center gap-2 bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold disabled:opacity-50 hover:bg-black transition-all">
+                                    Next Step <ArrowRight size={18} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {step === 3 && (
+                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                            <div className="flex items-center gap-3 mb-8">
                                 <div className="p-3 bg-blue-100 rounded-xl text-blue-700"><Clock size={24} /></div>
                                 <div>
                                     <h2 className="text-2xl font-bold tracking-tight text-[#2D2D2D]">Training Commitment</h2>
@@ -342,7 +466,7 @@ export default function PawgressOnboarding({
                         </motion.div>
                     )}
 
-                    {step === 3 && (
+                    {step === 4 && (
                         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-3 bg-red-100 rounded-xl text-red-700"><ShieldAlert size={24} /></div>
@@ -400,14 +524,14 @@ export default function PawgressOnboarding({
 
                             <div className="mt-10 flex justify-between items-center">
                                 <button onClick={prevStep} className="text-[#2D2D2D]/60 font-bold hover:text-[#2D2D2D] transition-colors p-2 flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-                                <button onClick={nextStep} disabled={!isStep3Valid} className="flex items-center gap-2 bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold disabled:opacity-50 hover:bg-black transition-all">
+                                <button onClick={nextStep} disabled={!isStep4Valid} className="flex items-center gap-2 bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold disabled:opacity-50 hover:bg-black transition-all">
                                     Final Step <ArrowRight size={18} />
                                 </button>
                             </div>
                         </motion.div>
                     )}
 
-                    {step === 4 && (
+                    {step === 5 && (
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-3 bg-emerald-100 rounded-xl text-emerald-700"><Target size={24} /></div>
@@ -458,7 +582,7 @@ export default function PawgressOnboarding({
 
                             <div className="mt-12 flex justify-between items-center">
                                 <button onClick={prevStep} className="text-[#2D2D2D]/60 font-bold hover:text-[#2D2D2D] transition-colors p-2 flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-                                <button onClick={handleSubmit} disabled={!isStep4Valid || isSubmitting} className="flex items-center justify-center min-w-[160px] gap-3 bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold disabled:opacity-50 shadow-lg hover:bg-black transition-all">
+                                <button onClick={handleSubmit} disabled={!isStep5Valid || isSubmitting} className="flex items-center justify-center min-w-[160px] gap-3 bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold disabled:opacity-50 shadow-lg hover:bg-black transition-all">
                                     {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <><Sparkles size={18} /> Generate Plan</>}
                                 </button>
                             </div>

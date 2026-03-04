@@ -139,6 +139,12 @@ DOG PROFILE:
 HANDLER'S DESIRED OUTCOME:
 - Goal: ${goalData?.desired_outcome}
 
+HANDLER & ENVIRONMENT PROFILE:
+- Owner Experience: ${dogData?.owner_experience || 'Not provided'}
+- Living Situation: ${dogData?.living_situation || 'Not provided'}
+- Household Type: ${dogData?.household_type || 'Not provided'}
+- Available Training Supplies: ${(dogData?.supplies || []).join(', ') || 'None provided'}
+
 HANDLER'S STATED AVAILABILITY:
 - ${dogData?.training_minutes_per_day} minutes per day
 - ${dogData?.training_days_per_week} days per week
