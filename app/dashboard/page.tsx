@@ -115,68 +115,27 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                console.log("Initializing Auth (Resilient Path)...")
-
-                // Helper to prevent infinite hangs from Supabase auth methods
-                const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string) => {
-                    return Promise.race([
-                        promise,
-                        new Promise<T>((_, reject) =>
-                            setTimeout(() => {
-                                console.warn(`Supabase Auth Timeout on: ${label}`)
-                                reject(new Error(`Auth request timed out: ${label}`))
-                            }, ms)
-                        )
-                    ]);
-                };
-
-                let instantSessionContext = null;
-
                 // 1. Instant check from local memory
-                try {
-                    const { data: { session } } = await withTimeout(supabase.auth.getSession(), 3000, 'getSession')
-                    instantSessionContext = session;
+                const { data: { session } } = await supabase.auth.getSession()
 
-                    if (session?.user && mounted) {
-                        console.log("Instant session found:", session.user.id)
-                        setUser(session.user)
-                        // Don't wait for syncProfile to finish before removing loading screen if we have auth
-                        syncProfile(session.user)
-                    }
-                } catch (e) {
-                    console.warn("getSession Failed or Timed Out (Local Memory Check):", e)
+                if (session?.user && mounted) {
+                    setUser(session.user)
+                    // Don't wait for syncProfile to finish before removing loading screen if we have auth
+                    syncProfile(session.user)
                 }
 
                 // 2. Verified check in background
-                try {
-                    const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 3000, 'getUser')
+                const { data: { user: authUser } } = await supabase.auth.getUser()
 
-                    if (authUser && mounted) {
-                        console.log("Verified user found:", authUser.id)
-                        // Only sync profile again if we didn't already
-                        if (!instantSessionContext?.user) {
-                            setUser(authUser)
-                            syncProfile(authUser)
-                        }
-                    } else if (!authUser && !instantSessionContext?.user) {
-                        console.log("No user found locally or verified, redirecting to login.")
-                        if (mounted) router.push('/login')
-                    }
-                } catch (e) {
-                    console.warn("getUser Failed or Timed Out (Network Token Verification):", e)
-
-                    // We only want to kick the user out on network failure if they DO NOT have an instant session to rely on
-                    if (!instantSessionContext?.user && mounted) {
-                        console.log("Network/Auth hang detected and no local session found. Redirecting to login.")
-                        router.push('/login')
+                if (authUser && mounted) {
+                    if (!session?.user) {
+                        setUser(authUser)
+                        syncProfile(authUser)
                     }
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
-                if (mounted) {
-                    setLoading(false)
-                    router.push('/login')
-                }
+                if (mounted) setLoading(false)
             }
         }
 
