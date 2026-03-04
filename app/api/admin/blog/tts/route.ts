@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
+// Increase max duration to 60s for OpenAI's Text-to-Speech logic (Vercel Hobby plan limit)
+export const maxDuration = 60
+
 export async function POST(request: Request) {
     try {
         const apiKey = process.env.OPENAI_API_KEY
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
             headers: {
                 'Content-Type': 'audio/mpeg',
                 'Content-Disposition': 'inline; filename="tts.mp3"',
+                'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
             },
         });
 
