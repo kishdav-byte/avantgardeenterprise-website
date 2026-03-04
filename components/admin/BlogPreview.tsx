@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from 'react'
-import { X, Eye, Code, RefreshCw, Wand2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Eye, Code, RefreshCw, Wand2, Volume2, Square, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BlogPreviewProps {
@@ -20,6 +20,63 @@ interface BlogPreviewProps {
 
 export function BlogPreview({ blog, onClose, onRegenerateImage, isRegeneratingImage = false }: BlogPreviewProps) {
     const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview')
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [isLoadingAudio, setIsLoadingAudio] = useState(false)
+    const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
+
+    useEffect(() => {
+        return () => {
+            if (audio) {
+                audio.pause()
+                audio.src = ''
+            }
+        }
+    }, [audio])
+
+    const handleToggleAudio = async () => {
+        if (isPlaying && audio) {
+            audio.pause()
+            setIsPlaying(false)
+            return
+        }
+
+        if (audio && audio.src) {
+            audio.play()
+            setIsPlaying(true)
+            return
+        }
+
+        setIsLoadingAudio(true)
+        try {
+            const fullText = `${blog.title}. ${blog.excerpt || ''}. ${blog.content}`
+                .replace(/<[^>]*>?/gm, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+
+            const res = await fetch('/api/admin/blog/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: fullText })
+            })
+
+            if (!res.ok) throw new Error('Failed to generate audio')
+
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const newAudio = new Audio(url)
+
+            newAudio.onended = () => setIsPlaying(false)
+
+            setAudio(newAudio)
+            newAudio.play()
+            setIsPlaying(true)
+        } catch (error) {
+            console.error('Audio playback error:', error)
+            alert('Failed to play audio preview')
+        } finally {
+            setIsLoadingAudio(false)
+        }
+    }
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -34,10 +91,28 @@ export function BlogPreview({ blog, onClose, onRegenerateImage, isRegeneratingIm
                         {/* View Mode Toggle */}
                         <div className="flex gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
                             <button
+                                onClick={handleToggleAudio}
+                                disabled={isLoadingAudio}
+                                className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isPlaying
+                                    ? 'bg-accent text-black'
+                                    : 'hover:bg-white/5 opacity-50'
+                                    } ${isLoadingAudio ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {isLoadingAudio ? (
+                                    <Loader2 size={12} className="animate-spin" />
+                                ) : isPlaying ? (
+                                    <Square size={12} fill="currentColor" />
+                                ) : (
+                                    <Volume2 size={12} />
+                                )}
+                                {isLoadingAudio ? 'Loading...' : isPlaying ? 'Stop Audio' : 'Play Audio'}
+                            </button>
+                            <div className="w-px h-auto bg-white/10 mx-1"></div>
+                            <button
                                 onClick={() => setViewMode('preview')}
                                 className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'preview'
-                                        ? 'bg-accent text-black'
-                                        : 'hover:bg-white/5 opacity-50'
+                                    ? 'bg-accent text-black'
+                                    : 'hover:bg-white/5 opacity-50'
                                     }`}
                             >
                                 <Eye size={12} />
@@ -46,8 +121,8 @@ export function BlogPreview({ blog, onClose, onRegenerateImage, isRegeneratingIm
                             <button
                                 onClick={() => setViewMode('html')}
                                 className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'html'
-                                        ? 'bg-accent text-black'
-                                        : 'hover:bg-white/5 opacity-50'
+                                    ? 'bg-accent text-black'
+                                    : 'hover:bg-white/5 opacity-50'
                                     }`}
                             >
                                 <Code size={12} />
