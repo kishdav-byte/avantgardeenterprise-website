@@ -117,20 +117,39 @@ export default function DashboardPage() {
             try {
                 console.log("Initializing Auth (Resilient Path)...")
 
-                // 1. Instant check from local memory
-                const { data: { session } } = await supabase.auth.getSession()
+                // Helper to prevent infinite hangs from Supabase auth methods
+                const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string) => {
+                    return Promise.race([
+                        promise,
+                        new Promise<T>((_, reject) =>
+                            setTimeout(() => {
+                                console.warn(`Supabase Auth Timeout on: ${label}`)
+                                reject(new Error(`Auth request timed out: ${label}`))
+                            }, ms)
+                        )
+                    ]);
+                };
+
+                // 1. Instant check from local memory (with 3s timeout)
+                const { data: { session } } = await withTimeout(supabase.auth.getSession(), 3000, 'getSession')
+
                 if (session?.user && mounted) {
                     console.log("Instant session found:", session.user.id)
                     setUser(session.user)
+                    // Don't wait for syncProfile to finish before removing loading screen if we have auth
                     syncProfile(session.user)
                 }
 
-                // 2. Verified check in background
-                const { data: { user: authUser } } = await supabase.auth.getUser()
+                // 2. Verified check in background (with 3s timeout)
+                const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 3000, 'getUser')
+
                 if (authUser && mounted) {
                     console.log("Verified user found:", authUser.id)
-                    setUser(authUser)
-                    syncProfile(authUser)
+                    // Only sync profile again if we didn't already
+                    if (!session?.user) {
+                        setUser(authUser)
+                        syncProfile(authUser)
+                    }
                 } else if (!authUser && !session?.user) {
                     console.log("No user found, redirecting to login.")
                     if (mounted) router.push('/login')
@@ -139,7 +158,15 @@ export default function DashboardPage() {
                 console.error("Dashboard Init Exception:", e)
                 if (mounted) {
                     setLoading(false)
-                    router.push('/login')
+                    // Only redirect if it's a critical auth failure, otherwise stay and let user retry
+                    if (e instanceof Error && e.message.includes('timed out')) {
+                        // Just warn and show dashboard in degraded state or clear and login?
+                        // A hang usually means broken localStorage or network. Let's try redirecting to login.
+                        console.log("Network/Auth hang detected, redirecting to login.")
+                        router.push('/login')
+                    } else {
+                        router.push('/login')
+                    }
                 }
             }
         }
