@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
+import { supabase } from "@/lib/supabaseClient"
 import { motion, AnimatePresence } from "framer-motion"
 import { Copy, Plus, Wand2, RefreshCw, Loader2, Image as ImageIcon, Save, Send, Trash2, Eye, Calendar, Bot, MessageSquare, Shield, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,10 +15,6 @@ import { BlogPreview } from "@/components/admin/BlogPreview"
 type Tab = 'blog' | 'bot' | 'leads'
 
 export default function AdminDashboard() {
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
     const [activeTab, setActiveTab] = useState<Tab>('blog')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null)

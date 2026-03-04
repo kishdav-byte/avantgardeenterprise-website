@@ -130,43 +130,52 @@ export default function DashboardPage() {
                     ]);
                 };
 
-                // 1. Instant check from local memory (with 3s timeout)
-                const { data: { session } } = await withTimeout(supabase.auth.getSession(), 3000, 'getSession')
+                let instantSessionContext = null;
 
-                if (session?.user && mounted) {
-                    console.log("Instant session found:", session.user.id)
-                    setUser(session.user)
-                    // Don't wait for syncProfile to finish before removing loading screen if we have auth
-                    syncProfile(session.user)
+                // 1. Instant check from local memory
+                try {
+                    const { data: { session } } = await withTimeout(supabase.auth.getSession(), 3000, 'getSession')
+                    instantSessionContext = session;
+
+                    if (session?.user && mounted) {
+                        console.log("Instant session found:", session.user.id)
+                        setUser(session.user)
+                        // Don't wait for syncProfile to finish before removing loading screen if we have auth
+                        syncProfile(session.user)
+                    }
+                } catch (e) {
+                    console.warn("getSession Failed or Timed Out (Local Memory Check):", e)
                 }
 
-                // 2. Verified check in background (with 3s timeout)
-                const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 3000, 'getUser')
+                // 2. Verified check in background
+                try {
+                    const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser(), 3000, 'getUser')
 
-                if (authUser && mounted) {
-                    console.log("Verified user found:", authUser.id)
-                    // Only sync profile again if we didn't already
-                    if (!session?.user) {
-                        setUser(authUser)
-                        syncProfile(authUser)
+                    if (authUser && mounted) {
+                        console.log("Verified user found:", authUser.id)
+                        // Only sync profile again if we didn't already
+                        if (!instantSessionContext?.user) {
+                            setUser(authUser)
+                            syncProfile(authUser)
+                        }
+                    } else if (!authUser && !instantSessionContext?.user) {
+                        console.log("No user found locally or verified, redirecting to login.")
+                        if (mounted) router.push('/login')
                     }
-                } else if (!authUser && !session?.user) {
-                    console.log("No user found, redirecting to login.")
-                    if (mounted) router.push('/login')
+                } catch (e) {
+                    console.warn("getUser Failed or Timed Out (Network Token Verification):", e)
+
+                    // We only want to kick the user out on network failure if they DO NOT have an instant session to rely on
+                    if (!instantSessionContext?.user && mounted) {
+                        console.log("Network/Auth hang detected and no local session found. Redirecting to login.")
+                        router.push('/login')
+                    }
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
                 if (mounted) {
                     setLoading(false)
-                    // Only redirect if it's a critical auth failure, otherwise stay and let user retry
-                    if (e instanceof Error && e.message.includes('timed out')) {
-                        // Just warn and show dashboard in degraded state or clear and login?
-                        // A hang usually means broken localStorage or network. Let's try redirecting to login.
-                        console.log("Network/Auth hang detected, redirecting to login.")
-                        router.push('/login')
-                    } else {
-                        router.push('/login')
-                    }
+                    router.push('/login')
                 }
             }
         }
