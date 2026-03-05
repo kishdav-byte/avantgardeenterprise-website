@@ -31,11 +31,12 @@ export async function proxy(request: NextRequest) {
         }
     )
 
-    // Helper to get user without throwing (using getClaims to avoid Vercel Edge network drops on refresh)
-    const { data } = await supabase.auth.getClaims()
-    const user = data?.claims
+    // Correct way to get safe session data in middleware
+    const { data: { user } } = await supabase.auth.getUser()
 
-    console.log("MIDDLEWARE: Auth User ID:", user?.sub || "NULL")
+    if (user) {
+        console.log("MIDDLEWARE: User authenticated:", user.id)
+    }
 
     // 1. Protected Route Guard (TEMPORARILY DISABLED FOR DEBUGGING)
     /*
@@ -46,10 +47,6 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
     }
     */
-
-    if (user) {
-        console.log("MIDDLEWARE: User authenticated successfully. Proceeding with response.")
-    }
 
     return supabaseResponse
 }
