@@ -43,13 +43,11 @@ export default function DashboardPage() {
 
         const syncProfile = async (sessionUser: any) => {
             if (!sessionUser || !mounted || syncInProgress.current) {
-                console.log("DASHBOARD: Sync skip - user:", !!sessionUser, "mounted:", mounted, "inProgress:", syncInProgress.current)
                 return;
             }
             syncInProgress.current = true
 
             try {
-                console.log("DASHBOARD: Syncing profile for user:", sessionUser.id)
                 // 1. Try by ID
                 let { data: profile, error: profileError } = await supabase
                     .from('clients')
@@ -63,7 +61,6 @@ export default function DashboardPage() {
 
                 // 2. FALLBACK: Check by Email
                 if (!profile && sessionUser.email) {
-                    console.log("DASHBOARD: ID match not found, checking email:", sessionUser.email)
                     const { data: emailProfile, error: emailError } = await supabase
                         .from('clients')
                         .select('*')
@@ -72,18 +69,14 @@ export default function DashboardPage() {
                     if (emailError) console.error("DASHBOARD: Profile query error (Email):", emailError.message)
                     if (emailProfile) {
                         profile = emailProfile
-                        console.log("DASHBOARD: Found profile by email. Re-linking to ID...")
-                        // Update the profile to have the correct ID if it matches by email
                         await supabase.from('clients').update({ id: sessionUser.id }).eq('email', sessionUser.email)
                     }
                 }
 
                 if (mounted) {
                     if (profile) {
-                        console.log("DASHBOARD: Profile data found for:", profile.first_name)
                         setClientData(profile)
                     } else {
-                        console.warn("DASHBOARD: No profile record exists. Auto-creating...")
                         const { data: newProfile, error: createError } = await supabase
                             .from('clients')
                             .insert({
@@ -97,7 +90,6 @@ export default function DashboardPage() {
                             .maybeSingle()
 
                         if (newProfile) {
-                            console.log("DASHBOARD: New profile created.")
                             setClientData(newProfile)
                         } else if (createError) {
                             console.error("DASHBOARD: Profile creation failed:", createError.message)
@@ -111,55 +103,29 @@ export default function DashboardPage() {
                     syncInProgress.current = false
                     setLoading(false)
                     clearTimeout(timeoutId)
-                    console.log("DASHBOARD: Profile sync complete/failed, spinner stopped.")
                 }
             }
         }
 
-        const initializeAuth = async () => {
-            try {
-                // Use getUser for fresh verification instead of getSession which can be stale
-                const { data: { user: currentUser }, error } = await supabase.auth.getUser()
-
-                if (error) {
-                    console.error("DASHBOARD: getUser error:", error.message)
-                }
-
-                if (currentUser && mounted) {
-                    console.log("DASHBOARD: User found in init:", currentUser.id)
-                    setUser(currentUser)
-                    await syncProfile(currentUser)
-                } else if (!currentUser && mounted) {
-                    console.log("DASHBOARD: No user found in init, starting grace period...")
-                    setTimeout(() => {
-                        if (mounted && !user && !syncInProgress.current) {
-                            console.log("DASHBOARD: Grace period ended, still no user. Stopping spinner.")
-                            setLoading(false)
-                        }
-                    }, 3000)
-                }
-            } catch (e) {
-                console.error("Dashboard Init Exception:", e)
-                if (mounted) {
-                    setLoading(false)
-                    syncInProgress.current = false
-                }
-            }
-        }
-
-        initializeAuth()
-
+        // Single Point of Initialization: the Auth Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("DASHBOARD: Auth Event:", event, "Session exists:", !!session)
 
             if (session?.user && mounted) {
                 setUser(session.user)
-                // Redundant safety: if we're already syncing or already have data, don't trigger again unless specific events
-                if (!syncInProgress.current && (!clientData || event === 'SIGNED_IN')) {
+                if (!syncInProgress.current) {
                     await syncProfile(session.user)
                 }
-            } else if (!session && event === 'SIGNED_OUT') {
-                if (mounted) router.push('/login')
+            } else if (!session && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) {
+                // If we're signed out or after the initial session check there is still no session
+                if (mounted) {
+                    if (event === 'SIGNED_OUT') {
+                        router.push('/login')
+                    } else {
+                        // After initial auth check if no user is found, stop the spinner
+                        setLoading(false)
+                    }
+                }
             }
         })
 
@@ -168,7 +134,7 @@ export default function DashboardPage() {
             clearTimeout(timeoutId)
             subscription.unsubscribe()
         }
-    }, [router, clientData]) // Added clientData as dependency to allow onAuthStateChange logic to see it
+    }, [router])
 
     const handleSignOut = async () => {
         try {
