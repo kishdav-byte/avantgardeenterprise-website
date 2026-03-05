@@ -62,25 +62,22 @@ export default function DashboardPage() {
                         .maybeSingle()
 
                     if (emailProfile) {
-                        console.log("Found profile by email. Updating ID to current session.")
-                        // Create a updated profile record for this session
-                        // (We don't update DB ID since it's a PK, we just treat this row as the current user's)
+                        console.log("Found profile by email.")
                         profile = emailProfile
                     }
                 }
 
                 if (profileError) {
                     console.error("Profile Fetch Error:", profileError)
-                    throw profileError
                 }
-
-                console.log("Profile Sync Complete. Data found:", !!profile)
 
                 if (mounted) {
                     if (profile) {
+                        // Success path
                         setClientData(profile)
                         setLoading(false)
                         clearTimeout(timeoutId)
+                        console.log("Profile Sync Complete.")
                     } else {
                         // No profile found - AUTO-ASSIGN DEFAULT PROFILE
                         console.warn("Auto-assigning default 'user' profile for:", sessionUser.id)
@@ -99,12 +96,13 @@ export default function DashboardPage() {
 
                         if (createError) {
                             console.error("Auto-assign failed:", createError)
+                            // If we can't create it, we still have to stop loading eventually 
+                            setLoading(false)
                         } else if (newProfile) {
                             setClientData(newProfile)
+                            setLoading(false)
+                            clearTimeout(timeoutId)
                         }
-
-                        setLoading(false)
-                        clearTimeout(timeoutId)
                     }
                 }
             } catch (e) {
@@ -115,18 +113,15 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                // 1. Instant check from local memory (Edge proxy ALREADY verified security, no need for another network check!)
+                // 1. Instant check from local memory (Edge proxy ALREADY verified security)
                 const { data: { session } } = await supabase.auth.getSession()
 
                 if (session?.user && mounted) {
                     setUser(session.user)
                     syncProfile(session.user)
                 } else {
-                    // If no session is found locally, wait for onAuthStateChange to possibly catch it
-                    // or timeout gracefully
-                    if (mounted) {
-                        setTimeout(() => { if (loading) setLoading(false); }, 1000)
-                    }
+                    // Fallback: This might be a cold start where getSession is empty for a millisecond
+                    // Let onAuthStateChange handle it.
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
@@ -136,12 +131,16 @@ export default function DashboardPage() {
 
         initializeAuth()
 
-        // Listen for auth changes to handle late-arriving sessions
+        // Listen for auth changes to handle late-arriving sessions and refreshes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            console.log("Dashboard Auth State Change:", event, !!session)
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) {
                 if (session?.user && mounted) {
                     setUser(session.user)
-                    await syncProfile(session.user)
+                    // Only sync if we haven't already got clientData
+                    if (!clientData) {
+                        await syncProfile(session.user)
+                    }
                 }
             } else if (event === 'SIGNED_OUT') {
                 if (mounted) router.push('/login')
@@ -153,7 +152,7 @@ export default function DashboardPage() {
             clearTimeout(timeoutId)
             subscription.unsubscribe()
         }
-    }, [router])
+    }, [router]) // Added clientData as dependency to allow onAuthStateChange logic to see it
 
     const handleSignOut = async () => {
         try {
@@ -233,7 +232,7 @@ export default function DashboardPage() {
                                 <div className="space-y-4">
                                     <ProfileItem label="Email Address" value={clientData?.email} icon={<Mail size={16} />} />
                                     <ProfileItem label="Mailing List" value={clientData?.mailing_list ? "Suscribed" : "Unsubscribed"} />
-                                    <ProfileItem label="Member Since" value={new Date(clientData?.created_at).toLocaleDateString()} />
+                                    <ProfileItem label="Member Since" value={clientData?.created_at ? new Date(clientData.created_at).toLocaleDateString() : 'N/A'} />
                                 </div>
                             </div>
 
