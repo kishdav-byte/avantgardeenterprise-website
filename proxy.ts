@@ -2,7 +2,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -31,20 +31,28 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // Helper to get user without throwing
-    const { data: { user } } = await supabase.auth.getUser()
+    // Helper to get user without throwing (using getClaims to avoid Vercel Edge network drops on refresh)
+    const { data } = await supabase.auth.getClaims()
+    const user = data?.claims
+
+    console.log("MIDDLEWARE: Auth User ID:", user?.sub || "NULL")
 
     // 1. Protected Route Guard
     if (isProtectedRoute && !user) {
+        console.log("MIDDLEWARE: Redirecting to login.")
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
         return NextResponse.redirect(redirectUrl)
     }
 
+    if (user) {
+        console.log("MIDDLEWARE: User authenticated successfully. Proceeding with response.")
+    }
+
     return supabaseResponse
 }
 
-export default middleware
+
 
 export const config = {
     matcher: [
