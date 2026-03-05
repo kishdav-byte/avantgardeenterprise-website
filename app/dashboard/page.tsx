@@ -44,6 +44,11 @@ export default function DashboardPage() {
                     if (mounted && profile) {
                         setClientData(profile)
                     }
+                } else {
+                    // SECURE REDIRECT: Redirect to login if no user session found
+                    if (mounted) {
+                        router.push('/login')
+                    }
                 }
             } catch (e) {
                 console.error("DASHBOARD: Init error:", e)
@@ -61,16 +66,21 @@ export default function DashboardPage() {
         try {
             await supabase.auth.signOut()
         } catch (e) {
-            console.warn("Sign out error:", e)
+            console.warn("Dashboard: Sign out error:", e)
         } finally {
+            // Comprehensive cleanup
             localStorage.clear()
             sessionStorage.clear()
+
+            // Clear all possible cookies
             document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
+                const cookieName = c.trim().split("=")[0]
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
+            })
+
             router.push('/login')
+            setTimeout(() => window.location.reload(), 100)
         }
     }
 

@@ -59,17 +59,20 @@ export function Navbar() {
             }
         }
 
-        // Initial session check
+        // Initial session check using getUser() for server verification
         const checkSession = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession()
-                const authUser = session?.user || null
-                if (mounted && authUser) {
-                    setUser(authUser)
-                    if (!profile) await fetchProfile(authUser.id, authUser.email)
+                // Use getUser() instead of getSession() for more reliable initial state
+                const { data: { user: authUser } } = await supabase.auth.getUser()
+                if (mounted) {
+                    setUser(authUser || null)
+                    if (authUser && !profile) {
+                        await fetchProfile(authUser.id, authUser.email)
+                    }
                 }
             } catch (err) {
                 console.warn("Navbar initial auth check failed.")
+                if (mounted) setUser(null)
             }
         }
 
@@ -97,37 +100,33 @@ export function Navbar() {
 
 
     const handleSignOut = async () => {
-        console.log("Initiating robust sign out...")
+        console.log("Navbar: Initiating robust sign out...")
         try {
-            // Force local state update immediately for better UX
+            // Force local state update IMMEDIATELY for snappy UI response
             setUser(null)
             setProfile(null)
             setIsOpen(false)
 
-            // Attempt to sign out globally
+            // Attempt global sign out
             const { error } = await supabase.auth.signOut()
-            if (error) {
-                console.warn("Supabase signOut error (ignoring to continue cleanup):", error)
-            }
+            if (error) console.warn("Supabase signOut error (continuing cleanup):", error)
         } catch (e) {
-            console.error("Critical sign out failure:", e)
+            console.error("Sign out error:", e)
         } finally {
-            // Nuclear cleanup for cookies and storage to ensure "WELCOME, USER" doesn't return
+            // Comprehensive cleanup
             localStorage.clear()
             sessionStorage.clear()
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
 
-            // Redirect and hard refresh
+            // Clear all possible cookies (Next.js auth uses several)
+            document.cookie.split(";").forEach((c) => {
+                const cookieName = c.trim().split("=")[0]
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
+            })
+
+            // Redirect to home and force a hard refresh to wipe all memory states
             router.push('/')
-            router.refresh()
-            // Force a hard reload if we're already on home to ensure state is purged
-            if (window.location.pathname === '/') {
-                window.location.reload()
-            }
+            setTimeout(() => window.location.reload(), 100)
         }
     }
 

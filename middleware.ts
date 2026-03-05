@@ -38,15 +38,13 @@ export async function proxy(request: NextRequest) {
         console.log("MIDDLEWARE: User authenticated:", user.id)
     }
 
-    // 1. Protected Route Guard (TEMPORARILY DISABLED FOR DEBUGGING)
-    /*
+    // 1. Protected Route Guard
     if (isProtectedRoute && !user) {
         console.log("MIDDLEWARE: Redirecting to login.")
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
         return NextResponse.redirect(redirectUrl)
     }
-    */
 
     return supabaseResponse
 }

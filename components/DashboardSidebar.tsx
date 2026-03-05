@@ -23,15 +23,20 @@ export function DashboardSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         } catch (e) {
             console.warn("Sign out error in sidebar:", e)
         } finally {
+            // Comprehensive cleanup
             localStorage.clear()
             sessionStorage.clear()
+
+            // Clear all possible cookies
             document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
+                const cookieName = c.trim().split("=")[0]
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
+            })
+
+            // Redirect and hard refresh
             router.push('/')
-            router.refresh()
+            setTimeout(() => window.location.reload(), 100)
         }
     }
 
