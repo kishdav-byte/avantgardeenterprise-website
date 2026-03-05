@@ -21,23 +21,17 @@ export default function DashboardPage() {
     const router = useRouter()
     const [user, setUser] = useState<any>(null)
     const [clientData, setClientData] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false) // Non-blocking by default
 
     const syncInProgress = useRef(false)
 
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
+        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop any internal spinners if we added them
         const timeoutId = setTimeout(() => {
             if (mounted) {
-                setLoading(currentLoading => {
-                    if (currentLoading) {
-                        console.warn("Dashboard loading timed out. Force-stopping spinner.")
-                        return false
-                    }
-                    return currentLoading
-                })
+                syncInProgress.current = false
             }
         }, 10000)
 
@@ -101,7 +95,6 @@ export default function DashboardPage() {
             } finally {
                 if (mounted) {
                     syncInProgress.current = false
-                    setLoading(false)
                     clearTimeout(timeoutId)
                 }
             }
@@ -109,22 +102,14 @@ export default function DashboardPage() {
 
         // Single Point of Initialization: the Auth Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("DASHBOARD: Auth Event:", event, "Session exists:", !!session)
-
             if (session?.user && mounted) {
                 setUser(session.user)
                 if (!syncInProgress.current) {
                     await syncProfile(session.user)
                 }
             } else if (!session && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) {
-                // If we're signed out or after the initial session check there is still no session
-                if (mounted) {
-                    if (event === 'SIGNED_OUT') {
-                        router.push('/login')
-                    } else {
-                        // After initial auth check if no user is found, stop the spinner
-                        setLoading(false)
-                    }
+                if (mounted && event === 'SIGNED_OUT') {
+                    router.push('/login')
                 }
             }
         })
@@ -153,12 +138,6 @@ export default function DashboardPage() {
             router.refresh()
         }
     }
-
-    if (loading) return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-        </div>
-    )
 
     return (
         <main className="min-h-screen bg-black text-white">
