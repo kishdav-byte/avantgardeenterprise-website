@@ -46,7 +46,7 @@ export default function DashboardPage() {
             syncInProgress.current = true
 
             try {
-                console.log("Syncing profile for user:", sessionUser.id)
+                console.log("DASHBOARD: Syncing profile for user:", sessionUser.id)
                 // 1. Try by ID
                 let { data: profile, error: profileError } = await supabase
                     .from('clients')
@@ -56,6 +56,7 @@ export default function DashboardPage() {
 
                 // 2. FALLBACK: Check by Email
                 if (!profile && sessionUser.email) {
+                    console.log("DASHBOARD: ID match not found, checking email...")
                     const { data: emailProfile } = await supabase
                         .from('clients')
                         .select('*')
@@ -66,11 +67,10 @@ export default function DashboardPage() {
 
                 if (mounted) {
                     if (profile) {
+                        console.log("DASHBOARD: Profile data found for:", profile.first_name)
                         setClientData(profile)
-                        setLoading(false)
-                        clearTimeout(timeoutId)
-                        console.log("Profile Sync Complete.")
                     } else {
+                        console.warn("DASHBOARD: No profile record exists. Auto-creating...")
                         // AUTO-ASSIGN DEFAULT
                         const { data: newProfile, error: createError } = await supabase
                             .from('clients')
@@ -82,20 +82,23 @@ export default function DashboardPage() {
                                 role: 'user'
                             })
                             .select()
-                            .single()
+                            .maybeSingle()
 
                         if (newProfile) {
+                            console.log("DASHBOARD: New profile created.")
                             setClientData(newProfile)
-                            setLoading(false)
-                            clearTimeout(timeoutId)
-                        } else {
-                            setLoading(false)
+                        } else if (createError) {
+                            console.error("DASHBOARD: Profile creation failed:", createError.message)
                         }
                     }
                 }
-            } catch (e) {
-                console.error("Profile Sync Exception:", e)
-                if (mounted) setLoading(false)
+            } catch (e: any) {
+                console.error("DASHBOARD: Profile Sync Exception:", e.message)
+            } finally {
+                if (mounted) {
+                    setLoading(false)
+                    clearTimeout(timeoutId)
+                }
             }
         }
 
@@ -105,6 +108,14 @@ export default function DashboardPage() {
                 if (session?.user && mounted) {
                     setUser(session.user)
                     syncProfile(session.user)
+                } else if (!session && mounted) {
+                    // Start a short "grace period" for the listener to find a session
+                    setTimeout(() => {
+                        if (mounted && !user && !syncInProgress.current) {
+                            setLoading(false)
+                            // If we still have no user after grace period, the onAuthStateChange should handle signout
+                        }
+                    }, 2000)
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
@@ -115,13 +126,13 @@ export default function DashboardPage() {
         initializeAuth()
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("Dashboard Auth State Change:", event, !!session)
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) {
-                if (session?.user && mounted) {
-                    setUser(session.user)
+            console.log("DASHBOARD: Auth Event:", event, "Session exists:", !!session)
+            if (session?.user && mounted) {
+                setUser(session.user)
+                if (!syncInProgress.current) {
                     await syncProfile(session.user)
                 }
-            } else if (event === 'SIGNED_OUT') {
+            } else if (!session && event === 'SIGNED_OUT') {
                 if (mounted) router.push('/login')
             }
         })
