@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { useRouter } from "next/navigation"
@@ -23,25 +23,27 @@ export default function DashboardPage() {
     const [clientData, setClientData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
+    const syncInProgress = useRef(false)
+
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 8 seconds, stop the spinner
-        // Reduced to 8s to be more responsive, and we'll show a retry if it fails.
+        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop the spinner
         const timeoutId = setTimeout(() => {
             if (mounted) {
                 setLoading(currentLoading => {
                     if (currentLoading) {
-                        console.warn("Dashboard loading timed out. User identity may be pending.")
+                        console.warn("Dashboard loading timed out. Force-stopping spinner.")
                         return false
                     }
                     return currentLoading
                 })
             }
-        }, 8000)
+        }, 10000)
 
         const syncProfile = async (sessionUser: any) => {
-            if (!sessionUser || !mounted) return;
+            if (!sessionUser || !mounted || syncInProgress.current) return;
+            syncInProgress.current = true
 
             try {
                 console.log("Syncing profile for user:", sessionUser.id)
@@ -52,36 +54,24 @@ export default function DashboardPage() {
                     .eq('id', sessionUser.id)
                     .maybeSingle()
 
-                // 2. FALLBACK: Check by Email (Fixes "ID Mismatch" for re-signed up admins)
-                if (!profile && !profileError && sessionUser.email) {
-                    console.log("ID mismatch detected, checking by email:", sessionUser.email)
+                // 2. FALLBACK: Check by Email
+                if (!profile && sessionUser.email) {
                     const { data: emailProfile } = await supabase
                         .from('clients')
                         .select('*')
                         .eq('email', sessionUser.email)
                         .maybeSingle()
-
-                    if (emailProfile) {
-                        console.log("Found profile by email.")
-                        profile = emailProfile
-                    }
-                }
-
-                if (profileError) {
-                    console.error("Profile Fetch Error:", profileError)
+                    if (emailProfile) profile = emailProfile
                 }
 
                 if (mounted) {
                     if (profile) {
-                        // Success path
                         setClientData(profile)
                         setLoading(false)
                         clearTimeout(timeoutId)
                         console.log("Profile Sync Complete.")
                     } else {
-                        // No profile found - AUTO-ASSIGN DEFAULT PROFILE
-                        console.warn("Auto-assigning default 'user' profile for:", sessionUser.id)
-
+                        // AUTO-ASSIGN DEFAULT
                         const { data: newProfile, error: createError } = await supabase
                             .from('clients')
                             .insert({
@@ -94,14 +84,12 @@ export default function DashboardPage() {
                             .select()
                             .single()
 
-                        if (createError) {
-                            console.error("Auto-assign failed:", createError)
-                            // If we can't create it, we still have to stop loading eventually 
-                            setLoading(false)
-                        } else if (newProfile) {
+                        if (newProfile) {
                             setClientData(newProfile)
                             setLoading(false)
                             clearTimeout(timeoutId)
+                        } else {
+                            setLoading(false)
                         }
                     }
                 }
@@ -113,15 +101,10 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                // 1. Instant check from local memory (Edge proxy ALREADY verified security)
                 const { data: { session } } = await supabase.auth.getSession()
-
                 if (session?.user && mounted) {
                     setUser(session.user)
                     syncProfile(session.user)
-                } else {
-                    // Fallback: This might be a cold start where getSession is empty for a millisecond
-                    // Let onAuthStateChange handle it.
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
@@ -131,16 +114,12 @@ export default function DashboardPage() {
 
         initializeAuth()
 
-        // Listen for auth changes to handle late-arriving sessions and refreshes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("Dashboard Auth State Change:", event, !!session)
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) {
                 if (session?.user && mounted) {
                     setUser(session.user)
-                    // Only sync if we haven't already got clientData
-                    if (!clientData) {
-                        await syncProfile(session.user)
-                    }
+                    await syncProfile(session.user)
                 }
             } else if (event === 'SIGNED_OUT') {
                 if (mounted) router.push('/login')
@@ -232,7 +211,14 @@ export default function DashboardPage() {
                                 <div className="space-y-4">
                                     <ProfileItem label="Email Address" value={clientData?.email} icon={<Mail size={16} />} />
                                     <ProfileItem label="Mailing List" value={clientData?.mailing_list ? "Suscribed" : "Unsubscribed"} />
-                                    <ProfileItem label="Member Since" value={clientData?.created_at ? new Date(clientData.created_at).toLocaleDateString() : 'N/A'} />
+                                    <ProfileItem
+                                        label="Member Since"
+                                        value={(() => {
+                                            if (!clientData?.created_at) return 'N/A';
+                                            const d = new Date(clientData.created_at);
+                                            return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
+                                        })()}
+                                    />
                                 </div>
                             </div>
 
