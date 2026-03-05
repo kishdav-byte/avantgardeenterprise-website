@@ -21,7 +21,7 @@ export default function DashboardPage() {
     const router = useRouter()
     const [user, setUser] = useState<any>(null)
     const [clientData, setClientData] = useState<any>(null)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         let mounted = true
@@ -41,8 +41,9 @@ export default function DashboardPage() {
                         .eq('id', currentUser.id)
                         .maybeSingle()
 
-                    if (mounted && profile) {
-                        setClientData(profile)
+                    if (mounted) {
+                        if (profile) setClientData(profile)
+                        setLoading(false)
                     }
                 } else {
                     // SECURE REDIRECT: Redirect to login if no user session found
@@ -52,6 +53,7 @@ export default function DashboardPage() {
                 }
             } catch (e) {
                 console.error("DASHBOARD: Init error:", e)
+                if (mounted) setLoading(false)
             }
         }
 
@@ -84,13 +86,24 @@ export default function DashboardPage() {
         }
     }
 
+    // AUTH GUARD: Don't render content until we know who the user is
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-accent border-t-transparent animate-spin rounded-full" />
+            </div>
+        )
+    }
+
+    if (!user) return null // Redirection handled by useEffect
+
     return (
         <main className="min-h-screen bg-black text-white">
             <Navbar />
 
             <div className="pt-24 flex min-h-screen">
                 {/* Sidebar Navigation */}
-                <DashboardSidebar isAdmin={true} />
+                <DashboardSidebar isAdmin={clientData?.role === 'admin'} />
 
                 {/* Dashboard Content */}
                 <section className="flex-1 p-8 md:p-12 overflow-y-auto">
@@ -113,9 +126,9 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
                                     <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-black font-black text-xs">
-                                        {clientData?.first_name?.[0] || 'U'}
+                                        {clientData?.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                                     </div>
-                                    <span className="text-xs font-bold uppercase tracking-widest">{clientData?.role}</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest">{clientData?.role || 'User'}</span>
                                 </div>
                             </div>
                         </div>
@@ -135,8 +148,8 @@ export default function DashboardPage() {
                                     <User size={20} className="text-accent" /> Profile Identity
                                 </h3>
                                 <div className="space-y-4">
-                                    <ProfileItem label="Email Address" value={clientData?.email} icon={<Mail size={16} />} />
-                                    <ProfileItem label="Mailing List" value={clientData?.mailing_list ? "Suscribed" : "Unsubscribed"} />
+                                    <ProfileItem label="Email Address" value={clientData?.email || user.email} icon={<Mail size={16} />} />
+                                    <ProfileItem label="Mailing List" value={clientData?.mailing_list ? "Subscribed" : "Unsubscribed"} />
                                     <ProfileItem
                                         label="Member Since"
                                         value={(() => {
