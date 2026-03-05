@@ -115,22 +115,17 @@ export default function DashboardPage() {
 
         const initializeAuth = async () => {
             try {
-                // 1. Instant check from local memory
+                // 1. Instant check from local memory (Edge proxy ALREADY verified security, no need for another network check!)
                 const { data: { session } } = await supabase.auth.getSession()
 
                 if (session?.user && mounted) {
                     setUser(session.user)
-                    // Don't wait for syncProfile to finish before removing loading screen if we have auth
                     syncProfile(session.user)
-                }
-
-                // 2. Verified check in background
-                const { data: { user: authUser } } = await supabase.auth.getUser()
-
-                if (authUser && mounted) {
-                    if (!session?.user) {
-                        setUser(authUser)
-                        syncProfile(authUser)
+                } else {
+                    // If no session is found locally, wait for onAuthStateChange to possibly catch it
+                    // or timeout gracefully
+                    if (mounted) {
+                        setTimeout(() => { if (loading) setLoading(false); }, 1000)
                     }
                 }
             } catch (e) {

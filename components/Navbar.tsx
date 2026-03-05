@@ -62,10 +62,11 @@ export function Navbar() {
         // Initial session check
         const checkSession = async () => {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser()
-                if (mounted) {
+                const { data: { session } } = await supabase.auth.getSession()
+                const authUser = session?.user || null
+                if (mounted && authUser) {
                     setUser(authUser)
-                    if (authUser) await fetchProfile(authUser.id, authUser.email)
+                    if (!profile) await fetchProfile(authUser.id, authUser.email)
                 }
             } catch (err) {
                 console.warn("Navbar initial auth check failed.")
