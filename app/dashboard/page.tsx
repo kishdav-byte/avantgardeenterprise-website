@@ -42,7 +42,10 @@ export default function DashboardPage() {
         }, 10000)
 
         const syncProfile = async (sessionUser: any) => {
-            if (!sessionUser || !mounted || syncInProgress.current) return;
+            if (!sessionUser || !mounted || syncInProgress.current) {
+                console.log("DASHBOARD: Sync skip - user:", !!sessionUser, "mounted:", mounted, "inProgress:", syncInProgress.current)
+                return;
+            }
             syncInProgress.current = true
 
             try {
@@ -54,15 +57,25 @@ export default function DashboardPage() {
                     .eq('id', sessionUser.id)
                     .maybeSingle()
 
+                if (profileError) {
+                    console.error("DASHBOARD: Profile query error (ID):", profileError.message)
+                }
+
                 // 2. FALLBACK: Check by Email
                 if (!profile && sessionUser.email) {
-                    console.log("DASHBOARD: ID match not found, checking email...")
-                    const { data: emailProfile } = await supabase
+                    console.log("DASHBOARD: ID match not found, checking email:", sessionUser.email)
+                    const { data: emailProfile, error: emailError } = await supabase
                         .from('clients')
                         .select('*')
                         .eq('email', sessionUser.email)
                         .maybeSingle()
-                    if (emailProfile) profile = emailProfile
+                    if (emailError) console.error("DASHBOARD: Profile query error (Email):", emailError.message)
+                    if (emailProfile) {
+                        profile = emailProfile
+                        console.log("DASHBOARD: Found profile by email. Re-linking to ID...")
+                        // Update the profile to have the correct ID if it matches by email
+                        await supabase.from('clients').update({ id: sessionUser.id }).eq('email', sessionUser.email)
+                    }
                 }
 
                 if (mounted) {
@@ -71,7 +84,6 @@ export default function DashboardPage() {
                         setClientData(profile)
                     } else {
                         console.warn("DASHBOARD: No profile record exists. Auto-creating...")
-                        // AUTO-ASSIGN DEFAULT
                         const { data: newProfile, error: createError } = await supabase
                             .from('clients')
                             .insert({
@@ -96,30 +108,42 @@ export default function DashboardPage() {
                 console.error("DASHBOARD: Profile Sync Exception:", e.message)
             } finally {
                 if (mounted) {
+                    syncInProgress.current = false
                     setLoading(false)
                     clearTimeout(timeoutId)
+                    console.log("DASHBOARD: Profile sync complete/failed, spinner stopped.")
                 }
             }
         }
 
         const initializeAuth = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession()
-                if (session?.user && mounted) {
-                    setUser(session.user)
-                    syncProfile(session.user)
-                } else if (!session && mounted) {
-                    // Start a short "grace period" for the listener to find a session
+                // Use getUser for fresh verification instead of getSession which can be stale
+                const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+
+                if (error) {
+                    console.error("DASHBOARD: getUser error:", error.message)
+                }
+
+                if (currentUser && mounted) {
+                    console.log("DASHBOARD: User found in init:", currentUser.id)
+                    setUser(currentUser)
+                    await syncProfile(currentUser)
+                } else if (!currentUser && mounted) {
+                    console.log("DASHBOARD: No user found in init, starting grace period...")
                     setTimeout(() => {
                         if (mounted && !user && !syncInProgress.current) {
+                            console.log("DASHBOARD: Grace period ended, still no user. Stopping spinner.")
                             setLoading(false)
-                            // If we still have no user after grace period, the onAuthStateChange should handle signout
                         }
-                    }, 2000)
+                    }, 3000)
                 }
             } catch (e) {
                 console.error("Dashboard Init Exception:", e)
-                if (mounted) setLoading(false)
+                if (mounted) {
+                    setLoading(false)
+                    syncInProgress.current = false
+                }
             }
         }
 
@@ -127,9 +151,11 @@ export default function DashboardPage() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("DASHBOARD: Auth Event:", event, "Session exists:", !!session)
+
             if (session?.user && mounted) {
                 setUser(session.user)
-                if (!syncInProgress.current) {
+                // Redundant safety: if we're already syncing or already have data, don't trigger again unless specific events
+                if (!syncInProgress.current && (!clientData || event === 'SIGNED_IN')) {
                     await syncProfile(session.user)
                 }
             } else if (!session && event === 'SIGNED_OUT') {
@@ -142,7 +168,7 @@ export default function DashboardPage() {
             clearTimeout(timeoutId)
             subscription.unsubscribe()
         }
-    }, [router]) // Added clientData as dependency to allow onAuthStateChange logic to see it
+    }, [router, clientData]) // Added clientData as dependency to allow onAuthStateChange logic to see it
 
     const handleSignOut = async () => {
         try {
