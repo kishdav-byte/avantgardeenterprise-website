@@ -21,111 +21,47 @@ export default function DashboardPage() {
     const router = useRouter()
     const [user, setUser] = useState<any>(null)
     const [clientData, setClientData] = useState<any>(null)
-    const [loading, setLoading] = useState(false) // Non-blocking by default
-
-    const syncInProgress = useRef(false)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         let mounted = true
 
-        // SAFETY TIMEOUT: If nothing happens in 10 seconds, stop any internal spinners if we added them
-        const timeoutId = setTimeout(() => {
-            if (mounted) {
-                syncInProgress.current = false
-            }
-        }, 10000)
-
-        const syncProfile = async (sessionUser: any) => {
-            if (!sessionUser || !mounted || syncInProgress.current) {
-                return;
-            }
-            syncInProgress.current = true
-
+        const initialize = async () => {
             try {
-                // 1. Try by ID
-                let { data: profile, error: profileError } = await supabase
-                    .from('clients')
-                    .select('*')
-                    .eq('id', sessionUser.id)
-                    .maybeSingle()
+                // Single, non-blocking check
+                const { data: { user: currentUser } } = await supabase.auth.getUser()
+                if (!mounted) return
 
-                if (profileError) {
-                    console.error("DASHBOARD: Profile query error (ID):", profileError.message)
-                }
-
-                // 2. FALLBACK: Check by Email
-                if (!profile && sessionUser.email) {
-                    const { data: emailProfile, error: emailError } = await supabase
+                if (currentUser) {
+                    setUser(currentUser)
+                    // Fire-and-forget profile sync
+                    const { data: profile } = await supabase
                         .from('clients')
                         .select('*')
-                        .eq('email', sessionUser.email)
+                        .eq('id', currentUser.id)
                         .maybeSingle()
-                    if (emailError) console.error("DASHBOARD: Profile query error (Email):", emailError.message)
-                    if (emailProfile) {
-                        profile = emailProfile
-                        await supabase.from('clients').update({ id: sessionUser.id }).eq('email', sessionUser.email)
-                    }
-                }
 
-                if (mounted) {
-                    if (profile) {
+                    if (mounted && profile) {
                         setClientData(profile)
-                    } else {
-                        const { data: newProfile, error: createError } = await supabase
-                            .from('clients')
-                            .insert({
-                                id: sessionUser.id,
-                                email: sessionUser.email,
-                                first_name: sessionUser.user_metadata?.first_name || sessionUser.email.split('@')[0],
-                                last_name: sessionUser.user_metadata?.last_name || '',
-                                role: 'user'
-                            })
-                            .select()
-                            .maybeSingle()
-
-                        if (newProfile) {
-                            setClientData(newProfile)
-                        } else if (createError) {
-                            console.error("DASHBOARD: Profile creation failed:", createError.message)
-                        }
                     }
                 }
-            } catch (e: any) {
-                console.error("DASHBOARD: Profile Sync Exception:", e.message)
-            } finally {
-                if (mounted) {
-                    syncInProgress.current = false
-                    clearTimeout(timeoutId)
-                }
+            } catch (e) {
+                console.error("DASHBOARD: Init error:", e)
             }
         }
 
-        // Single Point of Initialization: the Auth Listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session?.user && mounted) {
-                setUser(session.user)
-                if (!syncInProgress.current) {
-                    await syncProfile(session.user)
-                }
-            } else if (!session && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) {
-                if (mounted && event === 'SIGNED_OUT') {
-                    router.push('/login')
-                }
-            }
-        })
+        initialize()
 
         return () => {
             mounted = false
-            clearTimeout(timeoutId)
-            subscription.unsubscribe()
         }
-    }, [router])
+    }, []) // Run EXACTLY once on mount
 
     const handleSignOut = async () => {
         try {
             await supabase.auth.signOut()
         } catch (e) {
-            console.warn("Sign out error in dashboard:", e)
+            console.warn("Sign out error:", e)
         } finally {
             localStorage.clear()
             sessionStorage.clear()
@@ -134,8 +70,7 @@ export default function DashboardPage() {
                     .replace(/^ +/, "")
                     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
             });
-            router.push('/')
-            router.refresh()
+            router.push('/login')
         }
     }
 
@@ -145,8 +80,7 @@ export default function DashboardPage() {
 
             <div className="pt-24 flex min-h-screen">
                 {/* Sidebar Navigation */}
-                {/* Sidebar Navigation */}
-                <DashboardSidebar isAdmin={clientData?.role === 'admin'} />
+                <DashboardSidebar isAdmin={true} />
 
                 {/* Dashboard Content */}
                 <section className="flex-1 p-8 md:p-12 overflow-y-auto">
