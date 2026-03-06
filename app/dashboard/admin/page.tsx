@@ -41,6 +41,7 @@ export default function AdminDashboard() {
     const [isRegeneratingImage, setIsRegeneratingImage] = useState(false)
 
     // --- BOT STATE ---
+    const [selectedBot, setSelectedBot] = useState<'architect' | 'pawgress'>('architect')
     const [botGreeting, setBotGreeting] = useState("")
     const [botInstructions, setBotInstructions] = useState("")
     const [botConfigId, setBotConfigId] = useState<string | null>(null)
@@ -52,7 +53,7 @@ export default function AdminDashboard() {
         if (activeTab === 'blog') fetchBlogs()
         if (activeTab === 'bot') fetchBotConfig()
         if (activeTab === 'leads') fetchLeads()
-    }, [activeTab, refreshTrigger, generatedBlog])
+    }, [activeTab, selectedBot, refreshTrigger, generatedBlog])
 
     const showMsg = (text: string, type: 'success' | 'error' = 'success') => {
         setMessage({ text, type })
@@ -278,17 +279,23 @@ Create a compelling visual metaphor using objects, environments, or abstract ele
 
     // --- BOT FUNCTIONS ---
     async function fetchBotConfig() {
-        const { data, error } = await supabase.from('bot_config').select('*').eq('key', 'architect_config').maybeSingle()
+        const configKey = selectedBot === 'pawgress' ? 'pawgress_config' : 'architect_config'
+        const { data, error } = await supabase.from('bot_config').select('*').eq('key', configKey).maybeSingle()
         if (data) {
             setBotGreeting(data.value.greeting)
             setBotInstructions(data.value.system_prompt)
             setBotConfigId(data.id)
+        } else {
+            setBotGreeting("")
+            setBotInstructions("")
+            setBotConfigId(null)
         }
     }
 
     async function handleSaveBotConfig() {
         setLoading(true)
         try {
+            const configKey = selectedBot === 'pawgress' ? 'pawgress_config' : 'architect_config'
             const config = {
                 greeting: botGreeting,
                 system_prompt: botInstructions
@@ -297,7 +304,7 @@ Create a compelling visual metaphor using objects, environments, or abstract ele
             const { error } = await supabase
                 .from('bot_config')
                 .upsert({
-                    key: 'architect_config',
+                    key: configKey,
                     value: config,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'key' })
@@ -599,9 +606,26 @@ Create a compelling visual metaphor using objects, environments, or abstract ele
                                             <Bot size={240} />
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <h2 className="text-4xl font-black tracking-tighter uppercase italic text-accent">Protocol Training</h2>
-                                            <p className="text-white/40 text-sm max-w-xl">Configure the behavior, personality, and specialized knowledge of the site's primary AI Architect.</p>
+                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                            <div className="space-y-4">
+                                                <h2 className="text-4xl font-black tracking-tighter uppercase italic text-accent">Protocol Training</h2>
+                                                <p className="text-white/40 text-sm max-w-xl">Configure the behavior, personality, and specialized knowledge of the site's AI entities.</p>
+                                            </div>
+
+                                            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 shrink-0">
+                                                <button
+                                                    onClick={() => setSelectedBot('architect')}
+                                                    className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${selectedBot === 'architect' ? 'bg-accent text-black' : 'hover:bg-white/5 opacity-50'}`}
+                                                >
+                                                    Architect Bot
+                                                </button>
+                                                <button
+                                                    onClick={() => setSelectedBot('pawgress')}
+                                                    className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${selectedBot === 'pawgress' ? 'bg-[#FF6B00] text-white' : 'hover:bg-white/5 opacity-50'}`}
+                                                >
+                                                    Pawgress Bot
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-10">

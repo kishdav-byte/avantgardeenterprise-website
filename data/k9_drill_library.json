@@ -1,7 +1,7 @@
 [
     {
         "id": "drill_name_game",
-        "name": "The Name Game",
+        "name": "The Name Game (Pawgress Edition)",
         "category": "Foundations",
         "difficulty": 1,
         "duration": "5 minutes",
@@ -10,7 +10,7 @@
         "command_dog": "Immediate eye contact with the handler.",
         "environment": "Quiet room, no distractions.",
         "reward": "High-value treat + enthusiastic verbal praise.",
-        "key_attributes": "Do not repeat the name if they ignore you. Instead, make a kissing noise, and reward when they look.",
+        "key_attributes": "STRICT RULE: Do not repeat the name if they ignore you. This prevents 'Name Burn'. If they are too distracted, do not call them. Instead, use a lure or kissing noise to get attention.",
         "mediaUrl": "/k9-drills/name-game.webp"
     },
     {
@@ -197,16 +197,16 @@
     },
     {
         "id": "drill_house_crate",
-        "name": "House Training: Crate Acclimation",
+        "name": "House Training: The Food Machine Crate",
         "category": "Foundations",
         "difficulty": 2,
         "duration": "15 minutes",
-        "instructions": "When you cannot 100% supervise the dog, they belong in a properly sized crate (big enough to stand and turn around, no bigger). Feed meals in the crate to build positive association. Never use it as punishment.",
+        "instructions": "Transform the crate into a 'Food Machine'. Toss high-value treats into the crate. When the dog enters, mark 'Yes!' and reward again. Practice closing the door for only 5-10 seconds while feeding through the grate.",
         "command_human": "'Crate' or 'Kennel' while pointing inside.",
         "command_dog": "Enter crate willingly and settle down quietly.",
         "environment": "Bedroom or quiet corner of the house.",
-        "reward": "KONG stuffed with peanut butter or their normal meals.",
-        "key_attributes": "Dogs inherently do not want to soil their den. A properly sized crate is the #1 tool for potty training.",
+        "reward": "Continuous stream of treats for staying inside.",
+        "key_attributes": "Build a positive association before ever using it for overnight stays. Never use it as a place of punishment.",
         "mediaUrl": "/k9-drills/crate-training.webp"
     },
     {
@@ -306,5 +306,61 @@
         "reward": "Retrieval of the hidden bumper.",
         "key_attributes": "This requires massive trust. Start very short (10 yards) with highly visible bumpers, eventually moving to long distances where the dog must trust you blindly.",
         "mediaUrl": "/k9-drills/blind-retrieve.webp"
+    },
+    {
+        "id": "drill_restraint_recall",
+        "name": "Hallway Restraint Recall",
+        "category": "Foundations",
+        "difficulty": 1,
+        "duration": "10 minutes",
+        "instructions": "Requires 2 people. Have one person hold the dog in a narrow hallway. The handler moves 15-20 feet away. Handler calls 'Here!' or name in an excited tone. Helper releases as dog tries to lunge toward handler. Mark 'Yes!' on arrival.",
+        "command_human": "Excited 'Here!' or Dog's Name.",
+        "command_dog": "Fast, motivated run to the handler.",
+        "environment": "Indoor hallway (no escape routes).",
+        "reward": "Massive praise + High-value treat + Tug play.",
+        "key_attributes": "Builds high motivation for the recall before adding distractions.",
+        "mediaUrl": "/k9-drills/restraint-recall.webp"
+    },
+    {
+        "id": "drill_collar_conditioning",
+        "name": "Positive Collar Desensitization",
+        "category": "Foundations",
+        "difficulty": 1,
+        "duration": "5 minutes",
+        "instructions": "Feed the dog treats with one hand. With the other hand, firmly but gently grip their collar. Move the collar slightly. Mark 'Yes!' while still holding it and deliver another treat. Release the collar after the treat.",
+        "command_human": "No verbal command.",
+        "command_dog": "Accept physical restraint calmly without nipping.",
+        "environment": "Quiet room.",
+        "reward": "Treats while being touched/held.",
+        "key_attributes": "Prevents 'Collar Shy' behavior and hand-nipping during handling.",
+        "mediaUrl": "/k9-drills/collar-conditioning.webp"
+    },
+    {
+        "id": "drill_house_line",
+        "name": "House Line Management",
+        "category": "Foundations",
+        "difficulty": 2,
+        "duration": "Ongoing",
+        "instructions": "Let the dog drag a light, handle-less leash indoors. If they chew it, wiggle the line gently to disrupt them. The moment they stop and look at you, mark 'Yes!' and reward. Use it to prevent jumping or wandering.",
+        "command_human": "Gentle wiggles/taps on the line.",
+        "command_dog": "Ignoring the line and focusing on the handler.",
+        "environment": "Indoors.",
+        "reward": "Attaining access to play or treats for calm focus.",
+        "key_attributes": "Gives you a 6-foot reach to redirect behavior without confronting the dog directly.",
+        "mediaUrl": "/k9-drills/house-line.webp"
+    },
+    {
+        "id": "drill_trade_game",
+        "name": "Advanced Trade (Out Command)",
+        "category": "Obedience",
+        "difficulty": 2,
+        "duration": "10 minutes",
+        "instructions": "Wiggle a toy like prey to build drive. When the dog has it, offer a treat directly to their nose. Say 'Out' precisely as they drop the toy for the treat. Let them eat, then immediately offer the toy back to play.",
+        "command_human": "'Out' (Standardized trade command).",
+        "command_dog": "Release toy/object willingly for a reward.",
+        "environment": "Indoors.",
+        "reward": "Reward plus the continuation of play.",
+        "key_attributes": "Teaches the dog that 'Out' doesn't mean play ends, it means they get paid and keep playing.",
+        "mediaUrl": "/k9-drills/trade-game.webp"
     }
 ]

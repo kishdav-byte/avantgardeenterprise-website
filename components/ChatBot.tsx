@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageSquare, X, Send, Bot, Cpu, Sparkles, Activity } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 interface Message {
     role: "user" | "assistant"
@@ -11,20 +13,35 @@ interface Message {
 }
 
 export function ChatBot() {
+    const pathname = usePathname()
+    const isK9 = pathname?.includes("/product/k9-training")
+    const botType = isK9 ? "pawgress" : "architect"
+    const botConfigKey = isK9 ? "pawgress_config" : "architect_config"
+
     const [isOpen, setIsOpen] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([
-        { role: "assistant", content: "Laying the foundation... I am the Architect. How can I optimize your trajectory today?" }
-    ])
+    const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    // Reset messages when switching bot context
+    useEffect(() => {
+        setMessages([
+            {
+                role: "assistant",
+                content: isK9
+                    ? "Pawgress AI is online. How can I assist with your dog's training today?"
+                    : "Laying the foundation... I am the Architect. How can I optimize your trajectory today?"
+            }
+        ])
+    }, [isK9])
 
     useEffect(() => {
         const fetchConfig = async () => {
             const { data } = await supabase
                 .from('bot_config')
                 .select('value')
-                .eq('key', 'architect_config')
+                .eq('key', botConfigKey)
                 .maybeSingle()
 
             if (data?.value?.greeting) {
@@ -37,7 +54,7 @@ export function ChatBot() {
             }
         }
         fetchConfig()
-    }, [])
+    }, [botConfigKey])
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -59,7 +76,10 @@ export function ChatBot() {
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: [...messages, userMsg] }),
+                body: JSON.stringify({
+                    messages: [...messages, userMsg],
+                    botType
+                }),
             })
 
             if (!response.body) throw new Error("No response body")
@@ -104,14 +124,30 @@ export function ChatBot() {
                         {/* Chat Header */}
                         <div className="p-4 md:p-6 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 border border-accent/40 rounded-full flex items-center justify-center relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-accent/20 animate-pulse" />
-                                    <Cpu size={18} className="text-accent relative z-10" />
+                                <div className={cn(
+                                    "w-10 h-10 border rounded-full flex items-center justify-center relative overflow-hidden group",
+                                    isK9 ? "border-[#FF6B00]/40" : "border-accent/40"
+                                )}>
+                                    <div className={cn(
+                                        "absolute inset-0 animate-pulse",
+                                        isK9 ? "bg-[#FF6B00]/20" : "bg-accent/20"
+                                    )} />
+                                    {isK9 ? (
+                                        <Bot size={18} className="text-[#FF6B00] relative z-10" />
+                                    ) : (
+                                        <Cpu size={18} className="text-accent relative z-10" />
+                                    )}
                                 </div>
                                 <div>
-                                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-accent mb-0.5">Protocol: Architect</div>
+                                    <div className={cn(
+                                        "text-[10px] font-black uppercase tracking-[0.3em] mb-0.5",
+                                        isK9 ? "text-[#FF6B00]" : "text-accent"
+                                    )}>Protocol: {isK9 ? "Pawgress AI" : "Architect"}</div>
                                     <div className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                        <div className={cn(
+                                            "w-1.5 h-1.5 rounded-full animate-pulse",
+                                            isK9 ? "bg-[#FF6B00]" : "bg-green-500"
+                                        )} />
                                         System Active
                                     </div>
                                 </div>
@@ -133,10 +169,14 @@ export function ChatBot() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
-                                    <div className={`max-w-[85%] p-3 md:p-4 rounded-xl md:rounded-2xl text-[10px] md:text-xs leading-relaxed uppercase tracking-widest font-bold ${m.role === "user"
-                                        ? "bg-white/10 text-white border border-white/10"
-                                        : "bg-accent/5 text-accent border border-accent/20 italic"
-                                        }`}>
+                                    <div className={cn(
+                                        "max-w-[85%] p-3 md:p-4 rounded-xl md:rounded-2xl text-[10px] md:text-xs leading-relaxed uppercase tracking-widest font-bold",
+                                        m.role === "user"
+                                            ? "bg-white/10 text-white border border-white/10"
+                                            : isK9
+                                                ? "bg-[#FF6B00]/5 text-[#FF6B00] border border-[#FF6B00]/20 italic"
+                                                : "bg-accent/5 text-accent border border-accent/20 italic"
+                                    )}>
                                         {m.content}
                                     </div>
                                 </motion.div>
@@ -166,8 +206,11 @@ export function ChatBot() {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                    placeholder="Input query for the Architect..."
-                                    className="w-full relative z-10 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-accent/40 transition-all placeholder:text-white/10"
+                                    placeholder={isK9 ? "Query Pawgress Expert..." : "Input query for the Architect..."}
+                                    className={cn(
+                                        "w-full relative z-10 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white outline-none transition-all placeholder:text-white/10",
+                                        isK9 ? "focus:border-[#FF6B00]/40" : "focus:border-accent/40"
+                                    )}
                                 />
                                 <button
                                     onClick={handleSend}
@@ -194,8 +237,10 @@ export function ChatBot() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl relative group overflow-hidden ${isOpen ? "bg-white text-black" : "bg-accent text-black"
-                    }`}
+                className={cn(
+                    "w-16 h-16 rounded-full flex items-center justify-center shadow-2xl relative group overflow-hidden",
+                    isOpen ? "bg-white text-black" : isK9 ? "bg-[#FF6B00] text-white" : "bg-accent text-black"
+                )}
             >
                 <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <div className="relative z-10">

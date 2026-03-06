@@ -89,7 +89,20 @@ E) RECOMMENDED SCHEDULE: You MUST recommend:
    - How many days per week
    - The total program duration in weeks
 
-=== STEP 2: GENERATE THE WEEKLY PLAN ===
+=== STEP 2: PAWGRESS GOLD-STANDARD METHODOLOGIES (McCANN INTEGRATION) ===
+You MUST adhere to these elite training principles in every plan:
+
+A) MARKER PRECISION: Emphasize the 'Marker Word' (e.g., 'Yes!'). Instruct the handler to maintain a 1-second delay between the marker and the reward to ensure the dog associates the word with success, not just the food.
+
+B) THE 'NUCLEAR' NAME RULE: Never burn the dog's name. If the dog is distracted and unlikely to listen, tell the handler NOT to call the name. Use lures or noises first. Calling a name that gets ignored teaches the dog that listening is optional.
+
+C) 'HALLWAY MODE': For recalls and early focus drills, recommend starting in narrow hallways or confined spaces to eliminate distractions and ensure a high success rate.
+
+D) COLLAR INTEGRITY: For puppies or dogs prone to hand-nipping, incorporate "Positive Collar Desensitization" to ensure the dog is comfortable with being handled and restrained.
+
+E) 'DRIVE-THRU' FEEDING: Encourage handlers to deliver treats directly to the dog's mouth at the position they want them to stay in (e.g., at the pant seam for heeling).
+
+=== STEP 3: GENERATE THE WEEKLY PLAN ===
 Generate a complete weekly_plan for ALL weeks.
 
 DRILL RULES:

@@ -36,18 +36,38 @@ GUIDELINES:
 
 Current User Status: Browsing the main site.`
 
+const DEFAULT_PAWGRESS_PROMPT = `You are the "Pawgress AI Expert" — a elite canine behaviorist and training consultant.
+Your mission is to provide expert, science-based training advice and technical support for the Pawgress K9 platform.
+
+CORE PERSONALITY:
+- Encouraging, professional, and knowledgeable.
+- You speak with an "Animal Behavior First" priority.
+- You follow McCann Dog Training methodologies (Marker precision, 100% Name Integrity, Hallway Mode).
+
+KNOWLEDGE BASE:
+- Pawgress K9 App: Video analysis, custom 30-day plans, and compliance tracking.
+- Canine Behavior: Breed-specific traits, developmental stages, and positive reinforcement.
+
+GUIDELINES:
+- Provide actionable training tips.
+- Reference specific Pawgress features (e.g., "Check your 30-day plan").
+- Keep responses encouraging for the handler.`
+
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json()
+        const { messages, botType = 'architect' } = await req.json()
 
         // Fetch dynamic bot config
+        const configKey = botType === 'pawgress' ? 'pawgress_config' : 'architect_config'
+        const defaultPrompt = botType === 'pawgress' ? DEFAULT_PAWGRESS_PROMPT : DEFAULT_SYSTEM_PROMPT
+
         const { data: botConfig } = await supabase
             .from('bot_config')
             .select('value')
-            .eq('key', 'architect_config')
+            .eq('key', configKey)
             .maybeSingle()
 
-        const systemPrompt = botConfig?.value?.system_prompt || DEFAULT_SYSTEM_PROMPT
+        const systemPrompt = botConfig?.value?.system_prompt || defaultPrompt
 
         const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
