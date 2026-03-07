@@ -50,9 +50,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 })
         }
 
+        // Identify which key is being used
+        const keyUsed = process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' :
+            process.env.Gemini_API_Key ? 'Gemini_API_Key' :
+                process.env.OPENAI_API_KEY ? 'OPENAI_API_KEY' : 'NONE';
+
         // Initialize Gemini model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-1.5-flash-8b",
             systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
             generationConfig: {
                 maxOutputTokens: 2048,
@@ -63,7 +68,7 @@ export async function POST(request: NextRequest) {
         // Extract base64 data
         const base64Data = image.split(',')[1]
 
-        console.log(`[SPORTS-CLIPS] Using ${model.model} with key prefix ${apiKey.substring(0, 10)}...`)
+        console.log(`[SPORTS-CLIPS] Using ${model.model} with key from ${keyUsed}. Prefix: ${apiKey.substring(0, 10)}...`)
 
         // Generate content
         const result = await model.generateContent([
