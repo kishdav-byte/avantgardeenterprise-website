@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
         // Initialize Gemini model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-1.5-flash-latest",
             systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
         })
 
