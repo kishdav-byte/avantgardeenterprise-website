@@ -198,7 +198,7 @@ export default function ProductsPage() {
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-32 group"
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-48 group"
                     >
                         {/* Visual Side - Book Cover */}
                         <div className="relative order-2 lg:order-1 lg:col-span-5">
@@ -279,6 +279,79 @@ export default function ProductsPage() {
                                     Access Interactive Workbook
                                 </Link>
                             </div>
+                        </div>
+                    </motion.div>
+
+                    {/* PRODUCT 4: SPORTS CLIPS EDITOR */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-32 group"
+                    >
+                        {/* Visual Side */}
+                        <div className="relative lg:col-span-12 lg:col-span-5">
+                            <div className="relative group">
+                                <div className="absolute inset-x-[-20px] inset-y-[-20px] bg-accent/10 blur-[60px] opacity-20" />
+                                <div className="relative border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:border-accent/30 aspect-video bg-black/40 flex items-center justify-center">
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-accent/40 group-hover:scale-110 transition-transform">
+                                            <Zap className="text-accent" size={32} />
+                                        </div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Visual Assistant Active</p>
+                                    </div>
+                                </div>
+                                <div className="absolute -top-4 -right-4 bg-black border border-accent/30 px-4 py-1 text-[8px] font-black uppercase tracking-widest text-accent">
+                                    DA VINCI OVERLAY // ENABLED
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Side */}
+                        <div className="lg:col-span-7">
+                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 italic italic">
+                                Sports Clips <br /> Editor
+                            </h2>
+                            <p className="text-accent text-[11px] font-bold uppercase tracking-[0.4em] mb-8">
+                                AI Video Assistant // DaVinci Resolve Integration
+                            </p>
+
+                            <div className="space-y-6 mb-10">
+                                <div className="bg-white/[0.03] border-l-2 border-accent p-6 rounded-r-2xl italic italic relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
+                                        <Zap size={64} />
+                                    </div>
+                                    <p className="text-white/70 text-lg leading-relaxed mb-4">
+                                        "Stop fighting the timeline. Our Sports Clips Editor watches your screen in real-time and walks you through the professional techniques used by elite editors."
+                                    </p>
+                                    <p className="text-white/40 text-sm leading-relaxed">
+                                        A dedicated assistant that synchronizes with your DaVinci Resolve workspace. It analyzes your clips and provides instant, step-by-step guidance to achieve cinematic results.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                                {[
+                                    { label: "Vision-AI", text: "Real-time Screen Analysis" },
+                                    { label: "Expert Logic", text: "Elite Video Editing Protocols" },
+                                    { label: "Admin Only", text: "Secure Enterprise Infrastructure" },
+                                    { label: "Seamless", text: "Zero-Lag Assistant Interface" },
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 items-start p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="w-1.5 h-1.5 bg-accent rounded-full mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">{item.label}</p>
+                                            <p className="text-[11px] font-bold opacity-40 leading-snug uppercase tracking-tight">{item.text}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <Link href="/admin/sports-clips-editor" className="relative group overflow-hidden px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-accent transition-colors inline-flex items-center gap-2">
+                                <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                <span className="relative z-10 group-hover:text-black">Launch Editor</span>
+                                <ArrowRight size={18} className="relative z-10" />
+                            </Link>
                         </div>
                     </motion.div>
 
