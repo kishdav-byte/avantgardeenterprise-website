@@ -4,12 +4,21 @@ import { cookies } from 'next/headers'
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { SPORTS_CLIPS_CONFIG } from '@/lib/sports-clips-config'
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key || process.env.OPENAI_API_KEY || ''
-const genAI = new GoogleGenerativeAI(apiKey)
-
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies()
+
+        // Robust key detection
+        const gKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key || '';
+        const oKey = process.env.OPENAI_API_KEY || '';
+        const finalKey = gKey || oKey || '';
+        const keySource = gKey ? 'GEMINI_KEY' : (oKey ? 'OPENAI_KEY' : 'NONE');
+
+        if (!finalKey) {
+            return NextResponse.json({ error: "No API key found in environment variables (GEMINI_API_KEY or OPENAI_API_KEY)" }, { status: 500 })
+        }
+
+        const genAI = new GoogleGenerativeAI(finalKey)
 
         // Create Supabase client
         const supabase = createServerClient(
@@ -50,14 +59,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 })
         }
 
-        // Identify which key is being used
-        const keyUsed = process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' :
-            process.env.Gemini_API_Key ? 'Gemini_API_Key' :
-                process.env.OPENAI_API_KEY ? 'OPENAI_API_KEY' : 'NONE';
-
         // Initialize Gemini model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash-8b",
+            model: "gemini-1.5-flash",
             systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
             generationConfig: {
                 maxOutputTokens: 2048,
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
         // Extract base64 data
         const base64Data = image.split(',')[1]
 
-        console.log(`[SPORTS-CLIPS] Using ${model.model} with key from ${keyUsed}. Prefix: ${apiKey.substring(0, 10)}...`)
+        console.log(`[SPORTS-CLIPS] Using ${model.model} with ${keySource}. Prefix: ${finalKey.substring(0, 10)}...`)
 
         // Generate content
         const result = await model.generateContent([
