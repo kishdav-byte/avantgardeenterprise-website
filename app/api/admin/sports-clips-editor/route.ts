@@ -52,12 +52,18 @@ export async function POST(request: NextRequest) {
 
         // Initialize Gemini model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash-latest",
+            model: "gemini-1.5-flash",
             systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
+            generationConfig: {
+                maxOutputTokens: 2048,
+                temperature: 0.7,
+            }
         })
 
         // Extract base64 data
         const base64Data = image.split(',')[1]
+
+        console.log(`[SPORTS-CLIPS] Using ${model.model} with key prefix ${apiKey.substring(0, 10)}...`)
 
         // Generate content
         const result = await model.generateContent([
