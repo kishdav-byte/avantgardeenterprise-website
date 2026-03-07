@@ -59,33 +59,74 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 })
         }
 
-        // Initialize Gemini model
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
-            generationConfig: {
-                maxOutputTokens: 2048,
-                temperature: 0.7,
-            }
-        })
+        // Initialize Gemini model with specific API version (v1)
+        const model = genAI.getGenerativeModel(
+            {
+                model: "gemini-1.5-flash",
+                systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
+                generationConfig: {
+                    maxOutputTokens: 2048,
+                    temperature: 0.7,
+                }
+            },
+            { apiVersion: 'v1' }
+        )
 
         // Extract base64 data
         const base64Data = image.split(',')[1]
 
         console.log(`[SPORTS-CLIPS] Using ${model.model} with ${keySource}. Prefix: ${finalKey.substring(0, 10)}...`)
 
-        // Generate content
-        const result = await model.generateContent([
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: "image/jpeg"
-                }
-            },
-            { text: prompt || "Analyze my DaVinci Resolve workspace and provide guidance on my current project." }
-        ])
+        let aiResponse = "";
+        try {
+            // Generate content with Gemini
+            const result = await model.generateContent([
+                {
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: "image/jpeg"
+                    }
+                },
+                { text: prompt || "Analyze my DaVinci Resolve workspace and provide guidance on my current project." }
+            ])
+            aiResponse = result.response.text()
+        } catch (geminiError: any) {
+            console.error("[SPORTS-CLIPS] Gemini Primary Failed, attempting OpenAI fallback:", geminiError.message);
 
-        const aiResponse = result.response.text()
+            // FALLBACK: Use OpenAI if available
+            if (oKey && oKey.startsWith('sk-')) {
+                const { OpenAI } = await import('openai');
+                const openai = new OpenAI({ apiKey: oKey });
+
+                const completion = await openai.chat.completions.create({
+                    model: "gpt-4o",
+                    messages: [
+                        {
+                            role: "system",
+                            content: SPORTS_CLIPS_CONFIG.systemPrompt
+                        },
+                        {
+                            role: "user",
+                            content: [
+                                { type: "text", text: prompt || "Analyze my DaVinci Resolve workspace and provide guidance on my current project." },
+                                {
+                                    type: "image_url",
+                                    image_url: {
+                                        url: `data:image/jpeg;base64,${base64Data}`
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens: 1000
+                });
+
+                aiResponse = completion.choices[0]?.message?.content || "No response from OpenAI fallback.";
+                console.log("[SPORTS-CLIPS] Served via OpenAI Fallback.");
+            } else {
+                throw geminiError; // Re-throw if no fallback possible
+            }
+        }
 
         return NextResponse.json({ message: aiResponse })
 
