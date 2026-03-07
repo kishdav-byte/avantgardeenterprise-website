@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         // Initialize Gemini model with specific API version (v1)
         const model = genAI.getGenerativeModel(
             {
-                model: "gemini-1.5-flash",
+                model: "gemini-1.5-flash-latest",
                 systemInstruction: SPORTS_CLIPS_CONFIG.systemPrompt,
                 generationConfig: {
                     maxOutputTokens: 2048,
@@ -72,8 +72,18 @@ export async function POST(request: NextRequest) {
             { apiVersion: 'v1' }
         )
 
-        // Extract base64 data
-        const base64Data = image.split(',')[1]
+        // Extract base64 and mime type robustly
+        let base64Data = "";
+        let mimeType = "image/jpeg";
+
+        if (image.includes(',')) {
+            const parts = image.split(',');
+            base64Data = parts[1];
+            const mimeMatch = parts[0].match(/:(.*?);/);
+            if (mimeMatch) mimeType = mimeMatch[1];
+        } else {
+            base64Data = image;
+        }
 
         console.log(`[SPORTS-CLIPS] Using ${model.model} with ${keySource}. Prefix: ${finalKey.substring(0, 10)}...`)
 
@@ -84,7 +94,7 @@ export async function POST(request: NextRequest) {
                 {
                     inlineData: {
                         data: base64Data,
-                        mimeType: "image/jpeg"
+                        mimeType: mimeType
                     }
                 },
                 { text: prompt || "Analyze my DaVinci Resolve workspace and provide guidance on my current project." }
@@ -112,7 +122,7 @@ export async function POST(request: NextRequest) {
                                 {
                                     type: "image_url",
                                     image_url: {
-                                        url: `data:image/jpeg;base64,${base64Data}`
+                                        url: `data:${mimeType};base64,${base64Data}`
                                     }
                                 }
                             ]
