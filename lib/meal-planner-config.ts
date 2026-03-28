@@ -81,6 +81,9 @@ export const DIETARY_PREFERENCES = [
     "Halal",
     "Kosher",
     "Galveston",
+    "Testosterone Increasing",
+    "Estrogen Reducing",
+    "Aromatase Preventing",
 ]
 
 // Cuisine preferences options

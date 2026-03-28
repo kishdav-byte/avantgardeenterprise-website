@@ -1,9 +1,11 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChefHat, Lock, Sparkles, ArrowRight, Dog } from "lucide-react"
-
+import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User } from "lucide-react"
 interface Tool {
     id: string
     name: string
@@ -13,6 +15,7 @@ interface Tool {
     status: "beta" | "coming-soon" | "active"
     isFree: boolean
     requiresAuth: boolean
+    isAdminOnly?: boolean
 }
 
 const tools: Tool[] = [
@@ -36,10 +39,38 @@ const tools: Tool[] = [
         isFree: false,
         requiresAuth: true
     },
+    {
+        id: "tai-chi-app",
+        name: "Tai Chi Planner",
+        description: "AI-generated Tai Chi plans tailored to your goals and abilities, featuring visual guides.",
+        icon: <User className="w-8 h-8" />, // imported User icon
+        href: "/tools/tai-chi",
+        status: "active",
+        isFree: true,
+        requiresAuth: true,
+        isAdminOnly: true
+    },
     // Add more tools here as they're developed
 ]
 
 export function IntelligentTools() {
+    const [isAdmin, setIsAdmin] = useState(false)
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: profile } = await supabase.from('clients').select('role').eq('id', user.id).maybeSingle()
+                if (profile?.role === 'admin') {
+                    setIsAdmin(true)
+                }
+            }
+        }
+        checkAdmin()
+    }, [])
+
+    const visibleTools = tools.filter(tool => !tool.isAdminOnly || isAdmin)
+
     return (
         <section id="intelligent-tools" className="relative overflow-hidden">
             {/* Background decoration */}
@@ -60,7 +91,7 @@ export function IntelligentTools() {
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                    {tools.map((tool, index) => (
+                    {visibleTools.map((tool, index) => (
                         <motion.div
                             key={tool.id}
                             initial={{ opacity: 0, y: 30 }}
