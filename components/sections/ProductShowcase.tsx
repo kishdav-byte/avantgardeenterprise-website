@@ -42,8 +42,8 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
     const prev = () => setCurrent((prev) => (prev === 0 ? slides.length - 1 : prev - 1))
 
     return (
-        <section className="py-24 bg-black/40 border border-white/5 rounded-[40px] overflow-hidden relative backdrop-blur-xl">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+        <section className="py-24 bg-white/[0.01] border border-white/5 rounded-[40px] overflow-hidden relative backdrop-blur-xl shadow-xl">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
                 <span className="text-[10vw] font-black uppercase tracking-tighter italic">VIRTUAL</span>
             </div>
 
@@ -65,8 +65,8 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
                                     className="space-y-8"
                                 >
                                     <div>
-                                        <h3 className="text-2xl font-black uppercase tracking-tighter mb-4 italic italic text-accent">{slides[current].title}</h3>
-                                        <p className="text-white/40 text-[11px] leading-relaxed uppercase tracking-widest font-bold">
+                                        <h3 className="text-2xl font-bold tracking-tight mb-4 text-accent">{slides[current].title}</h3>
+                                        <p className="text-white/60 text-sm leading-relaxed tracking-wide">
                                             {slides[current].description}
                                         </p>
                                     </div>
@@ -74,8 +74,8 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
                                     <div className="space-y-3">
                                         {slides[current].features.map((f, i) => (
                                             <div key={i} className="flex items-center gap-3">
-                                                <div className="w-1 h-1 bg-accent rotate-45" />
-                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 font-mono italic">{f}</span>
+                                                <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_var(--accent)]" />
+                                                <span className="text-xs font-medium text-white/70 tracking-wide">{f}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -83,13 +83,13 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
                                     <div className="pt-8 flex gap-4">
                                         <button
                                             onClick={prev}
-                                            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-accent hover:text-accent transition-all bg-black/50"
+                                            className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center hover:border-accent hover:text-accent transition-all bg-white/5 backdrop-blur-sm"
                                         >
                                             <ChevronLeft size={18} />
                                         </button>
                                         <button
                                             onClick={next}
-                                            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-accent hover:text-accent transition-all bg-black/50"
+                                            className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center hover:border-accent hover:text-accent transition-all bg-white/5 backdrop-blur-sm"
                                         >
                                             <ChevronRight size={18} />
                                         </button>
@@ -100,7 +100,7 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
 
                         {/* Image Section */}
                         <div className="lg:col-span-8 order-1 lg:order-2">
-                            <div className="relative group overflow-hidden rounded-[24px] border border-white/10 bg-white/5 p-2 md:p-4 backdrop-blur-xl">
+                            <div className="relative group overflow-hidden rounded-[24px] border border-white/5 bg-white/5 p-2 md:p-4 backdrop-blur-xl">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={current}
@@ -115,7 +115,7 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
                                             alt={slides[current].title}
                                             className="w-full h-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
                                     </motion.div>
                                 </AnimatePresence>
 
@@ -129,9 +129,9 @@ export function ProductShowcase({ slides = commandCenterSlides }: { slides?: Sho
                                             />
                                         ))}
                                     </div>
-                                    <div className="flex items-center gap-4 text-[8px] font-black uppercase tracking-[0.3em] text-white/20">
-                                        <span>SYSTEM_SYNC_0{current + 1}</span>
-                                        <Activity size={8} className="text-accent animate-pulse" />
+                                    <div className="flex items-center gap-2 text-[10px] font-medium tracking-wider text-white/40">
+                                        <span>Interface Sync {current + 1} of {slides.length}</span>
+                                        <Activity size={10} className="text-accent animate-pulse" />
                                     </div>
                                 </div>
                             </div>

@@ -5,15 +5,18 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --font-outfit: var(--font-outfit);
 }
 
 :root {
-  --background: #050505;
-  --foreground: #fafafa;
-  --accent: #FF5F1F;
-  /* Neon Orange */
-  --accent-foreground: #000000;
+  --background: #08070d;
+  --foreground: #f8fafc;
+  --accent: #10b981;
+  --accent-foreground: #08070d;
+  --secondary: #8b5cf6;
+  --secondary-foreground: #ffffff;
 }
 
 body {
@@ -26,7 +29,7 @@ body {
 
 /* Glassmorphism Utilities */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

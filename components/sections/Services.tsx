@@ -33,7 +33,7 @@ export function Services() {
                     className="mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-4">OUR EXPERTISE</h2>
-                    <div className="h-1 w-20 bg-accent" />
+                    <div className="h-1 w-20 bg-gradient-to-r from-accent to-secondary rounded-full" />
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -44,18 +44,18 @@ export function Services() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: index * 0.1 }}
-                            className="group p-8 border border-white/10 hover:border-accent/50 bg-white/5 hover:bg-white/10 transition-colors relative overflow-hidden"
+                            className="group p-8 border border-white/5 hover:border-accent/30 bg-white/[0.02] hover:bg-white/[0.04] rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-sm shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
                         >
-                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowUpRight className="text-accent" />
+                            <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <ArrowUpRight className="text-accent" size={20} />
                             </div>
-                            <div className="mb-6 inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent group-hover:scale-110 transition-transform">
-                                <service.icon size={24} />
+                            <div className="mb-6 inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-secondary/10 text-secondary group-hover:bg-accent/10 group-hover:text-accent group-hover:scale-110 transition-all duration-300">
+                                <service.icon size={22} />
                             </div>
                             <h3 className="text-xl font-bold mb-3 group-hover:text-accent transition-colors">
                                 {service.title}
                             </h3>
-                            <p className="text-white/60 leading-relaxed">
+                            <p className="text-white/60 leading-relaxed text-sm">
                                 {service.description}
                             </p>
                         </motion.div>

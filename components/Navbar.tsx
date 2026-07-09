@@ -133,12 +133,14 @@ export function Navbar() {
     return (
         <>
             {/* Main Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6 bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
+            <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6 bg-gradient-to-b from-background/90 via-background/40 to-transparent backdrop-blur-sm">
                 {/* Logo Section */}
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 border-2 border-accent rotate-45 flex items-center justify-center transition-all duration-500 group-hover:rotate-[225deg] group-hover:scale-110 group-hover:bg-accent/10 relative">
-                        <div className="w-full h-full flex items-center justify-center -rotate-45 transition-all duration-500 group-hover:-rotate-[225deg]">
-                            <span className="font-black text-accent text-xs tracking-tighter">AG</span>
+                    <div className="w-10 h-10 border-2 border-secondary rotate-45 flex items-center justify-center transition-all duration-700 group-hover:rotate-[225deg] group-hover:scale-110 group-hover:bg-secondary/15 relative">
+                        {/* Mint dot on top point */}
+                        <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-accent rounded-full shadow-[0_0_8px_var(--accent)] animate-pulse" />
+                        <div className="w-full h-full flex items-center justify-center -rotate-45 transition-all duration-700 group-hover:-rotate-[225deg]">
+                            <span className="font-black text-white text-xs tracking-tighter">AG</span>
                         </div>
                     </div>
                     <div className="flex flex-col leading-none">
@@ -148,15 +150,15 @@ export function Navbar() {
                 </Link>
 
                 {/* Desktop Navigation Link (Top Right) */}
-                <nav className="hidden md:flex items-center gap-10">
+                <nav className="hidden md:flex items-center gap-8">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-accent transition-colors relative group"
+                            className="text-[13px] font-medium tracking-wide text-white/70 hover:text-accent transition-colors relative group"
                         >
                             {item.name}
-                            <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all group-hover:w-full" />
                         </Link>
                     ))}
 
@@ -165,13 +167,13 @@ export function Navbar() {
                             <span className="text-[10px] uppercase font-bold text-white/40 hidden lg:block">Welcome, {profile?.first_name || 'User'}</span>
                             <Link
                                 href="/dashboard"
-                                className="px-6 py-2 border border-accent hover:bg-accent hover:text-black text-accent text-[11px] font-bold uppercase tracking-[0.2em] transition-all bg-black/50"
+                                className="px-5 py-2 border border-accent rounded-full hover:bg-accent hover:text-background text-accent text-xs font-semibold tracking-wide transition-all bg-accent/5 backdrop-blur-md"
                             >
                                 Dashboard
                             </Link>
                             <button
                                 onClick={handleSignOut}
-                                className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-500/70 hover:text-red-500 transition-colors px-2"
+                                className="text-xs font-semibold tracking-wide text-red-400 hover:text-red-500 transition-colors px-2"
                             >
                                 Sign Out
                             </button>
@@ -179,7 +181,7 @@ export function Navbar() {
                     ) : (
                         <Link
                             href="/login"
-                            className="px-6 py-2 border border-white/20 hover:border-white text-white text-[11px] font-bold uppercase tracking-[0.2em] transition-all bg-white/5"
+                            className="px-5 py-2 border border-white/10 hover:border-white rounded-full hover:bg-white hover:text-black text-white text-xs font-semibold tracking-wide transition-all bg-white/5 backdrop-blur-md"
                         >
                             Portal
                         </Link>
@@ -195,16 +197,6 @@ export function Navbar() {
                 </button>
             </header>
 
-            {/* Visual Decorative Sidebar (Left Side - as per "prefer this view") */}
-            <aside className="fixed inset-y-0 left-8 z-40 hidden md:flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-px h-32 bg-gradient-to-b from-transparent via-accent/30 to-transparent" />
-                <div className="relative py-12">
-                    <span className="rotate-[-90deg] text-[9px] font-bold tracking-[0.5em] uppercase text-white/20 whitespace-nowrap inline-block">
-                        Innovation // Lab // 001
-                    </span>
-                </div>
-                <div className="w-px h-32 bg-gradient-to-b from-transparent via-accent/30 to-transparent" />
-            </aside>
 
             {/* Mobile Menu Overlay */}
             <AnimatePresence>

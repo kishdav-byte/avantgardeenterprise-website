@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button"
 export function Hero() {
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-            {/* Background Image/Overlay (Simulating the image's dark, angular background) */}
-            <div className="absolute inset-0 z-0 bg-black">
-                <div className="absolute inset-0 opacity-20" style={{
-                    backgroundImage: `linear-gradient(rgba(255, 95, 31, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 95, 31, 0.05) 1px, transparent 1px)`,
-                    backgroundSize: '40px 40px'
+            {/* Background Image/Overlay with Cyber-Organic Aurora lights */}
+            <div className="absolute inset-0 z-0 bg-background overflow-hidden">
+                {/* Aurora glows */}
+                <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent/10 blur-[130px] mix-blend-screen" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-secondary/10 blur-[160px] mix-blend-screen" />
+                
+                {/* Subtle soft digital mesh */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{
+                    backgroundImage: `radial-gradient(var(--secondary) 1px, transparent 0), radial-gradient(var(--accent) 1px, transparent 0)`,
+                    backgroundSize: '48px 48px',
+                    backgroundPosition: '0 0, 24px 24px'
                 }} />
 
-                {/* Simulated Orange "Heat" streaks from the image */}
-                <div className="absolute top-[20%] right-[-10%] w-[800px] h-[2px] bg-accent/20 rotate-[-15deg] blur-xl" />
-                <div className="absolute bottom-[30%] left-[-10%] w-[600px] h-[1px] bg-accent/40 rotate-[35deg] blur-md" />
-
                 {/* Background Shadow Masks */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
             </div>
 
             <div className="container relative z-10 px-4 flex flex-col items-center">
@@ -35,39 +37,28 @@ export function Hero() {
                     </h1>
                 </motion.div>
 
-                {/* The "START PROJECT" Button matching the glass style of the uploaded image */}
+                {/* The new creative/organic CTA button */}
                 <Link
                     href="/login"
                     className="relative group cursor-pointer"
                 >
-                    <div className="absolute inset-x-[-20px] inset-y-[-10px] bg-accent/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                    {/* Glass Container */}
-                    <div className="relative px-12 py-5 bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden group">
-                        {/* Shimmer effect */}
-                        <div className="absolute inset-0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                        {/* Inner Orange Border Box */}
-                        <div className="border-2 border-accent px-8 py-2 relative">
-                            {/* Decorative Corner Cut (as seen in image) */}
-                            <div className="absolute -top-1 -left-1 w-2 h-2 bg-black" />
-                            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-black" />
-
-                            <span className="text-accent text-[14px] font-black tracking-[0.3em] uppercase">
-                                SIGN UP / SIGN IN
-                            </span>
-                        </div>
+                    {/* Glow outline behind button */}
+                    <div className="absolute -inset-1.5 bg-gradient-to-r from-accent to-secondary rounded-full blur-lg opacity-30 group-hover:opacity-60 transition duration-500" />
+                    
+                    {/* Main rounded-full glass button */}
+                    <div className="relative px-10 py-4 bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-md border border-white/10 rounded-full transition-all duration-300 flex items-center justify-center gap-4">
+                        <span className="text-white text-sm font-semibold tracking-wider uppercase">
+                            Get Started
+                        </span>
+                        {/* A tiny growing circle dot for organic feedback */}
+                        <div className="w-2.5 h-2.5 bg-accent rounded-full transition-transform duration-300 group-hover:scale-150 shadow-[0_0_8px_var(--accent)]" />
                     </div>
-
-                    {/* Decorative Outside Bracket lines */}
-                    <div className="absolute -left-2 top-0 bottom-0 w-[1px] bg-accent/30" />
-                    <div className="absolute -right-2 top-0 bottom-0 w-[1px] bg-accent/30" />
                 </Link>
 
                 {/* Scrolling Label */}
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-30">
                     <span className="text-[9px] font-bold tracking-[0.4em] uppercase">Scroll to explore</span>
-                    <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent" />
+                    <div className="w-px h-12 bg-gradient-to-b from-accent via-secondary to-transparent" />
                 </div>
             </div>
         </section>

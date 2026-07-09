@@ -74,8 +74,9 @@ export function IntelligentTools() {
     return (
         <section id="intelligent-tools" className="relative overflow-hidden">
             {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-transparent to-accent/5 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="container mx-auto px-6 relative z-10">
                 {/* Separator with star */}
@@ -83,11 +84,11 @@ export function IntelligentTools() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="flex items-center justify-center gap-3 mb-16"
+                    className="flex items-center justify-center gap-4 mb-20"
                 >
-                    <div className="w-12 h-px bg-accent" />
-                    <Sparkles className="text-accent" size={20} />
-                    <div className="w-12 h-px bg-accent" />
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-accent rounded-full" />
+                    <Sparkles className="text-secondary" size={22} />
+                    <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-secondary rounded-full" />
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -101,25 +102,25 @@ export function IntelligentTools() {
                         >
                             <Link
                                 href={tool.href}
-                                className="group relative block h-full bg-white/5 border border-white/10 p-8 hover:border-accent/50 transition-all duration-300 overflow-hidden"
+                                className="group relative block h-full bg-white/[0.02] border border-white/5 p-8 hover:border-accent/30 rounded-3xl transition-all duration-300 overflow-hidden backdrop-blur-sm shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
                             >
                                 {/* Hover gradient effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                                 {/* Status badges */}
-                                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                <div className="absolute top-6 right-6 flex gap-2 z-10">
                                     {tool.status === "beta" && (
-                                        <span className="px-3 py-1 bg-accent/20 text-accent text-[9px] font-black uppercase tracking-widest border border-accent/30">
+                                        <span className="px-2.5 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-semibold uppercase tracking-wider">
                                             Beta
                                         </span>
                                     )}
                                     {tool.isFree && (
-                                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-500/30">
+                                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">
                                             Free
                                         </span>
                                     )}
                                     {tool.status === "coming-soon" && (
-                                        <span className="px-3 py-1 bg-white/10 text-white/50 text-[9px] font-black uppercase tracking-widest border border-white/20">
+                                        <span className="px-2.5 py-0.5 rounded-full bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider">
                                             Soon
                                         </span>
                                     )}
@@ -132,7 +133,7 @@ export function IntelligentTools() {
                                     </div>
 
                                     {/* Title */}
-                                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-4 group-hover:text-accent transition-colors">
+                                    <h3 className="text-xl font-bold tracking-tight mb-3 group-hover:text-accent transition-colors text-white">
                                         {tool.name}
                                     </h3>
 
@@ -142,8 +143,8 @@ export function IntelligentTools() {
                                     </p>
 
                                     {/* Footer */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                        <div className="flex items-center gap-2 text-[10px] font-medium tracking-wider text-white/40">
                                             {tool.requiresAuth && (
                                                 <>
                                                     <Lock size={12} />
@@ -151,15 +152,12 @@ export function IntelligentTools() {
                                                 </>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2 text-accent text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1.5 text-accent text-xs font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <span>Launch</span>
                                             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Decorative corner element */}
-                                <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-accent/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
                         </motion.div>
                     ))}
@@ -172,14 +170,14 @@ export function IntelligentTools() {
                     viewport={{ once: true }}
                     className="mt-16 text-center"
                 >
-                    <div className="inline-block bg-white/5 border border-white/10 px-8 py-4 max-w-3xl">
-                        <p className="text-white/40 text-xs uppercase tracking-widest font-bold mb-2">
+                    <div className="inline-block bg-white/[0.02] border border-white/5 rounded-3xl px-8 py-6 max-w-3xl backdrop-blur-md shadow-lg">
+                        <p className="text-white/40 text-xs uppercase tracking-widest font-medium mb-2">
                             Early Access Program
                         </p>
                         <p className="text-white/60 text-sm leading-relaxed">
                             Beta tools are currently <span className="text-accent font-bold">free to use</span> with monthly limits.
                             Subscription pricing will be introduced upon full release.
-                            <span className="text-white/80 font-bold"> Admin accounts have unlimited access.</span>
+                            <span className="text-white/80 font-semibold"> Admin accounts have unlimited access.</span>
                         </p>
                     </div>
                 </motion.div>
