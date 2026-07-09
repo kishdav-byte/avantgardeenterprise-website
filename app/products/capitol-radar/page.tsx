@@ -12,6 +12,7 @@ import {
 import { supabase } from '@/lib/supabaseClient'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid } from 'recharts'
 
 interface Trade {
     id: string
@@ -1665,6 +1666,40 @@ const MOCK_NEWS_FLASHES = [
     "COI FLAG: Representative purchased Financial Services sector stock (JPM) during banking regulations oversight hearings.",
 ];
 
+// Deterministic seeded pseudo-random (no Math.random so SSR-safe)
+function seededRand(seed: number): () => number {
+    let s = seed;
+    return () => {
+        s = (s * 1664525 + 1013904223) & 0xffffffff;
+        return (s >>> 0) / 0xffffffff;
+    };
+}
+
+function generatePriceHistory(ticker: string, transactionDate: string) {
+    // Build a base price from the ticker char codes so each stock looks different
+    const base = ticker.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 300 + 80;
+    const rand = seededRand(base * 7919);
+    const data: { date: string; price: number; isTradeDate: boolean }[] = [];
+    const end = new Date();
+    const start = new Date(end);
+    start.setMonth(start.getMonth() - 6);
+    let price = base;
+    const tradeDateStr = transactionDate ? transactionDate.slice(0, 10) : null;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dayOfWeek = d.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
+        const drift = (rand() - 0.485) * 3.2;
+        price = Math.max(price + drift, base * 0.4);
+        const dateStr = d.toISOString().slice(0, 10);
+        data.push({
+            date: dateStr,
+            price: parseFloat(price.toFixed(2)),
+            isTradeDate: dateStr === tradeDateStr,
+        });
+    }
+    return data;
+}
+
 export default function CapitolRadarPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
@@ -2800,7 +2835,7 @@ export default function CapitolRadarPage() {
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 20 }}
                             onClick={e => e.stopPropagation()}
-                            className="bg-[#0b0a0e] border border-white/10 rounded-3xl w-full max-w-lg p-8 relative overflow-hidden"
+                            className="bg-[#0b0a0e] border border-white/10 rounded-3xl w-full max-w-2xl p-8 relative overflow-y-auto max-h-[92vh]"
                         >
                             {/* Close Trigger */}
                             <button 
@@ -2821,6 +2856,94 @@ export default function CapitolRadarPage() {
 
                             {/* Details Lists */}
                             <div className="space-y-4">
+
+                                {/* 6-Month Price Chart */}
+                                {(() => {
+                                    const chartData = generatePriceHistory(selectedTrade.ticker, selectedTrade.transaction_date);
+                                    const prices = chartData.map(d => d.price);
+                                    const minP = Math.min(...prices);
+                                    const maxP = Math.max(...prices);
+                                    const current = prices[prices.length - 1];
+                                    const sixMonthsAgo = prices[0];
+                                    const pct = sixMonthsAgo > 0 ? ((current - sixMonthsAgo) / sixMonthsAgo * 100) : 0;
+                                    const isPositive = pct >= 0;
+                                    const tradePoint = chartData.find(d => d.isTradeDate);
+                                    return (
+                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">6-Month Price Chart</p>
+                                                    <p className="text-lg font-black text-white mt-0.5 font-mono">{selectedTrade.ticker} <span className="text-sm font-bold text-white/50">${current.toFixed(2)}</span></p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`text-sm font-black ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                        {isPositive ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%
+                                                    </span>
+                                                    <p className="text-[9px] text-white/30 uppercase font-bold mt-0.5">6-month return</p>
+                                                </div>
+                                            </div>
+                                            <ResponsiveContainer width="100%" height={180}>
+                                                <AreaChart data={chartData} margin={{ top: 4, right: 0, left: -28, bottom: 0 }}>
+                                                    <defs>
+                                                        <linearGradient id={`grad-${selectedTrade.ticker}`} x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor={isPositive ? '#34d399' : '#f87171'} stopOpacity={0.25} />
+                                                            <stop offset="95%" stopColor={isPositive ? '#34d399' : '#f87171'} stopOpacity={0} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                                                    <XAxis
+                                                        dataKey="date"
+                                                        tickFormatter={v => { const d = new Date(v); return `${d.toLocaleString('default',{month:'short'})} '${String(d.getFullYear()).slice(2)}`; }}
+                                                        tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                                                        axisLine={false} tickLine={false}
+                                                        interval={Math.floor(chartData.length / 5)}
+                                                    />
+                                                    <YAxis
+                                                        domain={[minP * 0.96, maxP * 1.04]}
+                                                        tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                                                        axisLine={false} tickLine={false}
+                                                        tickFormatter={v => `$${v.toFixed(0)}`}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{ background: '#0b0a0e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '8px 12px' }}
+                                                        labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}
+                                                        itemStyle={{ color: isPositive ? '#34d399' : '#f87171', fontWeight: 900, fontSize: 13, fontFamily: 'monospace' }}
+                                                        formatter={(v) => [typeof v === 'number' ? `$${v.toFixed(2)}` : v, 'Price']}
+                                                    />
+                                                    {tradePoint && (
+                                                        <ReferenceLine
+                                                            x={tradePoint.date}
+                                                            stroke="rgba(255,255,255,0.5)"
+                                                            strokeDasharray="4 3"
+                                                            label={{ value: '📌 Trade', position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: 800 }}
+                                                        />
+                                                    )}
+                                                    <Area
+                                                        type="monotone"
+                                                        dataKey="price"
+                                                        stroke={isPositive ? '#34d399' : '#f87171'}
+                                                        strokeWidth={2}
+                                                        fill={`url(#grad-${selectedTrade.ticker})`}
+                                                        dot={false}
+                                                        activeDot={{ r: 4, fill: isPositive ? '#34d399' : '#f87171', stroke: '#0b0a0e', strokeWidth: 2 }}
+                                                    />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                            <div className="flex justify-between mt-3">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                                                    <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">Simulated price model — not live market data</span>
+                                                </div>
+                                                {tradePoint && (
+                                                    <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">
+                                                        Filed at ${tradePoint.price.toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
                                     <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">POLITICIAN Intel</p>
                                     <div className="grid grid-cols-2 gap-4">
