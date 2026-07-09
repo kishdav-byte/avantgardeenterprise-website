@@ -161,23 +161,14 @@ export async function GET(request: NextRequest) {
             committeeMap.set(item.politician_name.toLowerCase(), item.committees);
         });
 
-        // 3. FETCH HOUSE STOCK WATCHER DATA
-        console.log("Fetching House stock disclosures...");
-        const houseRes = await fetch(
-            'https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json',
-            { next: { revalidate: 3600 } } // Cash for 1 Hour
-        );
-        if (!houseRes.ok) throw new Error("Could not reach House disclosures dataset.");
-        const houseTrades: any[] = await houseRes.json();
-
-        // 4. FETCH SENATE STOCK WATCHER DATA
-        console.log("Fetching Senate stock disclosures...");
-        const senateRes = await fetch(
-            'https://senate-stock-watcher-data.s3-us-east-2.amazonaws.com/aggregate/all_transactions.json',
+        // 3. FETCH UNIFIED STOCK DISCLOSURES DATA
+        console.log("Fetching unified stock disclosures...");
+        const tradesRes = await fetch(
+            'https://raw.githubusercontent.com/kadoa-org/congress-trading-monitor/main/public/data/trades.json',
             { next: { revalidate: 3600 } }
         );
-        if (!senateRes.ok) throw new Error("Could not reach Senate disclosures dataset.");
-        const senateTrades: any[] = await senateRes.json();
+        if (!tradesRes.ok) throw new Error("Could not reach unified disclosures dataset.");
+        const rawTrades: any[] = await tradesRes.json();
 
         // Helpers
         const cleanPoliticianName = (name: string): string => {
@@ -242,20 +233,30 @@ export async function GET(request: NextRequest) {
 
         // 5. PROCESS DATA
         console.log("Formatting and checking overlap alignments...");
-        const processedHouse = houseTrades
-            .filter(t => t.ticker && t.ticker !== '--' && t.disclosure_date && t.transaction_date)
+        const allParsedTrades = rawTrades
+            .filter(t => t.ticker && t.ticker !== '--' && t.filing_date && t.transaction_date)
             .map(t => {
-                const politician_name = cleanPoliticianName(t.representative);
+                const politician_name = cleanPoliticianName(t.filer_name);
                 const transaction_date = parseDate(t.transaction_date);
-                const filing_date = parseDate(t.disclosure_date);
+                const filing_date = parseDate(t.filing_date);
                 const committee_overlap = checkCommitteeOverlap(t.ticker, politician_name);
+                
+                let chamber = 'House';
+                if (t.chamber === 'senate') {
+                    chamber = 'Senate';
+                } else if (t.chamber === 'house') {
+                    chamber = 'House';
+                } else if (t.branch === 'executive' || !t.chamber) {
+                    chamber = 'Executive';
+                }
+
                 return {
                     politician_name,
-                    chamber: 'House',
-                    party: getParty(politician_name, 'House'),
+                    chamber,
+                    party: t.party || getParty(politician_name, chamber),
                     ticker: t.ticker.toUpperCase(),
-                    transaction_type: formatTransactionType(t.type),
-                    amount_range: t.amount || 'Unknown',
+                    transaction_type: formatTransactionType(t.transaction_type),
+                    amount_range: t.amount_range_label || 'Unknown',
                     transaction_date,
                     filing_date,
                     committee_overlap,
@@ -263,32 +264,7 @@ export async function GET(request: NextRequest) {
             })
             .filter(t => t.transaction_date && t.filing_date)
             .sort((a, b) => new Date(b.filing_date!).getTime() - new Date(a.filing_date!).getTime())
-            .slice(0, 150);
-
-        const processedSenate = senateTrades
-            .filter(t => t.ticker && t.ticker !== '--' && t.disclosure_date && t.transaction_date)
-            .map(t => {
-                const politician_name = cleanPoliticianName(t.senator);
-                const transaction_date = parseDate(t.transaction_date);
-                const filing_date = parseDate(t.disclosure_date);
-                const committee_overlap = checkCommitteeOverlap(t.ticker, politician_name);
-                return {
-                    politician_name,
-                    chamber: 'Senate',
-                    party: getParty(politician_name, 'Senate'),
-                    ticker: t.ticker.toUpperCase(),
-                    transaction_type: formatTransactionType(t.type),
-                    amount_range: t.amount || 'Unknown',
-                    transaction_date,
-                    filing_date,
-                    committee_overlap,
-                };
-            })
-            .filter(t => t.transaction_date && t.filing_date)
-            .sort((a, b) => new Date(b.filing_date!).getTime() - new Date(a.filing_date!).getTime())
-            .slice(0, 150);
-
-        const allParsedTrades = [...processedHouse, ...processedSenate];
+            .slice(0, 300);
 
         // 6. DB INSERTION USING SECURE RPC FUNCTION
         console.log(`Upserting ${allParsedTrades.length} trades...`);

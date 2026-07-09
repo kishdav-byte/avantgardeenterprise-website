@@ -16,7 +16,7 @@ import { Footer } from '@/components/Footer'
 interface Trade {
     id: string
     politician_name: string
-    chamber: 'House' | 'Senate'
+    chamber: 'House' | 'Senate' | 'Executive'
     party: string
     ticker: string
     transaction_type: 'Purchase' | 'Sale' | 'Exchange'
@@ -71,7 +71,7 @@ export default function CapitolRadarPage() {
     // Filter States
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedOverlapFilter, setSelectedOverlapFilter] = useState<'all' | 'overlap'>('all')
-    const [selectedChamber, setSelectedChamber] = useState<'all' | 'House' | 'Senate'>('all')
+    const [selectedChamber, setSelectedChamber] = useState<'all' | 'House' | 'Senate' | 'Executive'>('all')
     
     // Interactive Features
     const [newsIndex, setNewsIndex] = useState(0)
@@ -438,6 +438,7 @@ export default function CapitolRadarPage() {
                                             <option value="all">Any Chamber</option>
                                             <option value="House">House</option>
                                             <option value="Senate">Senate</option>
+                                            <option value="Executive">Executive</option>
                                         </select>
                                     </div>
 
@@ -683,6 +684,11 @@ export default function CapitolRadarPage() {
                                             label: "Senate Transactions", 
                                             value: originalTrades.filter(t => t.chamber === 'Senate').length,
                                             sub: "Senator disclosures" 
+                                        },
+                                        { 
+                                            label: "Executive Transactions", 
+                                            value: originalTrades.filter(t => t.chamber === 'Executive').length,
+                                            sub: "Cabinet/Agency disclosures" 
                                         },
                                     ].map((stat, i) => (
                                         <div key={i} className="flex justify-between items-center p-4 bg-white/[0.02] border border-white/5 rounded-2xl">

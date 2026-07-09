@@ -44,7 +44,7 @@ DROP TABLE IF EXISTS public.congress_trades CASCADE;
 CREATE TABLE public.congress_trades (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     politician_name TEXT NOT NULL,
-    chamber TEXT NOT NULL CHECK (chamber IN ('House', 'Senate')),
+    chamber TEXT NOT NULL CHECK (chamber IN ('House', 'Senate', 'Executive')),
     party TEXT NOT NULL,
     ticker TEXT NOT NULL,
     transaction_type TEXT NOT NULL CHECK (transaction_type IN ('Purchase', 'Sale', 'Exchange')),
