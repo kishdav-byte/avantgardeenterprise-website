@@ -53,50 +53,53 @@ export async function POST(request: Request) {
             safeProductUrl = 'https://' + safeProductUrl
         }
 
-        const prompt = `Write a ${length}-word SEO-optimized blog post titled: "${topic}"
-Target the keyword: "${primaryKeyword}"
-Naturally mention and promote this product: "${productName}"
-Product link: ${safeProductUrl}
+        const prompt = `Write a ${length}-word blog post titled: "${topic}".
+Target SEO Keyword: "${primaryKeyword}".
+Naturally integrate and promote this product: "${productName}" (link: ${safeProductUrl}).
 
-MANDATORY STRUCTURAL REQUIREMENTS FOR 1200-1500+ WORDS:
-1. THE HOOK: Start with an evocative, 5-paragraph introduction. Every paragraph MUST be a dense block of text (at least 100 words each).
-2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags). 
-3. DENSITY LOCK (NO SHORT PARAGRAPHS): Under EACH subheading, you MUST write at least 5 paragraphs. Every single paragraph MUST be at least 100 words long. If a paragraph is shorter than 4 sentences, you have failed.
-4. EXPERT CALL-OUTS: In every section, include an expert insight from a high-authority persona (e.g., Chief Data Officer, VP of Talent). Every single quote MUST use this EXACT HTML structure:
+TONE, VOICE & HUMAN RELATABILITY:
+1. WRITING VOICE: Write in the first-person ("I" or "we") as a seasoned, slightly opinionated senior developer or engineer. Build a relatable connection with the reader. Use a conversational, authentic tone. Avoid textbook or academic phrasing.
+2. BAN BANALITIES AND AI-ISMS: Never use boilerplate openings or transitions like "In today's fast-paced digital landscape," "Furthermore," "Moreover," "It is crucial to consider," "In conclusion," "Unleash," "Demystify," or "Dive deep."
+3. VARIABLE PARAGRAPH PACING: Do NOT write uniform, long paragraphs. Mix long analytical paragraphs with short, punchy single-sentence paragraphs to create natural reading flow. 
+4. RELATABLE HUMOR: Use pragmatic, real-world analogies, minor self-deprecation, or light professional humor (e.g., pointing out developer frustrations, late-night debugging session clichés, etc.).
+5. RAGS TO RICHES / TRUTHS: Start the hook with a story of a real developer/business problem or failure. Admit limitations before claiming solutions.
+
+MANDATORY STRUCTURAL REQUIREMENTS:
+1. THE HOOK: Start with an evocative, story-driven introduction (use varying paragraph styles, not uniform blocks).
+2. DEPTH MANDATE: Include at least 8 distinct subheadings (<h2> tags).
+3. CONTENT UNDER HEADINGS: Under each heading, provide rich, insightful content (with standard paragraphs, occasional bullet list, or blockquotes). Ensure they avoid fluff or dry repetitions.
+4. EXPERT CALL-OUTS: Include conversational expert quotes or thoughts from a persona (e.g., Chief Architect, VP of Engineering). Use this EXACT HTML structure:
    <blockquote style="border-left: 4px solid #CCFF00; padding: 20px; margin: 20px 0; background: rgba(255,255,255,0.05); font-style: italic;">
-      "[Quote text from expert]" — [Name], [High-Authority Title]
+      "[Quote or thought from expert]" — [Name], [Title]
    </blockquote>
-5. ACTIONABLE COMPARISONS: Include a section titled "Tactical Comparison: The Pro vs. The Amateur". Use this EXACT list format for at least 3 comparisons:
+5. ACTIONABLE COMPARISONS: Include a comparison section titled "The Pro vs. The Amateur". Use this EXACT list format for at least 3 comparisons:
    <ul>
      <li><strong>WRONG WAY:</strong> [Generic, low-value approach]</li>
      <li><strong>RIGHT WAY:</strong> [Strategic, high-value approach]</li>
-     <li><strong>THE WIN:</strong> [The 3-sentence technical or psychological reason why this wins]</li>
+     <li><strong>THE WIN:</strong> [A punchy, 2-3 sentence technical or psychological explanation]</li>
    </ul>
 6. REQUIRED THEMES:
-   - The Psychology of the concept.
-   - The Technical Mechanics or "Under the Hood" logic.
-   - Strategic selection vs. poor alternatives.
-   - Common failure points and "Physics" of why they break.
-   - The Human transition/Recruiter psychology.
+   - The human psychology or cognitive friction surrounding the concept.
+   - Beneath the surface mechanics.
+   - Common failure points (why standard approaches crash).
    - A step-by-step optimization blueprint.
-   - The "Easy Button": Position "${productName}" (${safeProductUrl}) as the automation solution.
+   - Position "${productName}" (${safeProductUrl}) as a modern, reliable automation solution.
 
 FORMATTING & PERSUASION:
-- Format everything in clean HTML (No markdown, no asterisks, no hashtags).
-- Use <h2> for subheadings and <p> for dense paragraphs.
+- Format in clean HTML (No markdown, no asterisks, no hashtags).
+- Use <h2> for subheadings and <p> for paragraphs.
 - Hyperlink "${productName}" to "${safeProductUrl}" using an <a> tag.
-- CRITICAL: Do NOT use labels like "Chapter 1," "Section 1," or "Introduction."
-- CRITICAL: Do NOT use my instructions (like "Density Lock") as headings.
+- Do NOT use labels like "Chapter 1," "Section 1," or "Introduction" to structure the post.
 
 At the end, include a meta description in this format:
 <p style="display:none;">Meta description: [Insert a 150-character SEO summary of the article here]</p>
 
 Output Format (Output strictly as a JSON object):
 {
-    "refined_title": "A compelling, benefit-driven version of the title",
-    "content_html": "The full, massive 1500+ word HTML body content",
-    "excerpt": "A high-CTR summary for preview text",
-    "social_snippets": { "linkedin": "A professional post draft", "facebook": "An engaging post draft" },
+    "refined_title": "A highly clickable, human-styled title",
+    "content_html": "The full HTML body content",
+    "excerpt": "A human, high-CTR preview text",
+    "social_snippets": { "linkedin": "A natural, non-commercial post draft", "facebook": "An engaging, friendly post draft" },
     "seo_score": 98,
     "seo_critique": "A brief breakdown."
 }`
