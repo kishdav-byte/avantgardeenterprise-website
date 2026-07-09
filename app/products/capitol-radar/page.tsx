@@ -1681,6 +1681,9 @@ export default function CapitolRadarPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedOverlapFilter, setSelectedOverlapFilter] = useState<'all' | 'overlap'>('all')
     const [selectedChamber, setSelectedChamber] = useState<'all' | 'House' | 'Senate' | 'Executive'>('all')
+    const [selectedActionFilter, setSelectedActionFilter] = useState<'all' | 'Purchase' | 'Sale' | 'Exchange'>('all')
+    const [selectedValueFilter, setSelectedValueFilter] = useState<'all' | 'small' | 'medium' | 'large'>('all')
+    const [sortBy, setSortBy] = useState<'filingDateDesc' | 'filingDateAsc' | 'transactionDateDesc' | 'transactionDateAsc' | 'latencyDesc' | 'latencyAsc' | 'nameAsc' | 'tickerAsc'>('filingDateDesc')
     
     // Interactive Features
     const [newsIndex, setNewsIndex] = useState(0)
@@ -1823,6 +1826,15 @@ export default function CapitolRadarPage() {
         }
     }
 
+    const calculateFilingLatency = (transDate: string, fileDate: string): number => {
+        if (!transDate || !fileDate) return 0;
+        const trans = new Date(transDate);
+        const file = new Date(fileDate);
+        const diffTime = Math.abs(file.getTime() - trans.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
+
     // Handles filtering in state
     useEffect(() => {
         let filtered = [...originalTrades];
@@ -1846,17 +1858,57 @@ export default function CapitolRadarPage() {
             filtered = filtered.filter(t => t.committee_overlap === true);
         }
 
-        setTrades(filtered);
-    }, [searchQuery, selectedChamber, selectedOverlapFilter, originalTrades]);
+        // Action Filter
+        if (selectedActionFilter !== 'all') {
+            filtered = filtered.filter(t => t.transaction_type === selectedActionFilter);
+        }
 
-    const calculateFilingLatency = (transDate: string, fileDate: string): number => {
-        if (!transDate || !fileDate) return 0;
-        const trans = new Date(transDate);
-        const file = new Date(fileDate);
-        const diffTime = Math.abs(file.getTime() - trans.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
-    };
+        // Value Range Filter
+        if (selectedValueFilter !== 'all') {
+            filtered = filtered.filter(t => {
+                const amt = (t.amount_range || '').toLowerCase();
+                if (selectedValueFilter === 'small') {
+                    return amt.includes('$1,001') || amt.includes('$1,000') || amt.includes('under') || amt.includes('$250');
+                } else if (selectedValueFilter === 'medium') {
+                    return amt.includes('$15,001') || amt.includes('$50,001');
+                } else if (selectedValueFilter === 'large') {
+                    return amt.includes('$100,001') || amt.includes('$250,001') || amt.includes('$500,001') || amt.includes('$1,000,000') || amt.includes('over') || amt.includes('$5,000,000');
+                }
+                return true;
+            });
+        }
+
+        // Sorting
+        filtered.sort((a, b) => {
+            if (sortBy === 'filingDateDesc') {
+                return new Date(b.filing_date || '').getTime() - new Date(a.filing_date || '').getTime();
+            }
+            if (sortBy === 'filingDateAsc') {
+                return new Date(a.filing_date || '').getTime() - new Date(b.filing_date || '').getTime();
+            }
+            if (sortBy === 'transactionDateDesc') {
+                return new Date(b.transaction_date || '').getTime() - new Date(a.transaction_date || '').getTime();
+            }
+            if (sortBy === 'transactionDateAsc') {
+                return new Date(a.transaction_date || '').getTime() - new Date(b.transaction_date || '').getTime();
+            }
+            if (sortBy === 'latencyDesc') {
+                return calculateFilingLatency(b.transaction_date, b.filing_date) - calculateFilingLatency(a.transaction_date, a.filing_date);
+            }
+            if (sortBy === 'latencyAsc') {
+                return calculateFilingLatency(a.transaction_date, a.filing_date) - calculateFilingLatency(b.transaction_date, b.filing_date);
+            }
+            if (sortBy === 'nameAsc') {
+                return a.politician_name.localeCompare(b.politician_name);
+            }
+            if (sortBy === 'tickerAsc') {
+                return a.ticker.localeCompare(b.ticker);
+            }
+            return 0;
+        });
+
+        setTrades(filtered);
+    }, [searchQuery, selectedChamber, selectedOverlapFilter, selectedActionFilter, selectedValueFilter, sortBy, originalTrades]);
 
     if (isLoading) {
         return (
@@ -2024,25 +2076,29 @@ export default function CapitolRadarPage() {
                             
                             {/* Filter Bar Panel */}
                             <div className="bg-[#0e0c15] border border-white/5 rounded-3xl p-6 relative overflow-hidden">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                                     {/* Name search field */}
                                     <div className="md:col-span-2 relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Search Politician or Ticker..."
-                                            value={searchQuery}
-                                            onChange={e => setSearchQuery(e.target.value)}
-                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder-white/20 focus:border-accent focus:outline-none transition-colors"
-                                        />
-                                        <Search className="absolute left-3.5 top-3.5 text-white/30" size={16} />
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Search Database</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="Search Politician or Ticker..."
+                                                value={searchQuery}
+                                                onChange={e => setSearchQuery(e.target.value)}
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-xs text-white placeholder-white/20 focus:border-accent focus:outline-none transition-colors"
+                                            />
+                                            <Search className="absolute left-3.5 top-3 text-white/30" size={14} />
+                                        </div>
                                     </div>
 
                                     {/* Chamber selection dropdown */}
                                     <div>
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Chamber Filter</label>
                                         <select
                                             value={selectedChamber}
                                             onChange={e => setSelectedChamber(e.target.value as any)}
-                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-accent focus:outline-none transition-colors"
+                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-accent focus:outline-none transition-colors"
                                         >
                                             <option value="all">Any Chamber</option>
                                             <option value="House">House</option>
@@ -2052,19 +2108,91 @@ export default function CapitolRadarPage() {
                                     </div>
 
                                     {/* COI filter toggle */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setSelectedOverlapFilter('all')}
-                                            className={`flex-1 py-3 text-[11px] font-black uppercase tracking-wider rounded-xl border transition-all ${selectedOverlapFilter === 'all' ? 'bg-white text-black border-white' : 'border-white/10 hover:border-white/30 text-white/60'}`}
+                                    <div>
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Conflict Status</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setSelectedOverlapFilter('all')}
+                                                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider rounded-xl border transition-all ${selectedOverlapFilter === 'all' ? 'bg-white text-black border-white' : 'border-white/10 hover:border-white/30 text-white/60'}`}
+                                            >
+                                                All
+                                            </button>
+                                            <button
+                                                onClick={() => setSelectedOverlapFilter('overlap')}
+                                                className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-wider rounded-xl border transition-all flex items-center justify-center gap-1 ${selectedOverlapFilter === 'overlap' ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/10 hover:border-white/30 text-white/60'}`}
+                                            >
+                                                <AlertOctagon size={11} className={selectedOverlapFilter === 'overlap' ? 'text-red-400' : 'opacity-40'} />
+                                                COIs Only
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Row 2: Advanced filters */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end pt-4 border-t border-white/5 mt-4">
+                                    {/* Sort selection dropdown */}
+                                    <div>
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Sort Disclosures</label>
+                                        <select
+                                            value={sortBy}
+                                            onChange={e => setSortBy(e.target.value as any)}
+                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-accent focus:outline-none transition-colors"
                                         >
-                                            All
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedOverlapFilter('overlap')}
-                                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider rounded-xl border transition-all flex items-center justify-center gap-1 ${selectedOverlapFilter === 'overlap' ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/10 hover:border-white/30 text-white/60'}`}
+                                            <option value="filingDateDesc">Filing Date (Newest)</option>
+                                            <option value="filingDateAsc">Filing Date (Oldest)</option>
+                                            <option value="transactionDateDesc">Transaction Date (Newest)</option>
+                                            <option value="transactionDateAsc">Transaction Date (Oldest)</option>
+                                            <option value="latencyDesc">Filing Lag (Highest)</option>
+                                            <option value="latencyAsc">Filing Lag (Lowest)</option>
+                                            <option value="nameAsc">Politician (A-Z)</option>
+                                            <option value="tickerAsc">Ticker (A-Z)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Action direction selection dropdown */}
+                                    <div>
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Action Type</label>
+                                        <select
+                                            value={selectedActionFilter}
+                                            onChange={e => setSelectedActionFilter(e.target.value as any)}
+                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-accent focus:outline-none transition-colors"
                                         >
-                                            <AlertOctagon size={12} className={selectedOverlapFilter === 'overlap' ? 'text-red-400' : 'opacity-40'} />
-                                            COIs Only
+                                            <option value="all">Any Action</option>
+                                            <option value="Purchase">Purchase (Buy)</option>
+                                            <option value="Sale">Sale (Sell)</option>
+                                            <option value="Exchange">Exchange</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Value range selection dropdown */}
+                                    <div>
+                                        <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Estimated Value</label>
+                                        <select
+                                            value={selectedValueFilter}
+                                            onChange={e => setSelectedValueFilter(e.target.value as any)}
+                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-accent focus:outline-none transition-colors"
+                                        >
+                                            <option value="all">Any Amount</option>
+                                            <option value="small">Small (Under $15k)</option>
+                                            <option value="medium">Medium ($15k - $100k)</option>
+                                            <option value="large">Large (Over $100k)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Reset Filters button */}
+                                    <div>
+                                        <button
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                setSelectedChamber('all');
+                                                setSelectedOverlapFilter('all');
+                                                setSelectedActionFilter('all');
+                                                setSelectedValueFilter('all');
+                                                setSortBy('filingDateDesc');
+                                            }}
+                                            className="w-full py-2.5 text-[10px] font-black uppercase tracking-wider rounded-xl border border-white/10 hover:border-white/30 text-white/60 hover:text-white bg-white/[0.02] transition-all"
+                                        >
+                                            Reset Filters
                                         </button>
                                     </div>
                                 </div>
