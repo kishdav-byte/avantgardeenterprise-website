@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient"
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User } from "lucide-react"
+import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User, ShieldCheck } from "lucide-react"
 interface Tool {
     id: string
     name: string
@@ -50,8 +50,17 @@ const tools: Tool[] = [
         requiresAuth: true,
         isAdminOnly: true
     },
-    // Add more tools here as they're developed
-]
+    {
+        id: "capitol-radar",
+        name: "Capitol Radar",
+        description: "Surveil Congressional stock transactions in real-time. Automatically checks conflict-of-interest committee overlap triggers.",
+        icon: <ShieldCheck className="w-8 h-8" />,
+        href: "/products/capitol-radar",
+        status: "active",
+        isFree: false,
+        requiresAuth: false
+    },
+] // Add more tools here as they're developed
 
 export function IntelligentTools() {
     const [isAdmin, setIsAdmin] = useState(false)
