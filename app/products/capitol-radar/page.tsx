@@ -1911,6 +1911,36 @@ export default function CapitolRadarPage() {
         setTrades(filtered);
     }, [searchQuery, selectedChamber, selectedOverlapFilter, selectedActionFilter, selectedValueFilter, sortBy, originalTrades]);
 
+    const parseAmountToNumeric = (range: string): number => {
+        if (!range || range === 'Unknown' || range.includes('••••')) return 0;
+        const clean = range.replace(/[\$,]/g, '').toLowerCase();
+        if (clean.includes('over') || clean.includes('million')) {
+            const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
+            return isNaN(num) ? 1000000 : num;
+        }
+        const parts = clean.split('-');
+        if (parts.length === 2) {
+            const low = parseFloat(parts[0].replace(/[^0-9.]/g, ''));
+            const high = parseFloat(parts[1].replace(/[^0-9.]/g, ''));
+            if (!isNaN(low) && !isNaN(high)) {
+                return (low + high) / 2;
+            }
+        }
+        const single = parseFloat(clean.replace(/[^0-9.]/g, ''));
+        return isNaN(single) ? 0 : single;
+    };
+
+    const formatVolume = (val: number): string => {
+        if (val === 0) return 'N/A';
+        if (val >= 1000000) {
+            return `$${(val / 1000000).toFixed(1)}M`;
+        }
+        if (val >= 1000) {
+            return `$${(val / 1000).toFixed(0)}K`;
+        }
+        return `$${val}`;
+    };
+
     // Compute grouped ticker activity
     const groupedByTicker = useMemo(() => {
         const groups: Record<string, {
@@ -1922,6 +1952,7 @@ export default function CapitolRadarPage() {
             employees: string[];
             purchases: number;
             sales: number;
+            totalVolume: number;
         }> = {};
 
         trades.forEach(t => {
@@ -1940,7 +1971,8 @@ export default function CapitolRadarPage() {
                     employeeCount: 0,
                     employees: [],
                     purchases: 0,
-                    sales: 0
+                    sales: 0,
+                    totalVolume: 0
                 };
             }
             groups[sym].trades.push(t);
@@ -1952,6 +1984,7 @@ export default function CapitolRadarPage() {
             } else if (t.transaction_type === 'Sale') {
                 groups[sym].sales++;
             }
+            groups[sym].totalVolume += parseAmountToNumeric(t.amount_range);
         });
 
         return Object.values(groups)
@@ -1977,6 +2010,7 @@ export default function CapitolRadarPage() {
             tickers: string[];
             purchases: number;
             sales: number;
+            totalVolume: number;
         }> = {};
 
         trades.forEach(t => {
@@ -1995,7 +2029,8 @@ export default function CapitolRadarPage() {
                     employees: [],
                     tickers: [],
                     purchases: 0,
-                    sales: 0
+                    sales: 0,
+                    totalVolume: 0
                 };
             }
             groups[ind].trades.push(t);
@@ -2010,6 +2045,7 @@ export default function CapitolRadarPage() {
             } else if (t.transaction_type === 'Sale') {
                 groups[ind].sales++;
             }
+            groups[ind].totalVolume += parseAmountToNumeric(t.amount_range);
         });
 
         return Object.values(groups)
@@ -2441,6 +2477,7 @@ export default function CapitolRadarPage() {
                                                     <th className="py-4 pl-6">COMPANY (TICKER)</th>
                                                     <th className="py-4">GOVERNMENT EMPLOYEES</th>
                                                     <th className="py-4">ACTIVITY SPREAD</th>
+                                                    <th className="py-4 text-center">EST. VOLUME</th>
                                                     <th className="py-4 text-center">TOTAL</th>
                                                     <th className="py-4 text-center">STATUS</th>
                                                 </tr>
@@ -2489,6 +2526,13 @@ export default function CapitolRadarPage() {
                                                                 </div>
                                                             </td>
 
+                                                            {/* Est. Volume */}
+                                                            <td className="py-4 text-center font-bold text-white/80 font-mono text-xs">
+                                                                {isAdmin ? formatVolume(group.totalVolume) : (
+                                                                    <span className="text-[10px] text-white/30 tracking-widest font-black">••••••••</span>
+                                                                )}
+                                                            </td>
+
                                                             {/* Total Trades */}
                                                             <td className="py-4 text-center font-mono font-black text-white text-xs">
                                                                 {group.trades.length}
@@ -2521,6 +2565,7 @@ export default function CapitolRadarPage() {
                                                     <th className="py-4 pl-6">INDUSTRY SECTOR</th>
                                                     <th className="py-4">GOVERNMENT EMPLOYEES</th>
                                                     <th className="py-4">TICKERS TRADED</th>
+                                                    <th className="py-4 text-center">EST. VOLUME</th>
                                                     <th className="py-4 text-center">TOTAL</th>
                                                     <th className="py-4 text-center">STATUS</th>
                                                 </tr>
@@ -2560,6 +2605,13 @@ export default function CapitolRadarPage() {
                                                                         </span>
                                                                     ))}
                                                                 </div>
+                                                            </td>
+
+                                                            {/* Est. Volume */}
+                                                            <td className="py-4 text-center font-bold text-white/80 font-mono text-xs">
+                                                                {isAdmin ? formatVolume(group.totalVolume) : (
+                                                                    <span className="text-[10px] text-white/30 tracking-widest font-black">••••••••</span>
+                                                                )}
                                                             </td>
 
                                                             {/* Total Trades */}
