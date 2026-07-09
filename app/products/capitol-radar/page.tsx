@@ -2124,6 +2124,19 @@ export default function CapitolRadarPage() {
     };
     const [selectedIndustryGroup, setSelectedIndustryGroup] = useState<IndustryGroup | null>(null);
 
+    type TickerGroup = {
+        ticker: string;
+        companyName: string;
+        industry: string;
+        trades: Trade[];
+        employeeCount: number;
+        employees: string[];
+        purchases: number;
+        sales: number;
+        totalVolume: number;
+    };
+    const [selectedTickerGroup, setSelectedTickerGroup] = useState<TickerGroup | null>(null);
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
@@ -2564,7 +2577,8 @@ export default function CapitolRadarPage() {
                                                     return (
                                                         <tr 
                                                             key={group.ticker} 
-                                                            className={`hover:bg-white/[0.02] transition-colors group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                            className={`hover:bg-white/[0.04] transition-colors cursor-pointer group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                            onClick={() => setSelectedTickerGroup(group)}
                                                         >
                                                             {/* Company Details */}
                                                             <td className="py-4 pl-6 max-w-[200px]">
@@ -3278,6 +3292,283 @@ export default function CapitolRadarPage() {
                         </motion.div>
                     </motion.div>
                 )}
+            </AnimatePresence>
+
+            {/* Ticker Intelligence Chart Modal */}
+            <AnimatePresence>
+                {selectedTickerGroup && (() => {
+                    const tg = selectedTickerGroup;
+                    const chartData = generatePriceHistory(tg.ticker, '');
+                    const prices = chartData.map(d => d.price);
+                    const minP = Math.min(...prices);
+                    const maxP = Math.max(...prices);
+                    const current = prices[prices.length - 1];
+                    const first = prices[0];
+                    const pct = first > 0 ? ((current - first) / first * 100) : 0;
+                    const isPositive = pct >= 0;
+
+                    // Build per-member color palette
+                    const memberColors = ['#a78bfa', '#38bdf8', '#fb923c', '#f472b6', '#facc15', '#34d399', '#e879f9', '#60a5fa'];
+                    const memberList = tg.employees;
+                    const memberColorMap: Record<string, string> = {};
+                    memberList.forEach((m, i) => { memberColorMap[m] = memberColors[i % memberColors.length]; });
+
+                    // Collect all trade markers by date
+                    const tradeMarkers: { date: string; member: string; action: string; amount: string }[] = [];
+                    tg.trades.forEach(t => {
+                        if (t.transaction_date) {
+                            tradeMarkers.push({
+                                date: t.transaction_date.slice(0, 10),
+                                member: t.politician_name,
+                                action: t.transaction_type,
+                                amount: t.amount_range
+                            });
+                        }
+                    });
+
+                    const purchases = tg.trades.filter(t => t.transaction_type === 'Purchase').sort((a, b) => (a.transaction_date || '').localeCompare(b.transaction_date || ''));
+                    const sales = tg.trades.filter(t => t.transaction_type === 'Sale').sort((a, b) => (a.transaction_date || '').localeCompare(b.transaction_date || ''));
+                    const company = COMPANY_DIRECTORY[tg.ticker] || { name: tg.ticker, industry: tg.industry, description: '' };
+
+                    return (
+                        <motion.div
+                            key="ticker-modal"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 bg-black/88 backdrop-blur-md flex items-center justify-center p-4"
+                            onClick={() => setSelectedTickerGroup(null)}
+                        >
+                            <motion.div
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                onClick={e => e.stopPropagation()}
+                                className="bg-[#0b0a0e] border border-white/10 rounded-3xl w-full max-w-3xl relative overflow-y-auto max-h-[92vh]"
+                            >
+                                {/* Sticky Header */}
+                                <div className="sticky top-0 bg-[#0b0a0e]/97 backdrop-blur-sm border-b border-white/5 px-8 py-6 flex items-start justify-between z-10">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-1">Ticker Intelligence Report</p>
+                                        <div className="flex items-baseline gap-3">
+                                            <h4 className="text-2xl font-black text-white uppercase italic font-mono">{tg.ticker}</h4>
+                                            <span className="text-white/50 font-bold text-sm">{company.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className="text-[9px] uppercase font-bold text-white/30 tracking-widest">{tg.industry}</span>
+                                            <span className="text-white/20">·</span>
+                                            <span className="text-[10px] font-black text-emerald-400">{tg.purchases} BUYS</span>
+                                            <span className="text-white/20">·</span>
+                                            <span className="text-[10px] font-black text-red-400">{tg.sales} SELLS</span>
+                                            <span className="text-white/20">·</span>
+                                            <span className={`text-[10px] font-black ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {isPositive ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}% (6mo)
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setSelectedTickerGroup(null)} className="text-white/40 hover:text-white transition-colors mt-1 flex-shrink-0">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="p-8 space-y-6">
+
+                                    {/* 6-Month Chart with All Trade Markers */}
+                                    <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">6-Month Price History</p>
+                                                <p className="text-xs text-white/30 font-bold mt-0.5">All member trade timings marked on chart</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xl font-black text-white font-mono">${current.toFixed(2)}</p>
+                                                <p className="text-[9px] text-white/30 uppercase font-bold">Current Price</p>
+                                            </div>
+                                        </div>
+
+                                        <ResponsiveContainer width="100%" height={220}>
+                                            <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -28, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id={`grad-tk-${tg.ticker}`} x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor={isPositive ? '#34d399' : '#f87171'} stopOpacity={0.2} />
+                                                        <stop offset="95%" stopColor={isPositive ? '#34d399' : '#f87171'} stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tickFormatter={v => { const d = new Date(v); return `${d.toLocaleString('default', { month: 'short' })} '${String(d.getFullYear()).slice(2)}`; }}
+                                                    tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                                                    axisLine={false} tickLine={false}
+                                                    interval={Math.floor(chartData.length / 5)}
+                                                />
+                                                <YAxis
+                                                    domain={[minP * 0.96, maxP * 1.04]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                                                    axisLine={false} tickLine={false}
+                                                    tickFormatter={v => `$${v.toFixed(0)}`}
+                                                />
+                                                <Tooltip
+                                                    contentStyle={{ background: '#0b0a0e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '8px 12px' }}
+                                                    labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}
+                                                    itemStyle={{ color: isPositive ? '#34d399' : '#f87171', fontWeight: 900, fontSize: 13, fontFamily: 'monospace' }}
+                                                    formatter={(v) => [typeof v === 'number' ? `$${v.toFixed(2)}` : v, 'Price']}
+                                                />
+                                                {/* One reference line per trade event */}
+                                                {tradeMarkers.map((mk, idx) => {
+                                                    const isPurchase = mk.action === 'Purchase';
+                                                    const color = isPurchase ? '#34d399' : '#f87171';
+                                                    const initials = mk.member.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+                                                    return (
+                                                        <ReferenceLine
+                                                            key={`${mk.date}-${idx}`}
+                                                            x={mk.date}
+                                                            stroke={color}
+                                                            strokeWidth={1.5}
+                                                            strokeDasharray={isPurchase ? '0' : '4 3'}
+                                                            strokeOpacity={0.7}
+                                                            label={{
+                                                                value: initials,
+                                                                position: idx % 2 === 0 ? 'top' : 'insideTop',
+                                                                fill: color,
+                                                                fontSize: 7,
+                                                                fontWeight: 900,
+                                                                fontFamily: 'monospace',
+                                                                dy: idx % 3 === 0 ? -2 : idx % 3 === 1 ? 8 : 18
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="price"
+                                                    stroke={isPositive ? '#34d399' : '#f87171'}
+                                                    strokeWidth={2}
+                                                    fill={`url(#grad-tk-${tg.ticker})`}
+                                                    dot={false}
+                                                    activeDot={{ r: 4, fill: isPositive ? '#34d399' : '#f87171', stroke: '#0b0a0e', strokeWidth: 2 }}
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+
+                                        {/* Chart Legend */}
+                                        <div className="mt-4 pt-4 border-t border-white/5">
+                                            <p className="text-[8px] font-black uppercase text-white/30 tracking-widest mb-2">Legend</p>
+                                            <div className="flex flex-wrap gap-3">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-5 h-0.5 bg-emerald-400"></div>
+                                                    <span className="text-[9px] text-white/40 font-bold uppercase">Purchase (solid line)</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-5 h-0.5 border-t border-dashed border-red-400"></div>
+                                                    <span className="text-[9px] text-white/40 font-bold uppercase">Sale (dashed line)</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[9px] text-white/40 font-bold uppercase">· Labels = member initials</span>
+                                                </div>
+                                            </div>
+                                            {/* Member color key */}
+                                            <div className="flex flex-wrap gap-3 mt-2">
+                                                {memberList.map(m => (
+                                                    <div key={m} className="flex items-center gap-1">
+                                                        <span className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded" style={{ color: memberColorMap[m], background: `${memberColorMap[m]}18`, border: `1px solid ${memberColorMap[m]}40` }}>
+                                                            {m.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                                                        </span>
+                                                        <span className="text-[9px] text-white/40 font-bold truncate max-w-[120px]">{m}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-[8px] text-white/20 font-bold uppercase mt-2">Simulated price model — not live market data</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Purchases Timeline */}
+                                    {purchases.length > 0 && (
+                                        <div className="border border-emerald-500/15 bg-emerald-500/[0.02] rounded-2xl p-5">
+                                            <p className="text-[9px] font-black uppercase text-emerald-400 tracking-widest mb-3 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                                                Purchases — {purchases.length} Disclosed Transactions
+                                            </p>
+                                            <div className="space-y-2">
+                                                {purchases.map(t => (
+                                                    <div
+                                                        key={t.id}
+                                                        className="flex items-center justify-between py-2 px-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all"
+                                                        onClick={() => { setSelectedTickerGroup(null); setSelectedTrade(t); }}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <span
+                                                                className="text-[9px] font-black font-mono px-2 py-1 rounded"
+                                                                style={{ color: memberColorMap[t.politician_name] || '#34d399', background: `${memberColorMap[t.politician_name] || '#34d399'}18`, border: `1px solid ${memberColorMap[t.politician_name] || '#34d399'}40` }}
+                                                            >
+                                                                {t.politician_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                                                            </span>
+                                                            <div>
+                                                                <p className="text-xs font-black text-white">{t.politician_name}</p>
+                                                                <p className="text-[9px] text-white/40 font-bold">{t.chamber} · {t.transaction_date ? t.transaction_date.slice(0, 10) : '—'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-right">
+                                                            {isAdmin && <span className="text-[10px] font-bold text-white/50 font-mono">{t.amount_range}</span>}
+                                                            <span className="text-[9px] font-black text-emerald-400 uppercase">PURCHASE</span>
+                                                            <ChevronRight size={12} className="text-emerald-400/30" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Sales Timeline */}
+                                    {sales.length > 0 && (
+                                        <div className="border border-red-500/15 bg-red-500/[0.02] rounded-2xl p-5">
+                                            <p className="text-[9px] font-black uppercase text-red-400 tracking-widest mb-3 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+                                                Sales — {sales.length} Disclosed Transactions
+                                            </p>
+                                            <div className="space-y-2">
+                                                {sales.map(t => (
+                                                    <div
+                                                        key={t.id}
+                                                        className="flex items-center justify-between py-2 px-3 rounded-xl bg-red-500/5 border border-red-500/10 cursor-pointer hover:border-red-500/40 hover:bg-red-500/10 transition-all"
+                                                        onClick={() => { setSelectedTickerGroup(null); setSelectedTrade(t); }}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <span
+                                                                className="text-[9px] font-black font-mono px-2 py-1 rounded"
+                                                                style={{ color: memberColorMap[t.politician_name] || '#f87171', background: `${memberColorMap[t.politician_name] || '#f87171'}18`, border: `1px solid ${memberColorMap[t.politician_name] || '#f87171'}40` }}
+                                                            >
+                                                                {t.politician_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                                                            </span>
+                                                            <div>
+                                                                <p className="text-xs font-black text-white">{t.politician_name}</p>
+                                                                <p className="text-[9px] text-white/40 font-bold">{t.chamber} · {t.transaction_date ? t.transaction_date.slice(0, 10) : '—'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-right">
+                                                            {isAdmin && <span className="text-[10px] font-bold text-white/50 font-mono">{t.amount_range}</span>}
+                                                            <span className="text-[9px] font-black text-red-400 uppercase">SALE</span>
+                                                            <ChevronRight size={12} className="text-red-400/30" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="text-right">
+                                        <button
+                                            onClick={() => setSelectedTickerGroup(null)}
+                                            className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors rounded-xl"
+                                        >
+                                            Close Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    );
+                })()}
             </AnimatePresence>
 
             <Footer />
