@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -1690,6 +1690,7 @@ export default function CapitolRadarPage() {
     const [showNewsFlash, setShowNewsFlash] = useState(true)
     const [marketQuotes, setMarketQuotes] = useState<SimulatedStock[]>(INITIAL_STOCKS)
     const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
+    const [viewTab, setViewTab] = useState<'individual' | 'company' | 'industry'>('individual')
 
     // SMS Notifications Form State
     const [smsEnabled, setSmsEnabled] = useState(false)
@@ -1909,6 +1910,115 @@ export default function CapitolRadarPage() {
 
         setTrades(filtered);
     }, [searchQuery, selectedChamber, selectedOverlapFilter, selectedActionFilter, selectedValueFilter, sortBy, originalTrades]);
+
+    // Compute grouped ticker activity
+    const groupedByTicker = useMemo(() => {
+        const groups: Record<string, {
+            ticker: string;
+            companyName: string;
+            industry: string;
+            trades: Trade[];
+            employeeCount: number;
+            employees: string[];
+            purchases: number;
+            sales: number;
+        }> = {};
+
+        trades.forEach(t => {
+            const sym = t.ticker.toUpperCase();
+            if (!groups[sym]) {
+                const company = COMPANY_DIRECTORY[sym] || {
+                    name: `${sym} Corp.`,
+                    industry: 'Standard Market Listing',
+                    description: ''
+                };
+                groups[sym] = {
+                    ticker: sym,
+                    companyName: company.name,
+                    industry: company.industry,
+                    trades: [],
+                    employeeCount: 0,
+                    employees: [],
+                    purchases: 0,
+                    sales: 0
+                };
+            }
+            groups[sym].trades.push(t);
+            if (!groups[sym].employees.includes(t.politician_name)) {
+                groups[sym].employees.push(t.politician_name);
+            }
+            if (t.transaction_type === 'Purchase') {
+                groups[sym].purchases++;
+            } else if (t.transaction_type === 'Sale') {
+                groups[sym].sales++;
+            }
+        });
+
+        return Object.values(groups)
+            .map(g => ({
+                ...g,
+                employeeCount: g.employees.length
+            }))
+            .sort((a, b) => {
+                if (b.employeeCount !== a.employeeCount) {
+                    return b.employeeCount - a.employeeCount;
+                }
+                return b.trades.length - a.trades.length;
+            });
+    }, [trades]);
+
+    // Compute grouped industry activity
+    const groupedByIndustry = useMemo(() => {
+        const groups: Record<string, {
+            industry: string;
+            trades: Trade[];
+            employeeCount: number;
+            employees: string[];
+            tickers: string[];
+            purchases: number;
+            sales: number;
+        }> = {};
+
+        trades.forEach(t => {
+            const sym = t.ticker.toUpperCase();
+            const company = COMPANY_DIRECTORY[sym] || {
+                name: `${sym} Corp.`,
+                industry: 'Standard Market Listing',
+                description: ''
+            };
+            const ind = company.industry;
+            if (!groups[ind]) {
+                groups[ind] = {
+                    industry: ind,
+                    trades: [],
+                    employeeCount: 0,
+                    employees: [],
+                    tickers: [],
+                    purchases: 0,
+                    sales: 0
+                };
+            }
+            groups[ind].trades.push(t);
+            if (!groups[ind].employees.includes(t.politician_name)) {
+                groups[ind].employees.push(t.politician_name);
+            }
+            if (!groups[ind].tickers.includes(sym)) {
+                groups[ind].tickers.push(sym);
+            }
+            if (t.transaction_type === 'Purchase') {
+                groups[ind].purchases++;
+            } else if (t.transaction_type === 'Sale') {
+                groups[ind].sales++;
+            }
+        });
+
+        return Object.values(groups)
+            .map(g => ({
+                ...g,
+                employeeCount: g.employees.length
+            }))
+            .sort((a, b) => b.employeeCount - a.employeeCount);
+    }, [trades]);
 
     if (isLoading) {
         return (
@@ -2200,14 +2310,30 @@ export default function CapitolRadarPage() {
 
                             {/* Trades Table List */}
                             <div className="bg-[#0e0c15] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative">
-                                <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                                <div className="p-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-bold tracking-tight text-white uppercase italic">SURVEILLANCE FEED</h3>
                                         <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Showing {trades.length} parsed transactions</p>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-accent uppercase tracking-widest bg-accent/15 px-3 py-1.5 border border-accent/25 rounded-md">
-                                        <span className="w-1.5 h-1.5 bg-accent rounded-full animate-ping" />
-                                        LIVE SECTORS ACTIVE
+                                    <div className="flex bg-black/40 p-1 border border-white/5 rounded-xl self-start md:self-auto">
+                                        <button
+                                            onClick={() => setViewTab('individual')}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${viewTab === 'individual' ? 'bg-white text-black font-black' : 'text-white/40 hover:text-white/60'}`}
+                                        >
+                                            Individual Trades
+                                        </button>
+                                        <button
+                                            onClick={() => setViewTab('company')}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${viewTab === 'company' ? 'bg-white text-black font-black' : 'text-white/40 hover:text-white/60'}`}
+                                        >
+                                            Grouped by Company
+                                        </button>
+                                        <button
+                                            onClick={() => setViewTab('industry')}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${viewTab === 'industry' ? 'bg-white text-black font-black' : 'text-white/40 hover:text-white/60'}`}
+                                        >
+                                            Grouped by Industry
+                                        </button>
                                     </div>
                                 </div>
 
@@ -2217,7 +2343,7 @@ export default function CapitolRadarPage() {
                                         <p className="font-bold uppercase tracking-wider text-sm">No transaction matches</p>
                                         <p className="text-xs uppercase tracking-tight mt-1 opacity-60">Adjust filters or trigger a live sync</p>
                                     </div>
-                                ) : (
+                                ) : viewTab === 'individual' ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
@@ -2303,6 +2429,159 @@ export default function CapitolRadarPage() {
                                                             </td>
                                                         </tr>
                                                     )
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : viewTab === 'company' ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-white/5 text-[10px] font-black uppercase text-white/40 tracking-wider">
+                                                    <th className="py-4 pl-6">COMPANY (TICKER)</th>
+                                                    <th className="py-4">GOVERNMENT EMPLOYEES</th>
+                                                    <th className="py-4">ACTIVITY SPREAD</th>
+                                                    <th className="py-4 text-center">TOTAL</th>
+                                                    <th className="py-4 text-center">STATUS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5 text-sm">
+                                                {groupedByTicker.map((group) => {
+                                                    const hasCoordinatedPlay = group.employeeCount >= 2;
+                                                    return (
+                                                        <tr 
+                                                            key={group.ticker} 
+                                                            className={`hover:bg-white/[0.02] transition-colors group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                        >
+                                                            {/* Company Details */}
+                                                            <td className="py-4 pl-6 max-w-[200px]">
+                                                                <div className="font-bold text-white group-hover:text-accent transition-colors truncate">{group.companyName}</div>
+                                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                                    <span className="text-[9px] uppercase font-bold text-white/40 truncate max-w-[120px]">{group.industry}</span>
+                                                                    <span className="w-1 h-1 bg-white/20 rounded-full" />
+                                                                    <span className="font-mono text-[9px] text-white/60 font-black tracking-wider uppercase">{group.ticker}</span>
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Government Employees */}
+                                                            <td className="py-4 max-w-[260px]">
+                                                                <div className="text-xs text-white/80 leading-relaxed font-medium">
+                                                                    {group.employees.join(', ')}
+                                                                </div>
+                                                                <div className="text-[9px] text-white/40 uppercase font-bold mt-0.5">
+                                                                    {group.employeeCount} governmental {group.employeeCount === 1 ? 'employee' : 'employees'}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Purchases vs Sales */}
+                                                            <td className="py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    {group.purchases > 0 && (
+                                                                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/25">
+                                                                            {group.purchases} BUY{group.purchases > 1 ? 'S' : ''}
+                                                                        </span>
+                                                                    )}
+                                                                    {group.sales > 0 && (
+                                                                        <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/25">
+                                                                            {group.sales} SELL{group.sales > 1 ? 'S' : ''}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Total Trades */}
+                                                            <td className="py-4 text-center font-mono font-black text-white text-xs">
+                                                                {group.trades.length}
+                                                            </td>
+
+                                                            {/* Status */}
+                                                            <td className="py-4 text-center pr-6">
+                                                                {hasCoordinatedPlay ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-red-400 bg-red-500/15 border border-red-500/25 px-2.5 py-1 rounded shadow-[0_0_8px_rgba(239,68,68,0.15)] animate-pulse">
+                                                                        <AlertOctagon size={9} />
+                                                                        COORDINATED PLAY
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-white/30 bg-white/5 px-2 py-1 rounded border border-white/5">
+                                                                        Standard
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-white/5 text-[10px] font-black uppercase text-white/40 tracking-wider">
+                                                    <th className="py-4 pl-6">INDUSTRY SECTOR</th>
+                                                    <th className="py-4">GOVERNMENT EMPLOYEES</th>
+                                                    <th className="py-4">TICKERS TRADED</th>
+                                                    <th className="py-4 text-center">TOTAL</th>
+                                                    <th className="py-4 text-center">STATUS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5 text-sm">
+                                                {groupedByIndustry.map((group) => {
+                                                    const hasCoordinatedPlay = group.employeeCount >= 2;
+                                                    return (
+                                                        <tr 
+                                                            key={group.industry} 
+                                                            className={`hover:bg-white/[0.02] transition-colors group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                        >
+                                                            {/* Industry Details */}
+                                                            <td className="py-4 pl-6 max-w-[200px]">
+                                                                <div className="font-bold text-white group-hover:text-accent transition-colors">{group.industry}</div>
+                                                                <div className="text-[9px] text-white/40 uppercase font-bold mt-0.5">
+                                                                    {group.tickers.length} active {group.tickers.length === 1 ? 'company' : 'companies'}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Government Employees */}
+                                                            <td className="py-4 max-w-[260px]">
+                                                                <div className="text-xs text-white/80 leading-relaxed font-medium">
+                                                                    {group.employees.join(', ')}
+                                                                </div>
+                                                                <div className="text-[9px] text-white/40 uppercase font-bold mt-0.5">
+                                                                    {group.employeeCount} governmental {group.employeeCount === 1 ? 'employee' : 'employees'}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Tickers Traded */}
+                                                            <td className="py-4 max-w-[150px]">
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {group.tickers.map(ticker => (
+                                                                        <span key={ticker} className="font-mono text-[9px] text-white/60 font-black bg-white/5 border border-white/5 px-1.5 py-0.5 rounded">
+                                                                            {ticker}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Total Trades */}
+                                                            <td className="py-4 text-center font-mono font-black text-white text-xs">
+                                                                {group.trades.length}
+                                                            </td>
+
+                                                            {/* Status */}
+                                                            <td className="py-4 text-center pr-6">
+                                                                {hasCoordinatedPlay ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-red-400 bg-red-500/15 border border-red-500/25 px-2.5 py-1 rounded shadow-[0_0_8px_rgba(239,68,68,0.15)] animate-pulse">
+                                                                        <AlertOctagon size={9} />
+                                                                        HIGH FOCUS
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-white/30 bg-white/5 px-2 py-1 rounded border border-white/5">
+                                                                        Standard
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
                                                 })}
                                             </tbody>
                                         </table>
