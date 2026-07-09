@@ -119,6 +119,8 @@ Output Format (Output strictly as a JSON object):
         // 2. Generate Images (Multiple if requested)
         const generatedImages: Array<{ style: string; url: string; publicUrl?: string }> = []
 
+        let singleImageFallback = false
+
         if (generateMultipleImages && imageStyles.length > 0) {
             // Generate multiple images with different styles
             for (const style of imageStyles) {
@@ -130,8 +132,7 @@ Output Format (Output strictly as a JSON object):
                         prompt: imagePrompt,
                         n: 1,
                         size: "1024x1024",
-                        quality: "standard",
-                        style: style.toLowerCase() === 'realistic' ? "natural" : "vivid"
+                        quality: "standard"
                     })
 
                     const imageUrl = imageResponse?.data?.[0]?.url || ""
@@ -143,33 +144,46 @@ Output Format (Output strictly as a JSON object):
                 }
             }
 
-            // Return blog data with multiple image options
-            return NextResponse.json({
-                blog: { ...blogData, title: finalTitle },
-                images: generatedImages,
-                requiresImageSelection: true
-            })
-        } else {
+            if (generatedImages.length > 0) {
+                // Return blog data with multiple image options
+                return NextResponse.json({
+                    blog: { ...blogData, title: finalTitle },
+                    images: generatedImages,
+                    requiresImageSelection: true
+                })
+            } else {
+                console.warn("All style image generations failed / DALL-E model not enabled. Falling back to single featured post image.")
+                singleImageFallback = true
+            }
+        }
+
+        if (!generateMultipleImages || singleImageFallback) {
             // Original single image generation
             const imageStyle = imageStyles[0] || 'Minimalist'
             const imagePrompt = getImagePrompt(finalTitle, imageStyle)
+            let finalImageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000" // Premium Cyber-Organic background fallback
 
-            const imageResponse = await openai.images.generate({
-                model: "dall-e-3",
-                prompt: imagePrompt,
-                n: 1,
-                size: "1024x1024",
-                quality: "standard",
-                style: imageStyle.toLowerCase() === 'realistic' ? "natural" : "vivid"
-            })
+            try {
+                const imageResponse = await openai.images.generate({
+                    model: "dall-e-3",
+                    prompt: imagePrompt,
+                    n: 1,
+                    size: "1024x1024",
+                    quality: "standard"
+                })
 
-            const imageUrl = imageResponse?.data?.[0]?.url || ""
-            let finalImageUrl = imageUrl
+                const imageUrl = imageResponse?.data?.[0]?.url || ""
+                if (imageUrl) {
+                    finalImageUrl = imageUrl
+                }
+            } catch (imageGenErr) {
+                console.error("DALL-E image generation failed on current OpenAI plan. Proceeding with premium abstract placeholder:", imageGenErr)
+            }
 
             // 3. Upload to Supabase Storage (Permanent Hosting)
-            if (imageUrl) {
+            if (finalImageUrl) {
                 try {
-                    const imageRes = await fetch(imageUrl)
+                    const imageRes = await fetch(finalImageUrl)
                     if (imageRes.ok) {
                         const imageBuffer = await imageRes.arrayBuffer()
                         const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.png`
@@ -223,7 +237,7 @@ Output Format (Output strictly as a JSON object):
 
             if (dbError) {
                 console.error('DB Error:', dbError)
-                return NextResponse.json({ blog: { ...blogData, featured_image: imageUrl }, saved: false, error: dbError.message })
+                return NextResponse.json({ blog: { ...blogData, featured_image: finalImageUrl }, saved: false, error: dbError.message })
             }
 
             return NextResponse.json({ blog: insertedBlog, saved: true })

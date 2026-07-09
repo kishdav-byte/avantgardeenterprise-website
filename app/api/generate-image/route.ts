@@ -32,20 +32,24 @@ export async function POST(request: Request) {
         const { prompt, style = 'vivid' } = await request.json()
 
         const openai = new OpenAI({ apiKey })
+        let imageUrl = ""
 
-        const imageResponse = await openai.images.generate({
-            model: "dall-e-3",
-            prompt,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard",
-            style: style as "vivid" | "natural"
-        })
-
-        const imageUrl = imageResponse?.data?.[0]?.url || ""
+        try {
+            const imageResponse = await openai.images.generate({
+                model: "dall-e-3",
+                prompt,
+                n: 1,
+                size: "1024x1024",
+                quality: "standard"
+            })
+            imageUrl = imageResponse?.data?.[0]?.url || ""
+        } catch (imageGenErr) {
+            console.error("DALL-E generation failed, using premium cyber-organic fallback image:", imageGenErr)
+            imageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000"
+        }
 
         if (!imageUrl) {
-            throw new Error('Failed to generate image')
+            throw new Error('Failed to generate image or retrieve fallback')
         }
 
         // Upload to Supabase Storage
