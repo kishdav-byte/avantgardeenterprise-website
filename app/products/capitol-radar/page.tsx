@@ -3023,6 +3023,85 @@ export default function CapitolRadarPage() {
                                     );
                                 })()}
 
+                                {/* All Ticker Activity — grouped by date */}
+                                {(() => {
+                                    const sym = selectedTrade.ticker.toUpperCase();
+                                    const allTickerTrades = originalTrades
+                                        .filter(t => t.ticker.toUpperCase() === sym)
+                                        .sort((a, b) => (a.transaction_date || '').localeCompare(b.transaction_date || ''));
+                                    if (allTickerTrades.length <= 1) return null;
+
+                                    const byDate: Record<string, Trade[]> = {};
+                                    allTickerTrades.forEach(t => {
+                                        const d = t.transaction_date ? t.transaction_date.slice(0, 10) : 'Unknown';
+                                        if (!byDate[d]) byDate[d] = [];
+                                        byDate[d].push(t);
+                                    });
+
+                                    const purchases = allTickerTrades.filter(t => t.transaction_type === 'Purchase');
+                                    const sales = allTickerTrades.filter(t => t.transaction_type === 'Sale');
+
+                                    return (
+                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">
+                                                    All {sym} Activity — {allTickerTrades.length} Disclosures
+                                                </p>
+                                                <div className="flex items-center gap-3">
+                                                    {purchases.length > 0 && <span className="text-[9px] font-black text-emerald-400">{purchases.length} BUY{purchases.length > 1 ? 'S' : ''}</span>}
+                                                    {sales.length > 0 && <span className="text-[9px] font-black text-red-400">{sales.length} SELL{sales.length > 1 ? 'S' : ''}</span>}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {Object.entries(byDate).map(([date, dayTrades]) => (
+                                                    <div key={date}>
+                                                        <div className="flex items-center gap-2 mb-1.5">
+                                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest font-mono">{date}</span>
+                                                            <div className="flex-1 h-px bg-white/5"></div>
+                                                            <span className="text-[8px] font-bold text-white/20 uppercase">{dayTrades.length} trade{dayTrades.length > 1 ? 's' : ''}</span>
+                                                        </div>
+                                                        <div className="space-y-1 pl-2">
+                                                            {dayTrades.map(t => {
+                                                                const isPurchase = t.transaction_type === 'Purchase';
+                                                                const isCurrent = t.id === selectedTrade.id;
+                                                                return (
+                                                                    <div
+                                                                        key={t.id}
+                                                                        className={`flex items-center justify-between py-1.5 px-3 rounded-lg transition-all cursor-pointer ${
+                                                                            isCurrent
+                                                                                ? 'bg-accent/10 border border-accent/25'
+                                                                                : isPurchase
+                                                                                ? 'bg-emerald-500/5 border border-emerald-500/10 hover:border-emerald-500/35'
+                                                                                : 'bg-red-500/5 border border-red-500/10 hover:border-red-500/35'
+                                                                        }`}
+                                                                        onClick={() => { if (!isCurrent) setSelectedTrade(t); }}
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`text-[8px] font-black uppercase tracking-wider ${isPurchase ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                                                {isPurchase ? '▲ BUY' : '▼ SELL'}
+                                                                            </span>
+                                                                            <span className={`text-[10px] font-bold ${isCurrent ? 'text-accent' : 'text-white/75'}`}>
+                                                                                {t.politician_name}
+                                                                            </span>
+                                                                            {isCurrent && <span className="text-[8px] font-black text-accent/70 uppercase tracking-wider">← current</span>}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {isAdmin && t.amount_range && (
+                                                                                <span className="text-[9px] text-white/30 font-bold font-mono">{t.amount_range}</span>
+                                                                            )}
+                                                                            <span className="text-[8px] text-white/20 font-bold uppercase">{t.chamber}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
                                     <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">POLITICIAN Intel</p>
                                     <div className="grid grid-cols-2 gap-4">
