@@ -2386,6 +2386,7 @@ export default function CapitolRadarPage() {
                                                 <tr className="border-b border-white/5 text-[10px] font-black uppercase text-white/40 tracking-wider">
                                                     <th className="py-4 pl-6">POLITICIAN</th>
                                                     <th className="py-4">TICKER</th>
+                                                    <th className="py-4">INDUSTRY</th>
                                                     <th className="py-4">ACTION</th>
                                                     <th className="py-4">EST. VALUE</th>
                                                     <th className="py-4 text-center">LATENCY</th>
@@ -2418,6 +2419,13 @@ export default function CapitolRadarPage() {
                                                             <td className="py-4">
                                                                 <span className="font-mono font-black text-white bg-white/5 px-2.5 py-1 border border-white/5 rounded-md">
                                                                     {trade.ticker}
+                                                                </span>
+                                                            </td>
+
+                                                            {/* Industry */}
+                                                            <td className="py-4 max-w-[150px] truncate">
+                                                                <span className="text-xs text-white/60 font-bold">
+                                                                    {COMPANY_DIRECTORY[trade.ticker.toUpperCase()]?.industry || 'Standard Market Listing'}
                                                                 </span>
                                                             </td>
 
