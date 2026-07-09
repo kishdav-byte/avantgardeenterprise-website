@@ -2046,6 +2046,8 @@ export default function CapitolRadarPage() {
             purchases: number;
             sales: number;
             totalVolume: number;
+            tickerActionMap: Record<string, { purchases: number; sales: number; exchanges: number }>;
+            memberActionMap: Record<string, { purchases: Trade[]; sales: Trade[]; exchanges: Trade[] }>;
         }> = {};
 
         trades.forEach(t => {
@@ -2065,7 +2067,9 @@ export default function CapitolRadarPage() {
                     tickers: [],
                     purchases: 0,
                     sales: 0,
-                    totalVolume: 0
+                    totalVolume: 0,
+                    tickerActionMap: {},
+                    memberActionMap: {}
                 };
             }
             groups[ind].trades.push(t);
@@ -2075,10 +2079,25 @@ export default function CapitolRadarPage() {
             if (!groups[ind].tickers.includes(sym)) {
                 groups[ind].tickers.push(sym);
             }
+            // Per-ticker action map
+            if (!groups[ind].tickerActionMap[sym]) {
+                groups[ind].tickerActionMap[sym] = { purchases: 0, sales: 0, exchanges: 0 };
+            }
+            // Per-member action map
+            if (!groups[ind].memberActionMap[t.politician_name]) {
+                groups[ind].memberActionMap[t.politician_name] = { purchases: [], sales: [], exchanges: [] };
+            }
             if (t.transaction_type === 'Purchase') {
                 groups[ind].purchases++;
+                groups[ind].tickerActionMap[sym].purchases++;
+                groups[ind].memberActionMap[t.politician_name].purchases.push(t);
             } else if (t.transaction_type === 'Sale') {
                 groups[ind].sales++;
+                groups[ind].tickerActionMap[sym].sales++;
+                groups[ind].memberActionMap[t.politician_name].sales.push(t);
+            } else {
+                groups[ind].tickerActionMap[sym].exchanges++;
+                groups[ind].memberActionMap[t.politician_name].exchanges.push(t);
             }
             groups[ind].totalVolume += parseAmountToNumeric(t.amount_range);
         });
@@ -2090,6 +2109,20 @@ export default function CapitolRadarPage() {
             }))
             .sort((a, b) => b.employeeCount - a.employeeCount);
     }, [trades]);
+
+    type IndustryGroup = {
+        industry: string;
+        trades: Trade[];
+        employeeCount: number;
+        employees: string[];
+        tickers: string[];
+        purchases: number;
+        sales: number;
+        totalVolume: number;
+        tickerActionMap: Record<string, { purchases: number; sales: number; exchanges: number }>;
+        memberActionMap: Record<string, { purchases: Trade[]; sales: Trade[]; exchanges: Trade[] }>;
+    };
+    const [selectedIndustryGroup, setSelectedIndustryGroup] = useState<IndustryGroup | null>(null);
 
     if (isLoading) {
         return (
@@ -2606,8 +2639,8 @@ export default function CapitolRadarPage() {
                                             <thead>
                                                 <tr className="border-b border-white/5 text-[10px] font-black uppercase text-white/40 tracking-wider">
                                                     <th className="py-4 pl-6">INDUSTRY SECTOR</th>
-                                                    <th className="py-4">GOVERNMENT EMPLOYEES</th>
-                                                    <th className="py-4">TICKERS TRADED</th>
+                                                    <th className="py-4">MEMBERS — PURCHASES / SALES</th>
+                                                    <th className="py-4">TICKERS (GREEN=BUY · RED=SELL)</th>
                                                     <th className="py-4 text-center">EST. VOLUME</th>
                                                     <th className="py-4 text-center">TOTAL</th>
                                                     <th className="py-4 text-center">STATUS</th>
@@ -2617,36 +2650,68 @@ export default function CapitolRadarPage() {
                                                 {groupedByIndustry.map((group) => {
                                                     const hasCoordinatedPlay = group.employeeCount >= 2;
                                                     return (
-                                                        <tr 
-                                                            key={group.industry} 
-                                                            className={`hover:bg-white/[0.02] transition-colors group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                        <tr
+                                                            key={group.industry}
+                                                            className={`hover:bg-white/[0.04] transition-colors cursor-pointer group ${hasCoordinatedPlay ? 'bg-red-500/[0.01]' : ''}`}
+                                                            onClick={() => setSelectedIndustryGroup(group)}
                                                         >
                                                             {/* Industry Details */}
-                                                            <td className="py-4 pl-6 max-w-[200px]">
+                                                            <td className="py-4 pl-6 max-w-[160px]">
                                                                 <div className="font-bold text-white group-hover:text-accent transition-colors">{group.industry}</div>
                                                                 <div className="text-[9px] text-white/40 uppercase font-bold mt-0.5">
                                                                     {group.tickers.length} active {group.tickers.length === 1 ? 'company' : 'companies'}
                                                                 </div>
-                                                            </td>
-
-                                                            {/* Government Employees */}
-                                                            <td className="py-4 max-w-[260px]">
-                                                                <div className="text-xs text-white/80 leading-relaxed font-medium">
-                                                                    {group.employees.join(', ')}
-                                                                </div>
-                                                                <div className="text-[9px] text-white/40 uppercase font-bold mt-0.5">
-                                                                    {group.employeeCount} governmental {group.employeeCount === 1 ? 'employee' : 'employees'}
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    {group.purchases > 0 && <span className="text-[9px] font-black text-emerald-400">{group.purchases} BUY{group.purchases > 1 ? 'S' : ''}</span>}
+                                                                    {group.purchases > 0 && group.sales > 0 && <span className="text-white/20">·</span>}
+                                                                    {group.sales > 0 && <span className="text-[9px] font-black text-red-400">{group.sales} SELL{group.sales > 1 ? 'S' : ''}</span>}
                                                                 </div>
                                                             </td>
 
-                                                            {/* Tickers Traded */}
-                                                            <td className="py-4 max-w-[150px]">
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {group.tickers.map(ticker => (
-                                                                        <span key={ticker} className="font-mono text-[9px] text-white/60 font-black bg-white/5 border border-white/5 px-1.5 py-0.5 rounded">
-                                                                            {ticker}
-                                                                        </span>
+                                                            {/* Members with Buy/Sell breakdown */}
+                                                            <td className="py-4 max-w-[220px]">
+                                                                <div className="space-y-1">
+                                                                    {Object.entries(group.memberActionMap).slice(0, 4).map(([member, actions]) => (
+                                                                        <div key={member} className="flex items-center gap-1.5">
+                                                                            <span className="text-[10px] text-white/75 font-medium truncate max-w-[130px]">{member.split(' ').slice(-1)[0]}</span>
+                                                                            <div className="flex gap-0.5">
+                                                                                {actions.purchases.length > 0 && (
+                                                                                    <span className="text-[8px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 rounded">
+                                                                                        +{actions.purchases.length}
+                                                                                    </span>
+                                                                                )}
+                                                                                {actions.sales.length > 0 && (
+                                                                                    <span className="text-[8px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-1 rounded">
+                                                                                        -{actions.sales.length}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
                                                                     ))}
+                                                                    {Object.keys(group.memberActionMap).length > 4 && (
+                                                                        <div className="text-[9px] text-white/30 font-bold uppercase">+{Object.keys(group.memberActionMap).length - 4} more</div>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* Color-coded Tickers */}
+                                                            <td className="py-4 max-w-[180px]">
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {group.tickers.map(ticker => {
+                                                                        const ta = group.tickerActionMap[ticker] || { purchases: 0, sales: 0, exchanges: 0 };
+                                                                        const isMostlyBuy = ta.purchases >= ta.sales && ta.purchases > 0;
+                                                                        const isMostlySell = ta.sales > ta.purchases;
+                                                                        const colorClass = isMostlyBuy
+                                                                            ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                                                                            : isMostlySell
+                                                                            ? 'text-red-400 bg-red-500/10 border-red-500/30'
+                                                                            : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+                                                                        return (
+                                                                            <span key={ticker} className={`font-mono text-[9px] font-black border px-1.5 py-0.5 rounded ${colorClass}`}>
+                                                                                {ticker}
+                                                                            </span>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             </td>
 
@@ -3051,6 +3116,162 @@ export default function CapitolRadarPage() {
                                         className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors"
                                     >
                                         Close Intel Report
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Industry Drill-Down Modal */}
+            <AnimatePresence>
+                {selectedIndustryGroup && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+                        onClick={() => setSelectedIndustryGroup(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-[#0b0a0e] border border-white/10 rounded-3xl w-full max-w-3xl relative overflow-y-auto max-h-[92vh]"
+                        >
+                            {/* Modal Header */}
+                            <div className="sticky top-0 bg-[#0b0a0e]/95 backdrop-blur-sm border-b border-white/5 px-8 py-6 flex items-start justify-between z-10">
+                                <div>
+                                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-1">Industry Intelligence Report</p>
+                                    <h4 className="text-2xl font-black text-white uppercase italic">{selectedIndustryGroup.industry}</h4>
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">{selectedIndustryGroup.purchases} PURCHASES</span>
+                                        <span className="text-white/20">·</span>
+                                        <span className="text-[10px] font-black text-red-400 uppercase tracking-wider">{selectedIndustryGroup.sales} SALES</span>
+                                        <span className="text-white/20">·</span>
+                                        <span className="text-[10px] font-black text-white/50 uppercase tracking-wider">{selectedIndustryGroup.trades.length} TOTAL DISCLOSURES</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedIndustryGroup(null)}
+                                    className="text-white/40 hover:text-white transition-colors mt-1 flex-shrink-0"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="p-8 space-y-6">
+
+                                {/* Ticker Legend */}
+                                <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">Tickers Traded in This Sector</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedIndustryGroup.tickers.map((ticker: string) => {
+                                            const ta = selectedIndustryGroup.tickerActionMap[ticker] || { purchases: 0, sales: 0, exchanges: 0 };
+                                            const isBuy = ta.purchases >= ta.sales && ta.purchases > 0;
+                                            const isSell = ta.sales > ta.purchases;
+                                            const colorClass = isBuy
+                                                ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                                                : isSell
+                                                ? 'text-red-400 bg-red-500/10 border-red-500/30'
+                                                : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+                                            const company = COMPANY_DIRECTORY[ticker] || { name: ticker, industry: '', description: '' };
+                                            return (
+                                                <div key={ticker} className={`flex items-center gap-2 px-3 py-2 border rounded-xl ${colorClass}`}>
+                                                    <span className="font-mono text-xs font-black">{ticker}</span>
+                                                    <span className="text-[9px] font-bold opacity-70 max-w-[140px] truncate">{company.name}</span>
+                                                    <div className="flex gap-1 ml-1">
+                                                        {ta.purchases > 0 && <span className="text-[8px] font-black text-emerald-400 bg-emerald-500/20 px-1 rounded">↑{ta.purchases}</span>}
+                                                        {ta.sales > 0 && <span className="text-[8px] font-black text-red-400 bg-red-500/20 px-1 rounded">↓{ta.sales}</span>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Per-Member Breakdown */}
+                                <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-4">Member Activity Breakdown</p>
+                                    <div className="space-y-4">
+                                        {Object.entries(selectedIndustryGroup.memberActionMap).map(([member, actions]: [string, { purchases: Trade[]; sales: Trade[]; exchanges: Trade[] }]) => (
+                                            <div key={member} className="border border-white/5 rounded-xl p-4 bg-white/[0.02]">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div>
+                                                        <p className="text-sm font-black text-white">{member}</p>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            {actions.purchases.length > 0 && (
+                                                                <span className="text-[9px] font-black text-emerald-400">{actions.purchases.length} BUY{actions.purchases.length > 1 ? 'S' : ''}</span>
+                                                            )}
+                                                            {actions.purchases.length > 0 && actions.sales.length > 0 && <span className="text-white/20">·</span>}
+                                                            {actions.sales.length > 0 && (
+                                                                <span className="text-[9px] font-black text-red-400">{actions.sales.length} SELL{actions.sales.length > 1 ? 'S' : ''}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[9px] font-black uppercase tracking-wider text-white/30 bg-white/5 border border-white/5 px-2 py-1 rounded">
+                                                        {actions.purchases.length + actions.sales.length + actions.exchanges.length} trades
+                                                    </span>
+                                                </div>
+
+                                                {/* Purchases rows */}
+                                                {actions.purchases.length > 0 && (
+                                                    <div className="space-y-1 mb-2">
+                                                        {actions.purchases.map(t => (
+                                                            <div
+                                                                key={t.id}
+                                                                className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 cursor-pointer hover:border-emerald-500/30 transition-colors"
+                                                                onClick={() => { setSelectedIndustryGroup(null); setSelectedTrade(t); }}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-mono text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">{t.ticker}</span>
+                                                                    <span className="text-[9px] text-emerald-400 font-black uppercase">PURCHASE</span>
+                                                                    <span className="text-[9px] text-white/40">{t.transaction_date ? t.transaction_date.slice(0,10) : '—'}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {isAdmin && <span className="text-[9px] text-white/50 font-bold font-mono">{t.amount_range}</span>}
+                                                                    <ChevronRight size={12} className="text-white/20" />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Sales rows */}
+                                                {actions.sales.length > 0 && (
+                                                    <div className="space-y-1">
+                                                        {actions.sales.map(t => (
+                                                            <div
+                                                                key={t.id}
+                                                                className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-red-500/5 border border-red-500/10 cursor-pointer hover:border-red-500/30 transition-colors"
+                                                                onClick={() => { setSelectedIndustryGroup(null); setSelectedTrade(t); }}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-mono text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">{t.ticker}</span>
+                                                                    <span className="text-[9px] text-red-400 font-black uppercase">SALE</span>
+                                                                    <span className="text-[9px] text-white/40">{t.transaction_date ? t.transaction_date.slice(0,10) : '—'}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {isAdmin && <span className="text-[9px] text-white/50 font-bold font-mono">{t.amount_range}</span>}
+                                                                    <ChevronRight size={12} className="text-white/20" />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="text-right">
+                                    <button
+                                        onClick={() => setSelectedIndustryGroup(null)}
+                                        className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors rounded-xl"
+                                    >
+                                        Close Report
                                     </button>
                                 </div>
                             </div>
