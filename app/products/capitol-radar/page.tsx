@@ -3409,10 +3409,36 @@ export default function CapitolRadarPage() {
                                                     tickFormatter={v => `$${v.toFixed(0)}`}
                                                 />
                                                 <Tooltip
-                                                    contentStyle={{ background: '#0b0a0e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '8px 12px' }}
-                                                    labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}
-                                                    itemStyle={{ color: isPositive ? '#34d399' : '#f87171', fontWeight: 900, fontSize: 13, fontFamily: 'monospace' }}
-                                                    formatter={(v) => [typeof v === 'number' ? `$${v.toFixed(2)}` : v, 'Price']}
+                                                    content={({ active, payload, label }) => {
+                                                        if (!active || !payload || !payload.length) return null;
+                                                        const price = payload[0]?.value;
+                                                        const dayTrades = tradeMarkers.filter(mk => mk.date === label);
+                                                        return (
+                                                            <div style={{ background: '#0d0b12', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '12px 16px', minWidth: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+                                                                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 6 }}>{label}</p>
+                                                                <p style={{ color: isPositive ? '#34d399' : '#f87171', fontWeight: 900, fontSize: 18, fontFamily: 'monospace', marginBottom: dayTrades.length > 0 ? 10 : 0, lineHeight: 1 }}>
+                                                                    ${typeof price === 'number' ? price.toFixed(2) : price}
+                                                                </p>
+                                                                {dayTrades.length > 0 && (
+                                                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 10 }}>
+                                                                        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>trades on this date</p>
+                                                                        {dayTrades.map((mk, i) => {
+                                                                            const isBuy = mk.action === 'Purchase';
+                                                                            const dotColor = isBuy ? '#34d399' : '#f87171';
+                                                                            return (
+                                                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: i < dayTrades.length - 1 ? 6 : 0 }}>
+                                                                                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotColor}60` }}></span>
+                                                                                    <span style={{ fontSize: 9, fontWeight: 900, color: dotColor, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>{isBuy ? 'BUY' : 'SELL'}</span>
+                                                                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{mk.member}</span>
+                                                                                    {mk.amount && isAdmin && <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', fontWeight: 700, marginLeft: 2 }}>{mk.amount}</span>}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }}
                                                 />
                                                 {/* One reference line per trade event */}
                                                 {tradeMarkers.map((mk, idx) => {
