@@ -37,6 +37,44 @@ interface SimulatedStock {
     prevPrice: number
 }
 
+interface CompanyDetails {
+    name: string
+    industry: string
+    description: string
+}
+
+const COMPANY_DIRECTORY: Record<string, CompanyDetails> = {
+    AAPL: { name: 'Apple Inc.', industry: 'Technology (Consumer Hardware)', description: 'Designs and retail-distributes consumer hardware products including iPhones, iPads, Mac computers, wearables, and related ecosystem web services.' },
+    MSFT: { name: 'Microsoft Corp.', industry: 'Technology (Software & Cloud)', description: 'Develops enterprise and client operating systems, suites (Office), search software, game titles, and cloud hosting platform options (Azure).' },
+    GOOGL: { name: 'Alphabet Inc.', industry: 'Technology (Internet & AI)', description: 'Operates primary consumer internet products including Search, Maps, Chrome, YouTube, and Gmail, alongside cloud storage and AI engines.' },
+    GOOG: { name: 'Alphabet Inc.', industry: 'Technology (Internet & AI)', description: 'Operates primary consumer internet products including Search, Maps, Chrome, YouTube, and Gmail, alongside cloud storage and AI engines.' },
+    AMZN: { name: 'Amazon.com Inc.', industry: 'Consumer Services (E-Commerce)', description: 'Sells digital and home consumables via online storefronts, runs logistics supply networks, and provides cloud services (AWS).' },
+    NVDA: { name: 'Nvidia Corp.', industry: 'Technology (Semiconductors)', description: 'Invents high-performance graphics engines (GPUs), computing fabrics, compute hardware, and specialized artificial intelligence processors.' },
+    META: { name: 'Meta Platforms Inc.', industry: 'Technology (Social Media & XR)', description: 'Provides virtual community portals including Facebook, Instagram, Messenger, and WhatsApp, alongside virtual and augmented hardware systems.' },
+    TSLA: { name: 'Tesla Inc.', industry: 'Automotive & Clean Energy', description: 'Designs and builds electric cars, clean energy generators, solar roofs, and battery backup storage packs.' },
+    LMT: { name: 'Lockheed Martin Corp.', industry: 'Defense & Aerospace', description: 'Assembles defensive weapons, jet fighters (F-35), combat vehicles, surveillance radar arrays, and aerospace rocket systems.' },
+    GD: { name: 'General Dynamics Corp.', industry: 'Defense & Undersea Systems', description: 'Constructs atomic combat submarines, combat infantry carriers, defensive electronic weapons, and business planes.' },
+    RTX: { name: 'RTX Corp. (Raytheon)', industry: 'Defense & Electronics', description: 'Builds aerospace jet engines (Pratt & Whitney), rocket interceptors, defensive guided missiles, and avionics flight instrumentation.' },
+    NOC: { name: 'Northrop Grumman Corp.', industry: 'Defense & Space Technology', description: 'Engineers stealth nuclear aircraft models (B-2), orbital communications equipment, cyber systems, and unmanned military aircraft drones.' },
+    BA: { name: 'Boeing Co.', industry: 'Aerospace & Defense', description: 'Manufactures domestic and commercial aviation jets, military transports, aircraft carriers, rocket parts, and space systems.' },
+    XOM: { name: 'Exxon Mobil Corp.', industry: 'Energy (Oil & Gas)', description: 'Explores oil and gas reserves, processes oil refining, and manufactures specialized industrial chemical components.' },
+    CVX: { name: 'Chevron Corp.', industry: 'Energy (Oil & Gas)', description: 'Mines global crude oil deposits, refines combustion gasoline, routes pipelines, and markets chemical solvents.' },
+    JPM: { name: 'JPMorgan Chase & Co.', industry: 'Financial Services (Banking)', description: 'Runs retail check banking services, corporate credit divisions, international equity trading operations, and investment consulting.' },
+    BAC: { name: 'Bank of America Corp.', industry: 'Financial Services (Banking)', description: 'Delivers consumer deposit banking accounts, retail mortgage financing, and investment brokerages (Merrill Lynch).' },
+    UNH: { name: 'UnitedHealth Group Inc.', industry: 'Healthcare (Insurance)', description: 'Offers employer and individual medical insurance programs, pharmaceutical benefit management, and care clinics.' },
+    LLY: { name: 'Eli Lilly & Co.', industry: 'Healthcare (Pharmaceuticals)', description: 'Researches and supplies blockbuster prescription products, GLP-1 weight treatments, and clinical immunology drugs.' },
+    MRK: { name: 'Merck & Co. Inc.', industry: 'Healthcare (Pharmaceuticals)', description: 'Formulates cancer therapies, animal vaccinations, and advanced prescription drugs.' },
+    PFE: { name: 'Pfizer Inc.', industry: 'Healthcare (Pharmaceuticals)', description: 'Develops vaccine formulas, biotherapeutic tablets, and generic drugs.' },
+    CAT: { name: 'Caterpillar Inc.', industry: 'Heavy Equipment & Machinery', description: 'Produces large construction earthmovers, heavy dump trucks, diesel turbines, and railway engines.' },
+    DE: { name: 'Deere & Co.', industry: 'Industrials (Agriculture)', description: 'Assembles smart crop tractors, combine harvesters, utility loaders, and logging tools.' },
+    NFLX: { name: 'Netflix Inc.', industry: 'Consumer Services (Entertainment)', description: 'Sells digital streaming subscriptions for films, series, documentaries, and interactive games.' },
+    AMD: { name: 'Advanced Micro Devices', industry: 'Technology (Semiconductors)', description: 'Fabs advanced CPU chips, GPU gaming engines, and adaptive micro-controllers.' },
+    INTC: { name: 'Intel Corp.', industry: 'Technology (Semiconductors)', description: 'Manufactures personal computer processors, network hub assemblies, and industrial silicon wafer chips.' },
+    QCOM: { name: 'Qualcomm Inc.', industry: 'Technology (Mobile Chips)', description: 'Pioneers fifth-generation cellular radio chips, processors, and wireless licensing frameworks.' },
+    AVGO: { name: 'Broadcom Inc.', industry: 'Technology (Connectivity)', description: 'Sells high-speed infrastructure routing chips, fiber components, and enterprise virtualization systems.' },
+    TSM: { name: 'Taiwan Semiconductor Manufacturing', industry: 'Technology (Semiconductors)', description: 'Manufactures advanced nodes on demand for smartphone brands, cloud providers, and AI clients.' },
+}
+
 // Initial Simulated Quotes
 const INITIAL_STOCKS: SimulatedStock[] = [
     { ticker: 'RTX', name: 'Raytheon Technologies', price: 104.35, change: 1.22, changePercent: 1.18, prevPrice: 104.35 },
@@ -782,6 +820,38 @@ export default function CapitolRadarPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* COMPANY Intel */}
+                                {(() => {
+                                    const company = COMPANY_DIRECTORY[selectedTrade.ticker.toUpperCase()] || {
+                                        name: `${selectedTrade.ticker} Corp.`,
+                                        industry: 'Standard Market Listing',
+                                        description: 'Publicly traded asset with active disclosures tracked across US domestic exchanges.'
+                                    };
+                                    return (
+                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                            <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">COMPANY Intel</p>
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Company Name</p>
+                                                        <p className="text-sm font-black text-white mt-0.5">{company.name}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Industry Sector</p>
+                                                        <p className="text-sm font-black text-white mt-0.5">{company.industry}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-white/60 uppercase">Business Brief</p>
+                                                    <p className="text-xs text-white/40 leading-relaxed font-semibold mt-1">
+                                                        {company.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* COI Alignment Summary Details */}
                                 {isAdmin ? (
