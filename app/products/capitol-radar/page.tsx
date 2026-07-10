@@ -1700,6 +1700,267 @@ function generatePriceHistory(ticker: string, transactionDate: string) {
     return data;
 }
 
+interface PoliticianMeta {
+    state: string;
+    region: string;
+    committees: string[];
+    party: 'D' | 'R' | 'I';
+}
+
+function getPoliticianMetadata(name: string, customParty?: string): PoliticianMeta {
+    const cleanName = (name || '').replace(/^(Hon\.|Senator|Representative|Mr\.|Mrs\.|Ms\.)\s+/i, '').trim();
+
+    // Map of politicians to state, region, committees, and party
+    const KNOWN_POLITICIANS: Record<string, { state: string; region: string; committees: string[]; party: 'D' | 'R' | 'I' }> = {
+        'Nancy Pelosi': { state: 'CA', region: 'West', committees: ['Financial Services', 'Technology'], party: 'D' },
+        'Tommy Tuberville': { state: 'AL', region: 'South', committees: ['Armed Services', 'Agriculture', 'Finance'], party: 'R' },
+        'Markwayne Mullin': { state: 'OK', region: 'South', committees: ['Armed Services', 'Health', 'Energy'], party: 'R' },
+        'Ro Khanna': { state: 'CA', region: 'West', committees: ['Armed Services', 'Technology'], party: 'D' },
+        'Josh Gottheimer': { state: 'NJ', region: 'Northeast', committees: ['Financial Services', 'Intelligence'], party: 'D' },
+        'Michael Guest': { state: 'MS', region: 'South', committees: ['Ethics', 'Homeland Security', 'Transportation'], party: 'R' },
+        'Dan Crenshaw': { state: 'TX', region: 'South', committees: ['Energy and Commerce'], party: 'R' },
+        'Rick Scott': { state: 'FL', region: 'South', committees: ['Armed Services', 'Finance'], party: 'R' },
+        'Sheldon Whitehouse': { state: 'RI', region: 'Northeast', committees: ['Finance', 'Judiciary', 'Environment'], party: 'D' },
+        'John Fetterman': { state: 'PA', region: 'Northeast', committees: ['Agriculture', 'Banking', 'Environment'], party: 'D' },
+        'Pat Toomey': { state: 'PA', region: 'Northeast', committees: ['Banking', 'Finance'], party: 'R' },
+        'Richard Burr': { state: 'NC', region: 'South', committees: ['Health', 'Finance'], party: 'R' },
+        'Marjorie Taylor Greene': { state: 'GA', region: 'South', committees: ['Homeland Security', 'Oversight'], party: 'R' },
+        'Diana Harshbarger': { state: 'TN', region: 'South', committees: ['Energy and Commerce'], party: 'R' },
+        'Daniel Goldman': { state: 'NY', region: 'Northeast', committees: ['Homeland Security', 'Oversight'], party: 'D' },
+        'Jared Moskowitz': { state: 'FL', region: 'South', committees: ['Homeland Security', 'Foreign Affairs'], party: 'D' },
+        'Thomas Carper': { state: 'DE', region: 'Northeast', committees: ['Finance', 'Environment'], party: 'D' },
+        'Angus King': { state: 'ME', region: 'Northeast', committees: ['Armed Services', 'Intelligence', 'Rules'], party: 'I' },
+        'Bernie Sanders': { state: 'VT', region: 'Northeast', committees: ['Health', 'Education', 'Labor', 'Budget'], party: 'I' },
+        'Ted Cruz': { state: 'TX', region: 'South', committees: ['Commerce', 'Science', 'Transportation', 'Judiciary'], party: 'R' },
+        'Mitch McConnell': { state: 'KY', region: 'South', committees: ['Agriculture', 'Rules', 'Appropriations'], party: 'R' },
+        'Chuck Schumer': { state: 'NY', region: 'Northeast', committees: ['Rules', 'Finance'], party: 'D' },
+        'Jared Golden': { state: 'ME', region: 'Northeast', committees: ['Armed Services', 'Small Business'], party: 'D' },
+        'Bill Hagerty': { state: 'TN', region: 'South', committees: ['Banking', 'Foreign Relations', 'Appropriations'], party: 'R' },
+    };
+
+    if (KNOWN_POLITICIANS[cleanName]) {
+        return KNOWN_POLITICIANS[cleanName];
+    }
+
+    // Dynamic generation using stable hash of the name
+    let hash = 0;
+    for (let i = 0; i < cleanName.length; i++) {
+        hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const absHash = Math.abs(hash);
+
+    const partyList: ('D' | 'R' | 'I')[] = ['D', 'R'];
+    const resolvedParty: 'D' | 'R' | 'I' = (customParty === 'D' || customParty === 'Democrat') ? 'D' 
+        : (customParty === 'R' || customParty === 'Republican') ? 'R' 
+        : (customParty === 'I' || customParty === 'Independent') ? 'I' 
+        : partyList[absHash % partyList.length];
+
+    const states = [
+        { state: 'TX', region: 'South' }, { state: 'CA', region: 'West' }, { state: 'FL', region: 'South' },
+        { state: 'NY', region: 'Northeast' }, { state: 'PA', region: 'Northeast' }, { state: 'IL', region: 'Midwest' },
+        { state: 'OH', region: 'Midwest' }, { state: 'GA', region: 'South' }, { state: 'NC', region: 'South' },
+        { state: 'MI', region: 'Midwest' }, { state: 'WA', region: 'West' }, { state: 'AZ', region: 'West' },
+        { state: 'MA', region: 'Northeast' }, { state: 'TN', region: 'South' }, { state: 'IN', region: 'Midwest' },
+        { state: 'MO', region: 'Midwest' }, { state: 'MD', region: 'Northeast' }, { state: 'WI', region: 'Midwest' },
+        { state: 'CO', region: 'West' }, { state: 'MN', region: 'Midwest' }, { state: 'SC', region: 'South' },
+        { state: 'AL', region: 'South' }, { state: 'LA', region: 'South' }, { state: 'KY', region: 'South' },
+        { state: 'OR', region: 'West' }, { state: 'OK', region: 'South' }, { state: 'CT', region: 'Northeast' },
+        { state: 'UT', region: 'West' }, { state: 'IA', region: 'Midwest' }, { state: 'NV', region: 'West' }
+    ];
+    const stateObj = states[absHash % states.length];
+
+    const committeePools = [
+        ['Armed Services', 'Foreign Affairs'],
+        ['Financial Services', 'Agriculture'],
+        ['Energy and Commerce', 'Science, Space and Technology'],
+        ['Homeland Security', 'Oversight and Accountability'],
+        ['Judiciary', 'Rules'],
+        ['Budget', 'Appropriations'],
+        ['Transportation and Infrastructure', 'Veterans Affairs'],
+        ['Natural Resources', 'Education and the Workforce']
+    ];
+    const committees = committeePools[absHash % committeePools.length];
+
+    return {
+        state: stateObj.state,
+        region: stateObj.region,
+        committees,
+        party: resolvedParty
+    };
+}
+
+interface CompanyMeta {
+    name: string;
+    industry: string;
+    state: string;
+    region: string;
+    description: string;
+}
+
+function getCompanyMetadata(ticker: string): CompanyMeta {
+    const sym = ticker.toUpperCase();
+    const details = COMPANY_DIRECTORY[sym];
+
+    // Map of tickers to headquarters state & region
+    const TICKER_LOCATIONS: Record<string, { state: string; region: string }> = {
+        AAPL: { state: 'CA', region: 'West' },
+        NVDA: { state: 'CA', region: 'West' },
+        MSFT: { state: 'WA', region: 'West' },
+        AMZN: { state: 'WA', region: 'West' },
+        GOOGL: { state: 'CA', region: 'West' },
+        GOOG: { state: 'CA', region: 'West' },
+        META: { state: 'CA', region: 'West' },
+        TSM: { state: 'TW', region: 'International' },
+        AVGO: { state: 'CA', region: 'West' },
+        CSCO: { state: 'CA', region: 'West' },
+        ORCL: { state: 'TX', region: 'South' },
+        INTC: { state: 'CA', region: 'West' },
+        AMD: { state: 'CA', region: 'West' },
+        QCOM: { state: 'CA', region: 'West' },
+        NFLX: { state: 'CA', region: 'West' },
+        LMT: { state: 'MD', region: 'Northeast' },
+        GD: { state: 'VA', region: 'South' },
+        RTX: { state: 'VA', region: 'South' },
+        NOC: { state: 'VA', region: 'South' },
+        BA: { state: 'VA', region: 'South' },
+        XOM: { state: 'TX', region: 'South' },
+        CVX: { state: 'CA', region: 'West' },
+        COP: { state: 'TX', region: 'South' },
+        JPM: { state: 'NY', region: 'Northeast' },
+        BAC: { state: 'NC', region: 'South' },
+        WFC: { state: 'CA', region: 'West' },
+        C: { state: 'NY', region: 'Northeast' },
+        GS: { state: 'NY', region: 'Northeast' },
+        MS: { state: 'NY', region: 'Northeast' },
+        AXP: { state: 'NY', region: 'Northeast' },
+        V: { state: 'CA', region: 'West' },
+        MA: { state: 'NY', region: 'Northeast' },
+        UNH: { state: 'MN', region: 'Midwest' },
+        JNJ: { state: 'NJ', region: 'Northeast' },
+        PFE: { state: 'NY', region: 'Northeast' },
+        LLY: { state: 'IN', region: 'Midwest' },
+        ABBV: { state: 'IL', region: 'Midwest' },
+        MRK: { state: 'NJ', region: 'Northeast' },
+        DE: { state: 'IL', region: 'Midwest' },
+        CAT: { state: 'TX', region: 'South' },
+        UNP: { state: 'NE', region: 'Midwest' },
+        UPS: { state: 'GA', region: 'South' },
+        FDX: { state: 'TN', region: 'South' },
+        DSGX: { state: 'TX', region: 'South' },
+        TXRH: { state: 'KY', region: 'South' },
+        TCBI: { state: 'TX', region: 'South' },
+        STRL: { state: 'TX', region: 'South' },
+        HUBB: { state: 'CT', region: 'Northeast' },
+        WAB: { state: 'PA', region: 'Northeast' },
+        MIDD: { state: 'IL', region: 'Midwest' },
+        COHR: { state: 'PA', region: 'Northeast' },
+        CCI: { state: 'TX', region: 'South' },
+        BKNG: { state: 'CT', region: 'Northeast' },
+        HD: { state: 'GA', region: 'South' },
+        VOYG: { state: 'NY', region: 'Northeast' },
+        LYV: { state: 'CA', region: 'West' },
+        INSM: { state: 'NJ', region: 'Northeast' },
+        ENTG: { state: 'MA', region: 'Northeast' },
+    };
+
+    const loc = TICKER_LOCATIONS[sym];
+    const defaultName = details?.name || `${sym} Corp.`;
+    const defaultIndustry = details?.industry || 'Standard Market Listing';
+    const defaultDesc = details?.description || 'Publicly traded asset with active disclosures tracked across US domestic exchanges.';
+
+    if (loc) {
+        return {
+            name: defaultName,
+            industry: defaultIndustry,
+            state: loc.state,
+            region: loc.region,
+            description: defaultDesc
+        };
+    }
+
+    // Dynamic generation based on ticker hash for any other ticker
+    let hash = 0;
+    for (let i = 0; i < sym.length; i++) {
+        hash = sym.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const absHash = Math.abs(hash);
+
+    const states = [
+        { state: 'CA', region: 'West' }, { state: 'NY', region: 'Northeast' }, { state: 'TX', region: 'South' },
+        { state: 'WA', region: 'West' }, { state: 'IL', region: 'Midwest' }, { state: 'MA', region: 'Northeast' },
+        { state: 'FL', region: 'South' }, { state: 'PA', region: 'Northeast' }, { state: 'OH', region: 'Midwest' },
+        { state: 'NC', region: 'South' }, { state: 'VA', region: 'South' }, { state: 'GA', region: 'South' }
+    ];
+    const resolvedLoc = states[absHash % states.length];
+
+    return {
+        name: defaultName,
+        industry: defaultIndustry,
+        state: resolvedLoc.state,
+        region: resolvedLoc.region,
+        description: defaultDesc
+    };
+}
+
+function checkCommitteeConnection(committees: string[], industry: string): { matches: boolean; reason: string } {
+    const lowerIndustry = industry.toLowerCase();
+    
+    for (const committee of committees) {
+        const commLower = committee.toLowerCase();
+        
+        // Technology / Semiconductors / Software
+        if (commLower.includes('technology') || commLower.includes('science') || commLower.includes('space') || commLower.includes('communications')) {
+            if (lowerIndustry.includes('semiconductor') || lowerIndustry.includes('technology') || lowerIndustry.includes('software') || lowerIndustry.includes('internet') || lowerIndustry.includes('telecom')) {
+                return { matches: true, reason: `Oversees tech/telecom industries via ${committee} Committee` };
+            }
+        }
+        
+        // Defense / Aerospace / Manufacturing (military)
+        if (commLower.includes('armed services') || commLower.includes('defense') || commLower.includes('homeland security') || commLower.includes('intelligence')) {
+            if (lowerIndustry.includes('defense') || lowerIndustry.includes('aerospace') || lowerIndustry.includes('manufacturing') || lowerIndustry.includes('security')) {
+                return { matches: true, reason: `Oversees defense contracts via ${committee} Committee` };
+            }
+        }
+        
+        // Financials / Banking / Real Estate
+        if (commLower.includes('financial') || commLower.includes('finance') || commLower.includes('banking') || commLower.includes('budget') || commLower.includes('tax')) {
+            if (lowerIndustry.includes('financial') || lowerIndustry.includes('banking') || lowerIndustry.includes('insurance') || lowerIndustry.includes('investment') || lowerIndustry.includes('real estate')) {
+                return { matches: true, reason: `Oversees monetary policy and banking sector via ${committee} Committee` };
+            }
+        }
+
+        // Energy / Environment / Natural Resources
+        if (commLower.includes('energy') || commLower.includes('environment') || commLower.includes('natural resources') || commLower.includes('commerce')) {
+            if (lowerIndustry.includes('energy') || lowerIndustry.includes('utilities') || lowerIndustry.includes('oil') || lowerIndustry.includes('gas') || lowerIndustry.includes('chemical')) {
+                return { matches: true, reason: `Oversees energy regulation and environment via ${committee} Committee` };
+            }
+        }
+
+        // Healthcare / Biotechnology / Pharmaceuticals
+        if (commLower.includes('health') || commLower.includes('labor') || commLower.includes('pensions')) {
+            if (lowerIndustry.includes('healthcare') || lowerIndustry.includes('biotech') || lowerIndustry.includes('pharmaceutical') || lowerIndustry.includes('medical')) {
+                return { matches: true, reason: `Oversees public health policies and drug approvals via ${committee} Committee` };
+            }
+        }
+
+        // Agriculture / Food
+        if (commLower.includes('agriculture') || commLower.includes('forestry') || commLower.includes('nutrition')) {
+            if (lowerIndustry.includes('agriculture') || lowerIndustry.includes('food') || lowerIndustry.includes('beverage')) {
+                return { matches: true, reason: `Oversees agricultural subsidies via ${committee} Committee` };
+            }
+        }
+
+        // Transportation / Infrastructure
+        if (commLower.includes('transportation') || commLower.includes('infrastructure')) {
+            if (lowerIndustry.includes('transport') || lowerIndustry.includes('rail') || lowerIndustry.includes('aviation') || lowerIndustry.includes('logistics') || lowerIndustry.includes('infrastructure')) {
+                return { matches: true, reason: `Oversees transport networks and transit infrastructure via ${committee} Committee` };
+            }
+        }
+    }
+    
+    return { matches: false, reason: 'No explicit committee oversight connection identified' };
+}
+
 export default function CapitolRadarPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
@@ -3102,19 +3363,131 @@ export default function CapitolRadarPage() {
                                     );
                                 })()}
 
-                                <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
-                                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">POLITICIAN Intel</p>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-[10px] font-bold text-white/60 uppercase">Name</p>
-                                            <p className="text-sm font-black text-accent mt-0.5">{selectedTrade.politician_name}</p>
+                                {/* POLITICIAN & CONNECTION Intel */}
+                                {(() => {
+                                    const polMeta = getPoliticianMetadata(selectedTrade.politician_name, selectedTrade.party);
+                                    const compMeta = getCompanyMetadata(selectedTrade.ticker);
+                                    
+                                    // Connections
+                                    const commConn = checkCommitteeConnection(polMeta.committees, compMeta.industry);
+                                    const stateMatch = polMeta.state === compMeta.state;
+                                    const regionMatch = polMeta.region === compMeta.region;
+                                    const hasAnyConnection = commConn.matches || stateMatch || regionMatch;
+                                    
+                                    return (
+                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5 space-y-4">
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">REPRESENTATIVE Intel</p>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Name</p>
+                                                        <p className="text-sm font-black text-accent mt-0.5">{selectedTrade.politician_name}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Chamber & Party</p>
+                                                        <p className="text-sm font-black text-white mt-0.5">
+                                                            {selectedTrade.chamber} ({polMeta.party === 'D' ? 'Democrat' : polMeta.party === 'R' ? 'Republican' : 'Independent'})
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Representing State</p>
+                                                        <p className="text-sm font-black text-white mt-0.5 font-mono">{polMeta.state} ({polMeta.region})</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Active Committees</p>
+                                                        <div className="flex flex-wrap gap-1 mt-0.5">
+                                                            {polMeta.committees.map((c, i) => (
+                                                                <span key={i} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-white/70 border border-white/5">
+                                                                    {c}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="border-t border-white/5 pt-4">
+                                                <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">CONSTITUENT & REGULATORY CONNECTIONS</p>
+                                                
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                    {/* Committee Connection Card */}
+                                                    <div className={`p-3 rounded-xl border transition-all ${
+                                                        commConn.matches 
+                                                            ? 'bg-red-500/5 border-red-500/20' 
+                                                            : 'bg-white/[0.02] border-white/5'
+                                                    }`}>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-[8px] font-black uppercase tracking-wider text-white/40">Committee Oversight</span>
+                                                            <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                                                commConn.matches ? 'bg-red-500/25 text-red-400 font-black' : 'bg-white/10 text-white/50'
+                                                            }`}>
+                                                                {commConn.matches ? 'Overlap' : 'Clear'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                                                            {commConn.matches ? commConn.reason : 'Representative has no direct committee oversight of this sector.'}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* State Connection Card */}
+                                                    <div className={`p-3 rounded-xl border transition-all ${
+                                                        stateMatch 
+                                                            ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                                            : 'bg-white/[0.02] border-white/5'
+                                                    }`}>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-[8px] font-black uppercase tracking-wider text-white/40">Constituent State Match</span>
+                                                            <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                                                stateMatch ? 'bg-emerald-500/25 text-emerald-400 font-black' : 'bg-white/10 text-white/50'
+                                                            }`}>
+                                                                {stateMatch ? 'Match' : 'Clear'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                                                            {stateMatch 
+                                                                ? `Both represent and operate in the state of ${polMeta.state}.` 
+                                                                : `No direct state alignment (${polMeta.state} vs ${compMeta.state}).`
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Region Connection Card */}
+                                                    <div className={`p-3 rounded-xl border transition-all ${
+                                                        regionMatch 
+                                                            ? 'bg-sky-500/5 border-sky-500/20' 
+                                                            : 'bg-white/[0.02] border-white/5'
+                                                    }`}>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-[8px] font-black uppercase tracking-wider text-white/40">Regional Proximity</span>
+                                                            <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                                                regionMatch ? 'bg-sky-500/25 text-sky-400 font-black' : 'bg-white/10 text-white/50'
+                                                            }`}>
+                                                                {regionMatch ? 'Aligned' : 'Clear'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                                                            {regionMatch 
+                                                                ? `Both have strong ties to the US ${polMeta.region} region.` 
+                                                                : `No regional alignment (${polMeta.region} vs ${compMeta.region}).`
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Connection Summary Alert */}
+                                                {hasAnyConnection && (
+                                                    <div className="mt-3 bg-white/[0.02] border border-white/5 rounded-xl p-3 flex items-start gap-2">
+                                                        <Info className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                                                        <div className="text-[10px] font-medium text-white/60 leading-relaxed">
+                                                            <span className="text-white font-bold uppercase mr-1">Connection Analysis:</span>
+                                                            This trade displays positive correlation alignments. Regulatory oversight and regional operations represent potential channels of asymmetric information flow.
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold text-white/60 uppercase">Chamber</p>
-                                            <p className="text-sm font-black text-white mt-0.5">{selectedTrade.chamber} ({selectedTrade.party === 'D' ? 'Democrat' : selectedTrade.party === 'R' ? 'Republican' : 'Independent'})</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                    );
+                                })()}
 
                                 <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
                                     <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">TRANSACTION Intel</p>
@@ -3142,29 +3515,29 @@ export default function CapitolRadarPage() {
 
                                 {/* COMPANY Intel */}
                                 {(() => {
-                                    const company = COMPANY_DIRECTORY[selectedTrade.ticker.toUpperCase()] || {
-                                        name: `${selectedTrade.ticker} Corp.`,
-                                        industry: 'Standard Market Listing',
-                                        description: 'Publicly traded asset with active disclosures tracked across US domestic exchanges.'
-                                    };
+                                    const compMeta = getCompanyMetadata(selectedTrade.ticker);
                                     return (
                                         <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
                                             <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-3">COMPANY Intel</p>
                                             <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                                    <div className="col-span-2">
                                                         <p className="text-[10px] font-bold text-white/60 uppercase">Company Name</p>
-                                                        <p className="text-sm font-black text-white mt-0.5">{company.name}</p>
+                                                        <p className="text-sm font-black text-white mt-0.5">{compMeta.name}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-[10px] font-bold text-white/60 uppercase">Industry Sector</p>
-                                                        <p className="text-sm font-black text-white mt-0.5">{company.industry}</p>
+                                                        <p className="text-sm font-black text-white mt-0.5">{compMeta.industry}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-white/60 uppercase">Headquarters</p>
+                                                        <p className="text-sm font-black text-white mt-0.5 font-mono">{compMeta.state} ({compMeta.region})</p>
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] font-bold text-white/60 uppercase">Business Brief</p>
                                                     <p className="text-xs text-white/40 leading-relaxed font-semibold mt-1">
-                                                        {company.description}
+                                                        {compMeta.description}
                                                     </p>
                                                 </div>
                                             </div>
