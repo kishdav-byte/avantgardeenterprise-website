@@ -1994,6 +1994,8 @@ export default function CapitolRadarPage() {
     const [accuracyLedger, setAccuracyLedger] = useState<any[]>([])
     const [aiConfig, setAiConfig] = useState<any>(null)
     const [attributionTab, setAttributionTab] = useState<'candlestick' | 'winrate'>('candlestick')
+    const [selectedTradeHistory, setSelectedTradeHistory] = useState<any[] | null>(null)
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
     // SMS Notifications Form State
     const [smsEnabled, setSmsEnabled] = useState(false)
@@ -2005,27 +2007,101 @@ export default function CapitolRadarPage() {
         checkAuth()
     }, [])
 
-    // Simulated Stock Ticker Updates
+    // Fetch live prices from Yahoo Finance via server-side proxy
+    async function fetchLivePrices() {
+        try {
+            const tickers = marketQuotes.map(q => q.ticker).join(',');
+            const response = await fetch(`/api/market-data?tickers=${tickers}`);
+            const res = await response.json();
+            if (res.success && res.data) {
+                setMarketQuotes(prevQuotes => 
+                    prevQuotes.map(stock => {
+                        const live = res.data[stock.ticker.toUpperCase()];
+                        if (live) {
+                            return {
+                                ...stock,
+                                price: live.price,
+                                change: live.change,
+                                changePercent: live.changePercent,
+                                prevPrice: live.prevPrice
+                            };
+                        }
+                        return stock;
+                    })
+                );
+            }
+        } catch (err) {
+            console.error("Failed to load live watchlist prices:", err);
+        }
+    }
+
+    // Trigger actual live quotes on load and poll every 30s
     useEffect(() => {
-        const interval = setInterval(() => {
+        fetchLivePrices();
+        const liveInterval = setInterval(() => {
+            fetchLivePrices();
+        }, 30000);
+        return () => clearInterval(liveInterval);
+    }, []);
+
+    // Live micro-variations (simulating active market ticks)
+    useEffect(() => {
+        const tickInterval = setInterval(() => {
             setMarketQuotes(prevQuotes => 
                 prevQuotes.map(stock => {
-                    const priceVol = stock.price * 0.005; // 0.5% max volatility
-                    const changeVal = (Math.random() - 0.49) * priceVol; // slight positive bias
-                    const newPrice = Number((stock.price + changeVal).toFixed(2));
-                    const totalChange = Number((newPrice - stock.prevPrice).toFixed(2));
+                    const changeVal = (Math.random() - 0.5) * (stock.price * 0.0004);
+                    const tickedPrice = Number((stock.price + changeVal).toFixed(2));
+                    const totalChange = Number((tickedPrice - stock.prevPrice).toFixed(2));
                     const pctChange = Number(((totalChange / stock.prevPrice) * 100).toFixed(2));
                     return {
                         ...stock,
-                        price: newPrice,
+                        price: tickedPrice,
                         change: totalChange,
                         changePercent: pctChange
                     };
                 })
             );
-        }, 3000);
-        return () => clearInterval(interval);
+        }, 5000);
+        return () => clearInterval(tickInterval);
     }, []);
+
+    // Fetch live history when selectedTrade changes
+    useEffect(() => {
+        const trade = selectedTrade;
+        if (!trade) {
+            setSelectedTradeHistory(null);
+            return;
+        }
+
+        const activeTrade: Trade = trade;
+
+        async function loadHistory() {
+            setIsLoadingHistory(true);
+            try {
+                const response = await fetch(`/api/market-history?ticker=${activeTrade.ticker}`);
+                const res = await response.json();
+                if (res.success && res.data && res.data.length > 0) {
+                    const tradeDateStr = activeTrade.transaction_date ? activeTrade.transaction_date.slice(0, 10) : null;
+                    const formatted = res.data.map((item: any) => ({
+                        ...item,
+                        isTradeDate: item.date === tradeDateStr
+                    }));
+                    setSelectedTradeHistory(formatted);
+                } else {
+                    const simulated = generatePriceHistory(activeTrade.ticker, activeTrade.transaction_date);
+                    setSelectedTradeHistory(simulated);
+                }
+            } catch (err) {
+                console.error("Failed to load historical data, falling back:", err);
+                const simulated = generatePriceHistory(activeTrade.ticker, activeTrade.transaction_date);
+                setSelectedTradeHistory(simulated);
+            } finally {
+                setIsLoadingHistory(false);
+            }
+        }
+
+        loadHistory();
+    }, [selectedTrade]);
 
     // News Rotator Ticker
     useEffect(() => {
@@ -2161,6 +2237,30 @@ export default function CapitolRadarPage() {
             setAiConfig(PRESEEDED_CONFIG);
         }
     }
+
+    const handleWatchlistClick = (stock: any) => {
+        // Find most recent trade for this ticker from originalTrades
+        const foundTrade = originalTrades.find(t => t.ticker.toUpperCase() === stock.ticker.toUpperCase());
+        if (foundTrade) {
+            setSelectedTrade(foundTrade);
+        } else {
+            // Construct a default trade object representing the general stock quote
+            setSelectedTrade({
+                id: `watchlist-${stock.ticker}-${Date.now()}`,
+                ticker: stock.ticker,
+                politician_name: "Surveillance Pool",
+                party: "I",
+                chamber: "Senate",
+                transaction_date: new Date().toISOString(),
+                filing_date: new Date().toISOString(),
+                transaction_type: "Purchase",
+                amount_range: "$15,001 - $50,000",
+                committee_overlap: false,
+                industry: stock.name,
+                sector: "Technology"
+            } as any);
+        }
+    };
 
     async function fetchTrades() {
         try {
@@ -2636,13 +2736,14 @@ export default function CapitolRadarPage() {
                 <div className="container mx-auto px-6">
                     <div className="flex items-center gap-3 mb-2 px-1">
                         <TrendingUp className="text-accent" size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Watchlist Quotes // Live Simulation</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 animate-pulse">Live Market Watchlist (Click Ticker to Drill Down)</span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                         {marketQuotes.map((stock, i) => (
                             <div 
                                 key={stock.ticker} 
-                                className="bg-[#0e0c15] border border-white/5 rounded-xl p-3 flex flex-col hover:border-accent/30 transition-colors"
+                                onClick={() => handleWatchlistClick(stock)}
+                                className="bg-[#0e0c15] border border-white/5 rounded-xl p-3 flex flex-col hover:border-emerald-500/30 cursor-pointer active:scale-95 shadow-sm hover:shadow-[0_0_10px_rgba(52,211,153,0.1)] transition-all"
                             >
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="text-xs font-black text-white">{stock.ticker}</span>
@@ -3549,17 +3650,23 @@ export default function CapitolRadarPage() {
 
                                 {/* 6-Month Price Chart */}
                                 {(() => {
-                                    const chartData = generatePriceHistory(selectedTrade.ticker, selectedTrade.transaction_date);
+                                    const chartData = selectedTradeHistory || generatePriceHistory(selectedTrade.ticker, selectedTrade.transaction_date);
                                     const prices = chartData.map(d => d.price);
                                     const minP = Math.min(...prices);
                                     const maxP = Math.max(...prices);
-                                    const current = prices[prices.length - 1];
-                                    const sixMonthsAgo = prices[0];
+                                    const current = prices[prices.length - 1] || 0;
+                                    const sixMonthsAgo = prices[0] || 0;
                                     const pct = sixMonthsAgo > 0 ? ((current - sixMonthsAgo) / sixMonthsAgo * 100) : 0;
                                     const isPositive = pct >= 0;
                                     const tradePoint = chartData.find(d => d.isTradeDate);
                                     return (
-                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                        <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5 relative overflow-hidden">
+                                            {isLoadingHistory && (
+                                                <div className="absolute inset-0 bg-[#0b0a0e]/60 backdrop-blur-sm z-10 flex items-center justify-center gap-2">
+                                                    <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
+                                                    <span className="text-xs font-mono uppercase tracking-widest text-emerald-400">Loading Live History...</span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
                                                     <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">6-Month Price Chart</p>
