@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/fetch-trades",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/generate-top-picks",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/optimize-weights",
+      "schedule": "0 23 * * 0"
     }
   ]
 }
