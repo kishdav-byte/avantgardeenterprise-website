@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/lib/supabaseClient'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid, BarChart, Bar, Cell, Legend } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceDot, CartesianGrid, BarChart, Bar, Cell, Legend } from 'recharts'
 
 interface Trade {
     id: string
@@ -1709,6 +1709,17 @@ interface PoliticianMeta {
 
 function getPoliticianMetadata(name: string, customParty?: string): PoliticianMeta {
     const cleanName = (name || '').replace(/^(Hon\.|Senator|Representative|Mr\.|Mrs\.|Ms\.)\s+/i, '').trim();
+
+    const nameLower = cleanName.toLowerCase();
+    const isExecutiveFiler = nameLower.includes('trump') || nameLower.includes('biden') || nameLower.includes('harris') || nameLower.includes('president') || nameLower.includes('vice president');
+    if (isExecutiveFiler) {
+        return {
+            state: '',
+            region: '',
+            committees: [],
+            party: nameLower.includes('trump') ? 'R' : 'D'
+        };
+    }
 
     // Map of politicians to state, region, committees, and party
     const KNOWN_POLITICIANS: Record<string, { state: string; region: string; committees: string[]; party: 'D' | 'R' | 'I' }> = {
@@ -3658,7 +3669,12 @@ export default function CapitolRadarPage() {
                                     const sixMonthsAgo = prices[0] || 0;
                                     const pct = sixMonthsAgo > 0 ? ((current - sixMonthsAgo) / sixMonthsAgo * 100) : 0;
                                     const isPositive = pct >= 0;
-                                    const tradePoint = chartData.find(d => d.isTradeDate);
+
+                                    const tradeDateStr = selectedTrade.transaction_date ? selectedTrade.transaction_date.slice(0, 10) : null;
+                                    const filingDateStr = selectedTrade.filing_date ? selectedTrade.filing_date.slice(0, 10) : null;
+                                    const txPoint = chartData.find(d => d.date === tradeDateStr) || chartData.find(d => d.date <= tradeDateStr!);
+                                    const flPoint = chartData.find(d => d.date === filingDateStr) || chartData.find(d => d.date <= filingDateStr!);
+
                                     return (
                                         <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5 relative overflow-hidden">
                                             {isLoadingHistory && (
@@ -3680,7 +3696,7 @@ export default function CapitolRadarPage() {
                                                 </div>
                                             </div>
                                             <ResponsiveContainer width="100%" height={180}>
-                                                <AreaChart data={chartData} margin={{ top: 4, right: 0, left: -28, bottom: 0 }}>
+                                                <AreaChart data={chartData} margin={{ top: 12, right: 0, left: -28, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id={`grad-${selectedTrade.ticker}`} x1="0" y1="0" x2="0" y2="1">
                                                             <stop offset="5%" stopColor={isPositive ? '#34d399' : '#f87171'} stopOpacity={0.25} />
@@ -3696,7 +3712,7 @@ export default function CapitolRadarPage() {
                                                         interval={Math.floor(chartData.length / 5)}
                                                     />
                                                     <YAxis
-                                                        domain={[minP * 0.96, maxP * 1.04]}
+                                                        domain={[minP * 0.94, maxP * 1.06]}
                                                         tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
                                                         axisLine={false} tickLine={false}
                                                         tickFormatter={v => `$${v.toFixed(0)}`}
@@ -3707,12 +3723,26 @@ export default function CapitolRadarPage() {
                                                         itemStyle={{ color: isPositive ? '#34d399' : '#f87171', fontWeight: 900, fontSize: 13, fontFamily: 'monospace' }}
                                                         formatter={(v) => [typeof v === 'number' ? `$${v.toFixed(2)}` : v, 'Price']}
                                                     />
-                                                    {tradePoint && (
-                                                        <ReferenceLine
-                                                            x={tradePoint.date}
-                                                            stroke="rgba(255,255,255,0.5)"
-                                                            strokeDasharray="4 3"
-                                                            label={{ value: '📌 Trade', position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: 800 }}
+                                                    {txPoint && (
+                                                        <ReferenceDot
+                                                            x={txPoint.date}
+                                                            y={txPoint.price}
+                                                            r={5}
+                                                            fill="#34d399"
+                                                            stroke="#0b0a0e"
+                                                            strokeWidth={2}
+                                                            label={{ value: 'TX Date', position: 'top', fill: '#34d399', fontSize: 9, fontWeight: 900, fontFamily: 'monospace' }}
+                                                        />
+                                                    )}
+                                                    {flPoint && (
+                                                        <ReferenceDot
+                                                            x={flPoint.date}
+                                                            y={flPoint.price}
+                                                            r={5}
+                                                            fill="#ef4444"
+                                                            stroke="#ffffff"
+                                                            strokeWidth={1.5}
+                                                            label={{ value: 'Filing Date', position: 'bottom', fill: '#f87171', fontSize: 9, fontWeight: 900, fontFamily: 'monospace' }}
                                                         />
                                                     )}
                                                     <Area
@@ -3728,12 +3758,14 @@ export default function CapitolRadarPage() {
                                             </ResponsiveContainer>
                                             <div className="flex justify-between mt-3">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-                                                    <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">Simulated price model — not live market data</span>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                    <span className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+                                                        {selectedTradeHistory ? "Yahoo Finance Live 6-Month Chart" : "Simulated historical price index"}
+                                                    </span>
                                                 </div>
-                                                {tradePoint && (
-                                                    <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">
-                                                        Filed at ${tradePoint.price.toFixed(2)}
+                                                {txPoint && (
+                                                    <span className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+                                                        TX Price: ${txPoint.price.toFixed(2)} {flPoint ? `| Filing Price: $${flPoint.price.toFixed(2)}` : ''}
                                                     </span>
                                                 )}
                                             </div>

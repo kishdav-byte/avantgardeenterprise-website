@@ -250,16 +250,24 @@ export async function GET(request: NextRequest) {
                     chamber = 'Executive';
                 }
 
+                let party = t.party || getParty(politician_name, chamber);
+                const nameLower = politician_name.toLowerCase();
+                const isExecutiveFiler = nameLower.includes('trump') || nameLower.includes('biden') || nameLower.includes('harris') || nameLower.includes('president') || nameLower.includes('vice president');
+                if (isExecutiveFiler) {
+                    chamber = 'Executive';
+                    party = nameLower.includes('trump') ? 'R' : 'D';
+                }
+
                 return {
                     politician_name,
                     chamber,
-                    party: t.party || getParty(politician_name, chamber),
+                    party,
                     ticker: t.ticker.toUpperCase(),
                     transaction_type: formatTransactionType(t.transaction_type),
                     amount_range: t.amount_range_label || 'Unknown',
                     transaction_date,
                     filing_date,
-                    committee_overlap,
+                    committee_overlap: isExecutiveFiler ? false : committee_overlap,
                 };
             })
             .filter(t => t.transaction_date && t.filing_date)

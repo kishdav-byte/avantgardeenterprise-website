@@ -105,7 +105,19 @@ export async function GET(request: Request) {
             .select('*')
             .order('transaction_date', { ascending: false });
 
-        const trades = dbTrades || [];
+        const trades = (dbTrades || []).map(t => {
+            const nameLower = (t.politician_name || '').toLowerCase();
+            const isExecutiveFiler = nameLower.includes('trump') || nameLower.includes('biden') || nameLower.includes('harris') || nameLower.includes('president') || nameLower.includes('vice president');
+            if (isExecutiveFiler) {
+                return {
+                    ...t,
+                    chamber: 'Executive',
+                    party: nameLower.includes('trump') ? 'R' : 'D',
+                    committee_overlap: false
+                };
+            }
+            return t;
+        });
 
         // 3. STEP 1: Macro Risk Filter ($SPY and $QQQ moving averages)
         const spyPrices = simulatePriceSeries("SPY", 250);
