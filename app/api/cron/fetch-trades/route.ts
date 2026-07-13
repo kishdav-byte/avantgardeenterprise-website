@@ -318,6 +318,46 @@ export async function GET(request: NextRequest) {
 
         console.log(`Sync success! Inserted: ${insertedCount}. Overlaps: ${totalOverlaps}`);
 
+        // 6.5. PORTFOLIO MONITORING: CHECK A (Political Exit Alignment)
+        try {
+            const { data: activePositions } = await supabase
+                .from('user_portfolio')
+                .select('*')
+                .eq('is_active', true);
+                
+            if (activePositions && activePositions.length > 0) {
+                const activeTickers = new Set(activePositions.map(p => p.ticker.toUpperCase()));
+                const exits = allParsedTrades.filter(t => 
+                    activeTickers.has(t.ticker.toUpperCase()) && 
+                    (t.transaction_type === 'Sale' || t.transaction_type === 'Exchange')
+                );
+                
+                if (exits.length > 0) {
+                    console.log(`[ALERTS ENGINE] Found ${exits.length} political exit matches. Creating portfolio alerts...`);
+                    const alertsToInsert = exits.map(trade => {
+                        const position = activePositions.find(p => p.ticker.toUpperCase() === trade.ticker.toUpperCase());
+                        const user_id = position ? position.user_id : null;
+                        const lag = trade.transaction_date && trade.filing_date
+                            ? Math.round((new Date(trade.filing_date).getTime() - new Date(trade.transaction_date).getTime()) / (1000 * 3600 * 24))
+                            : 0;
+                        
+                        return {
+                            user_id,
+                            ticker: trade.ticker.toUpperCase(),
+                            alert_type: 'Political Sell',
+                            severity: 'Critical',
+                            message: `🚨 EXIT ALERT: ${trade.politician_name} (${trade.chamber}) filed a ${trade.transaction_type} for ${trade.ticker} with a ${lag}-day reporting lag.`,
+                            is_read: false
+                        };
+                    });
+                    
+                    await supabase.from('portfolio_alerts').insert(alertsToInsert);
+                }
+            }
+        } catch (err) {
+            console.error("[ALERTS ENGINE ERROR] Exit alignment monitor failed:", err);
+        }
+
         // 7. FIND NEW HIGH-PRIORITY OVERLAPS AND SEND NOTIFICATIONS
         console.log("Checking for unnotified overlaps...");
         const { data: newOverlaps, error: overlapsError } = await supabase.rpc(

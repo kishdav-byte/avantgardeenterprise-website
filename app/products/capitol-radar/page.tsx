@@ -7,7 +7,7 @@ import {
     Loader2, Lock, ShieldCheck, ShieldAlert, Search, RefreshCw, 
     TrendingUp, TrendingDown, Bell, Phone, Save, CheckCircle2, 
     ArrowUpRight, AlertOctagon, HelpCircle, ChevronRight, X, Info,
-    Sliders
+    Sliders, AlertTriangle, Plus
 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { Navbar } from '@/components/Navbar'
@@ -2007,6 +2007,15 @@ export default function CapitolRadarPage() {
     const [attributionTab, setAttributionTab] = useState<'candlestick' | 'winrate'>('candlestick')
     const [selectedTradeHistory, setSelectedTradeHistory] = useState<any[] | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+    
+    // User Portfolio Shadow Ingestion States
+    const [userPortfolio, setUserPortfolio] = useState<any[]>([])
+    const [portfolioAlerts, setPortfolioAlerts] = useState<any[]>([])
+    const [showFollowForm, setShowFollowForm] = useState(false)
+    const [followShares, setFollowShares] = useState<string>("100")
+    const [followPrice, setFollowPrice] = useState<string>("")
+    const [isSubmittingFollow, setIsSubmittingFollow] = useState(false)
+    const [followSuccessToast, setFollowSuccessToast] = useState<string | null>(null)
 
     // SMS Notifications Form State
     const [smsEnabled, setSmsEnabled] = useState(false)
@@ -2113,6 +2122,22 @@ export default function CapitolRadarPage() {
 
         loadHistory();
     }, [selectedTrade]);
+
+    // Pre-fill Follow Purchase Price with current ticker quote on selection
+    useEffect(() => {
+        if (selectedTrade) {
+            const quote = marketQuotes.find(q => q.ticker.toUpperCase() === selectedTrade.ticker.toUpperCase());
+            setFollowPrice(quote ? quote.price.toFixed(2) : "100.00");
+            setFollowShares("100");
+            setShowFollowForm(false);
+        }
+    }, [selectedTrade, marketQuotes]);
+
+    // Initial Portfolio & Alerts Mount Fetch
+    useEffect(() => {
+        fetchUserPortfolio();
+        fetchPortfolioAlerts();
+    }, []);
 
     // News Rotator Ticker
     useEffect(() => {
@@ -2248,6 +2273,100 @@ export default function CapitolRadarPage() {
             setAiConfig(PRESEEDED_CONFIG);
         }
     }
+
+    async function fetchUserPortfolio() {
+        try {
+            const { data, error } = await supabase
+                .from('user_portfolio')
+                .select('*')
+                .eq('is_active', true);
+                
+            if (error) throw error;
+            setUserPortfolio(data || []);
+        } catch (err) {
+            console.warn("Supabase user_portfolio fetch failed, loading fallback local storage:", err);
+            const localData = JSON.parse(localStorage.getItem('capitol_radar_portfolio') || '[]');
+            setUserPortfolio(localData);
+        }
+    }
+
+    async function fetchPortfolioAlerts() {
+        try {
+            const { data, error } = await supabase
+                .from('portfolio_alerts')
+                .select('*')
+                .eq('is_read', false);
+                
+            if (error) throw error;
+            setPortfolioAlerts(data || []);
+        } catch (err) {
+            console.warn("Supabase portfolio_alerts fetch failed, loading fallback local storage:", err);
+            const localAlerts = JSON.parse(localStorage.getItem('capitol_radar_alerts') || '[]');
+            setPortfolioAlerts(localAlerts);
+        }
+    }
+
+    async function markAlertAsRead(alertId: string) {
+        try {
+            if (alertId.startsWith('local-')) {
+                const localAlerts = JSON.parse(localStorage.getItem('capitol_radar_alerts') || '[]');
+                const filtered = localAlerts.filter((a: any) => a.id !== alertId);
+                localStorage.setItem('capitol_radar_alerts', JSON.stringify(filtered));
+                setPortfolioAlerts(filtered);
+                return;
+            }
+            await supabase.from('portfolio_alerts').update({ is_read: true }).eq('id', alertId);
+            fetchPortfolioAlerts();
+        } catch (err) {
+            console.error("Failed to mark alert as read:", err);
+            const localAlerts = JSON.parse(localStorage.getItem('capitol_radar_alerts') || '[]');
+            const filtered = localAlerts.filter((a: any) => a.id !== alertId);
+            localStorage.setItem('capitol_radar_alerts', JSON.stringify(filtered));
+            setPortfolioAlerts(filtered);
+        }
+    }
+
+    const handleFollowSubmit = async () => {
+        const qty = parseFloat(followShares);
+        const price = parseFloat(followPrice);
+        if (isNaN(qty) || qty <= 0 || isNaN(price) || price <= 0 || !selectedTrade) {
+            alert("Please enter valid positive values for shares and price.");
+            return;
+        }
+
+        setIsSubmittingFollow(true);
+        try {
+            const payload = {
+                ticker: selectedTrade.ticker.toUpperCase(),
+                shares_quantity: qty,
+                purchase_price: price,
+                purchase_date: new Date().toISOString().slice(0, 10),
+                shadowed_politician: selectedTrade.politician_name,
+                is_active: true
+            };
+
+            const { data, error } = await supabase.from('user_portfolio').insert([payload]);
+            if (error) {
+                console.warn("Supabase insert failed, storing in client localStorage:", error);
+                const localData = JSON.parse(localStorage.getItem('capitol_radar_portfolio') || '[]');
+                localData.push({ ...payload, id: `local-${Date.now()}` });
+                localStorage.setItem('capitol_radar_portfolio', JSON.stringify(localData));
+            }
+
+            setFollowSuccessToast(`Logged shadow position: ${qty} shares of ${selectedTrade.ticker} at $${price}`);
+            setShowFollowForm(false);
+            
+            fetchUserPortfolio();
+
+            setTimeout(() => {
+                setFollowSuccessToast(null);
+            }, 5000);
+        } catch (err) {
+            console.error("Failed to append followed position:", err);
+        } finally {
+            setIsSubmittingFollow(false);
+        }
+    };
 
     const handleWatchlistClick = (stock: any) => {
         const sym = stock.ticker.toUpperCase();
@@ -3513,6 +3632,122 @@ export default function CapitolRadarPage() {
                         {/* RIGHT COLUMN: SMS SETTINGS & STATISTICS SUMMARY */}
                         <div className="lg:col-span-4 space-y-6">
                             
+                            {/* MY SHADOW PORTFOLIO WIDGET */}
+                            {(() => {
+                                const getTickerPrice = (ticker: string): number => {
+                                    const q = marketQuotes.find(mq => mq.ticker.toUpperCase() === ticker.toUpperCase());
+                                    return q ? q.price : 100.0;
+                                };
+                                const hasTickerAlert = (ticker: string): boolean => {
+                                    return portfolioAlerts.some(a => a.ticker.toUpperCase() === ticker.toUpperCase() && !a.is_read);
+                                };
+                                return (
+                                    <div className="bg-[#0e0c15] border border-white/5 rounded-3xl p-6 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                            <TrendingUp size={80} className="text-emerald-400" />
+                                        </div>
+
+                                        <div className="flex justify-between items-center mb-6">
+                                            <div>
+                                                <h3 className="text-lg font-bold tracking-tight text-white uppercase italic">MY SHADOW PORTFOLIO</h3>
+                                                <p className="text-xs text-white/40 uppercase tracking-widest mt-0.5">Tracking politician trades</p>
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg">
+                                                Active
+                                            </span>
+                                        </div>
+
+                                        {userPortfolio.length === 0 ? (
+                                            <div className="text-center py-8 border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
+                                                <TrendingUp className="w-8 h-8 text-white/20 mx-auto mb-2" />
+                                                <p className="text-xs font-bold text-white uppercase">No Tracked Positions</p>
+                                                <p className="text-[10px] text-white/40 uppercase tracking-tight mt-1 px-4 leading-relaxed">
+                                                    Click any trade inside the Surveillance Feed and select "+ Follow This Trade" to initiate tracking.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-left border-collapse">
+                                                        <thead>
+                                                            <tr className="border-b border-white/5 text-[9px] font-bold text-white/40 uppercase tracking-wider">
+                                                                <th className="pb-2">Ticker</th>
+                                                                <th className="pb-2 text-right">Value</th>
+                                                                <th className="pb-2 text-right">PnL %</th>
+                                                                <th className="pb-2 text-center">Alerts</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-white/5 font-mono">
+                                                            {userPortfolio.map((pos, idx) => {
+                                                                const currentPrice = getTickerPrice(pos.ticker);
+                                                                const totalVal = pos.shares_quantity * currentPrice;
+                                                                const pnl = ((currentPrice - pos.purchase_price) / pos.purchase_price) * 100;
+                                                                const hasAlert = hasTickerAlert(pos.ticker);
+                                                                const isPnlPositive = pnl >= 0;
+                                                                
+                                                                return (
+                                                                    <tr key={pos.id || idx} className="text-xs hover:bg-white/[0.02] transition-colors group">
+                                                                        <td className="py-2.5 font-black text-white group-hover:text-emerald-400 transition-colors">
+                                                                            {pos.ticker}
+                                                                        </td>
+                                                                        <td className="py-2.5 text-right font-bold text-white/80">
+                                                                            ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                        </td>
+                                                                        <td className={`py-2.5 text-right font-black ${isPnlPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                                            {isPnlPositive ? '+' : ''}{pnl.toFixed(2)}%
+                                                                        </td>
+                                                                        <td className="py-2.5 text-center">
+                                                                            {hasAlert ? (
+                                                                                <span className="inline-flex w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-300 animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.5)]" title="Unread political/sentiment alert" />
+                                                                            ) : (
+                                                                                <span className="text-[10px] text-white/20 font-bold uppercase tracking-wider">-</span>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                {/* Portfolio Active Alerts Log */}
+                                                {portfolioAlerts.length > 0 && (
+                                                    <div className="border-t border-white/5 pt-4 space-y-2">
+                                                        <p className="text-[9px] font-black uppercase text-amber-400 tracking-widest flex items-center gap-1.5 animate-pulse">
+                                                            <AlertTriangle size={12} />
+                                                            Pending Risk Alerts ({portfolioAlerts.length})
+                                                        </p>
+                                                        <div className="max-h-36 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                                            {portfolioAlerts.map(alert => (
+                                                                <div 
+                                                                    key={alert.id}
+                                                                    onClick={() => markAlertAsRead(alert.id)}
+                                                                    className={`p-2.5 border rounded-xl cursor-pointer hover:bg-white/[0.04] transition-all flex items-start justify-between gap-2 ${
+                                                                        alert.severity === 'Critical' 
+                                                                            ? 'bg-red-500/5 border-red-500/20 text-red-300' 
+                                                                            : 'bg-amber-500/5 border-amber-500/20 text-amber-300'
+                                                                    }`}
+                                                                    title="Click to dismiss alert"
+                                                                >
+                                                                    <div className="space-y-0.5">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="text-[8px] font-black uppercase tracking-wider bg-black/40 px-1 rounded font-mono">{alert.ticker}</span>
+                                                                            <span className="text-[8px] font-bold text-white/50 uppercase tracking-widest">{alert.alert_type}</span>
+                                                                        </div>
+                                                                        <p className="text-[9px] leading-relaxed text-white/80 font-medium">{alert.message}</p>
+                                                                    </div>
+                                                                    <span className="text-[8px] font-bold text-white/30 group-hover:text-white/60 uppercase shrink-0 pt-0.5">Dismiss</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                            
                             {/* SMS Notifications Preferences Form */}
                             <div className="bg-[#0e0c15] border border-white/5 rounded-3xl p-6 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -4088,10 +4323,110 @@ export default function CapitolRadarPage() {
                                     </div>
                                 )}
 
-                                <div className="text-right">
+                                {/* Follow Position Success Toast */}
+                                {followSuccessToast && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold uppercase tracking-wider text-xs rounded-xl flex items-center gap-2 mb-4"
+                                    >
+                                        <Info size={16} />
+                                        {followSuccessToast}
+                                    </motion.div>
+                                )}
+
+                                {/* Inline Shadow Follower Form */}
+                                {showFollowForm && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-2xl p-5 space-y-4 mb-4 relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <h4 className="text-xs font-black uppercase tracking-widest text-emerald-400">Position Follower Ingestion</h4>
+                                                <p className="text-[10px] text-white/40 uppercase tracking-tight mt-0.5 font-bold">Integrate trade into user shadow portfolio</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setShowFollowForm(false)}
+                                                className="text-white/40 hover:text-white transition-colors"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider block mb-1">Stock Ticker</label>
+                                                <input 
+                                                    type="text" 
+                                                    disabled 
+                                                    value={selectedTrade.ticker}
+                                                    className="w-full bg-[#0b0a0e] border border-white/10 text-white font-mono text-xs p-2.5 rounded-lg opacity-70 cursor-not-allowed font-bold"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider block mb-1">Shadowing Filer</label>
+                                                <input 
+                                                    type="text" 
+                                                    disabled 
+                                                    value={selectedTrade.politician_name}
+                                                    className="w-full bg-[#0b0a0e] border border-white/10 text-white text-xs p-2.5 rounded-lg opacity-70 cursor-not-allowed font-bold"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider block mb-1">Number of Shares</label>
+                                                <input 
+                                                    type="number" 
+                                                    min="1"
+                                                    value={followShares}
+                                                    onChange={e => setFollowShares(e.target.value)}
+                                                    className="w-full bg-[#0b0a0e] border border-white/10 hover:border-emerald-500/30 focus:border-emerald-500/50 focus:outline-none text-white font-mono text-xs p-2.5 rounded-lg font-bold transition-colors"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider block mb-1">Purchase Price ($)</label>
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    min="0.01"
+                                                    value={followPrice}
+                                                    onChange={e => setFollowPrice(e.target.value)}
+                                                    className="w-full bg-[#0b0a0e] border border-white/10 hover:border-emerald-500/30 focus:border-emerald-500/50 focus:outline-none text-white font-mono text-xs p-2.5 rounded-lg font-bold transition-colors"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={handleFollowSubmit}
+                                            disabled={isSubmittingFollow}
+                                            className="w-full py-3 bg-emerald-500 text-[#0b0a0e] hover:bg-emerald-400 font-black uppercase tracking-widest text-[10px] transition-colors rounded-lg flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                                        >
+                                            {isSubmittingFollow ? (
+                                                <>
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    Ingesting Position...
+                                                </>
+                                            ) : (
+                                                'Confirm Shadow Ingestion'
+                                            )}
+                                        </button>
+                                    </motion.div>
+                                )}
+
+                                <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
+                                    <button 
+                                        onClick={() => setShowFollowForm(true)}
+                                        className="px-5 py-3 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.05)] hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-lg"
+                                    >
+                                        <Plus size={12} />
+                                        Follow This Trade
+                                    </button>
                                     <button 
                                         onClick={() => setSelectedTrade(null)}
-                                        className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors"
+                                        className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors rounded-lg"
                                     >
                                         Close Intel Report
                                     </button>

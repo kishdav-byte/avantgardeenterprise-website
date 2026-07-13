@@ -177,6 +177,18 @@ export async function GET(request: Request) {
         const apiKey = process.env.OPENAI_API_KEY || '';
         const openai = apiKey ? new OpenAI({ apiKey }) : null;
 
+        // Ingest user portfolio to monitor media sentiment alerts (Check B)
+        let userTrackedPortfolio: any[] = [];
+        try {
+            const { data } = await supabase
+                .from('user_portfolio')
+                .select('*')
+                .eq('is_active', true);
+            userTrackedPortfolio = data || [];
+        } catch (err) {
+            console.error("Failed to query active positions for Check B:", err);
+        }
+
         for (const ticker of tickersToEvaluate) {
             const details = COMPANY_DIRECTORY[ticker];
             const prices = simulatePriceSeries(ticker, 250);
@@ -290,6 +302,29 @@ export async function GET(request: Request) {
 
             // Build dynamic rationales
             const rationale_summary = `${ticker} displays high conviction (Score ${conviction_score}/100) fueled by ${peerVelocity} politician buyers with a committee overlap count of ${committeeOverlapCount}.${hasStateCluster ? " Multiple state delegation members buy-in simultaneously, triggering regulatory signals." : ""} Technical indicators highlight rolling 7d momentum at ${perf_7d}%, with a simulated ATR of $${atr}.`;
+
+            // PORTFOLIO MONITORING: CHECK B (Continuous Media Risk Monitoring)
+            const userPosition = userTrackedPortfolio.find(p => p.ticker.toUpperCase() === ticker.toUpperCase());
+            if (userPosition) {
+                if (newsSentimentScore < 30) {
+                    console.log(`[ALERTS ENGINE] Ticker ${ticker} displays severe negative media trend: ${newsSentimentScore}. Creating warning alert...`);
+                    const scoreMapped = parseFloat(((newsSentimentScore - 50) / 50).toFixed(2));
+                    const message = `⚠️ MEDIA RISK: ${ticker} displays a severe negative media trend sentiment drop (${scoreMapped} score). Monitoring momentum indicators.`;
+                    
+                    try {
+                        await supabase.from('portfolio_alerts').insert([{
+                            user_id: userPosition.user_id,
+                            ticker: ticker.toUpperCase(),
+                            alert_type: 'Bearish Media',
+                            severity: 'Warning',
+                            message,
+                            is_read: false
+                        }]);
+                    } catch (alertErr) {
+                        console.error("Failed to insert media alert:", alertErr);
+                    }
+                }
+            }
 
             generatedPicks.push({
                 ticker,
