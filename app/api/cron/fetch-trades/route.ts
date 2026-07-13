@@ -171,11 +171,6 @@ export async function GET(request: NextRequest) {
         const rawTrades: any[] = await tradesRes.json();
 
         // Helpers
-        const cleanPoliticianName = (name: string): string => {
-            return (name || '')
-                .replace(/^(Hon\.|Senator|Representative|Mr\.|Mrs\.|Ms\.)\s+/i, '')
-                .trim();
-        };
 
         const parseDate = (d: string): string | null => {
             if (!d || d === '--') return null;
@@ -231,26 +226,51 @@ export async function GET(request: NextRequest) {
             });
         };
 
-        const OFFICIAL_ROSTER = new Set([
-            'Nancy Pelosi', 'Tommy Tuberville', 'Markwayne Mullin', 'Ro Khanna', 'Josh Gottheimer',
-            'Michael Guest', 'Dan Crenshaw', 'Rick Scott', 'Sheldon Whitehouse', 'John Fetterman',
-            'Pat Toomey', 'Richard Burr', 'Marjorie Taylor Greene', 'Diana Harshbarger', 'Daniel Goldman',
-            'Jared Moskowitz', 'Thomas Carper', 'Angus King', 'Bernie Sanders', 'Ted Cruz',
-            'Mitch McConnell', 'Chuck Schumer', 'Jared Golden', 'Bill Hagerty',
-            'Donald J Trump', 'Donald Trump', 'Joe Biden', 'Kamala Harris'
-        ].map(n => n.toLowerCase()));
+        const cleanPoliticianName = (name: string): string => {
+            let clean = (name || '')
+                .replace(/^(Hon\.|Senator|Representative|Mr\.|Mrs\.|Ms\.)\s+/i, '')
+                .trim();
+            
+            // Map variations to standard names for our database and static committee matches
+            const cleanLower = clean.toLowerCase();
+            if (cleanLower === 'rohit khanna') return 'Ro Khanna';
+            if (cleanLower === 'donald j trump' || cleanLower === 'donald trump') return 'Donald J Trump';
+            if (cleanLower === 'donald sternoff beyer jr') return 'Donald Beyer';
+            if (cleanLower === 'thomas h. kean jr') return 'Thomas Kean';
+            if (cleanLower === 'thomas suozzi') return 'Tom Suozzi';
+            if (cleanLower === 'william r. keating') return 'William Keating';
+            if (cleanLower === 'daniel meuser') return 'Dan Meuser';
+            if (cleanLower === 'nicholas begich iii') return 'Nick Begich';
+            if (cleanLower === 'robert j. wittman') return 'Rob Wittman';
+            if (cleanLower === 'robert e. latta') return 'Bob Latta';
+            if (cleanLower === 'neal patrick md, facs dunn') return 'Neal Dunn';
+            if (cleanLower === 'david h mccormick') return 'David McCormick';
+            if (cleanLower === 'christian d. menefee') return 'Christian Menefee';
+            if (cleanLower === 'matthew robert van epps') return 'Matthew Van Epps';
+            if (cleanLower === 'keith alan self') return 'Keith Self';
+            if (cleanLower === 'daniel webster') return 'Daniel Webster';
+            if (cleanLower === 'richard dean mccormick') return 'Rich McCormick';
+            if (cleanLower === 'shelley m capito') return 'Shelley Moore Capito';
+            
+            // Default: capitalize words nicely
+            return clean.split(/\s+/).map(word => {
+                if (word.includes('.')) return word; // Keep initial with dot as is
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }).join(' ');
+        };
 
         const isValidPolitician = (name: string): boolean => {
             if (!name) return false;
             const clean = name.trim().toLowerCase();
+            // Discard boilerplate noise/placeholders
             if (clean.includes('surveillance') || clean.includes('pool') || clean.includes('test') || clean.includes('placeholder') || clean.includes('unknown') || clean.includes('select') || clean.includes('feed') || clean.includes('title')) {
                 return false;
             }
-            if (!/^[a-zA-Z\s\.\-]+$/.test(clean)) {
+            // Keep clean alpha names
+            if (clean.length < 3 || !/^[a-zA-Z\s\.\,\-]+$/.test(clean)) {
                 return false;
             }
-            const matchName = clean.replace(/^(hon\.|senator|representative|mr\.|mrs\.|ms\.)\s+/i, '').trim();
-            return OFFICIAL_ROSTER.has(matchName);
+            return true;
         };
 
         // 5. PROCESS DATA
@@ -269,11 +289,13 @@ export async function GET(request: NextRequest) {
                 const committee_overlap = checkCommitteeOverlap(t.ticker, politician_name);
                 
                 let chamber = 'House';
-                if (t.chamber === 'senate') {
+                const rawChamber = (t.chamber || '').toLowerCase();
+                const rawBranch = (t.branch || '').toLowerCase();
+                if (rawChamber === 'senate') {
                     chamber = 'Senate';
-                } else if (t.chamber === 'house') {
+                } else if (rawChamber === 'house') {
                     chamber = 'House';
-                } else if (t.branch === 'executive' || !t.chamber) {
+                } else if (rawBranch === 'executive' || !t.chamber) {
                     chamber = 'Executive';
                 }
 
@@ -299,7 +321,8 @@ export async function GET(request: NextRequest) {
             })
             .filter((t): t is NonNullable<typeof t> => t !== null && t.transaction_date !== null && t.filing_date !== null)
             .sort((a, b) => new Date(b.filing_date!).getTime() - new Date(a.filing_date!).getTime())
-            .slice(0, 300);
+            .slice(0, 2000);
+
 
         // 6. DB INSERTION USING SECURE RPC FUNCTION
         console.log(`Upserting ${allParsedTrades.length} trades...`);
