@@ -3663,48 +3663,70 @@ export default function CapitolRadarPage() {
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
-                                                <div className="overflow-x-auto">
-                                                    <table className="w-full text-left border-collapse">
-                                                        <thead>
-                                                            <tr className="border-b border-white/5 text-[9px] font-bold text-white/40 uppercase tracking-wider">
-                                                                <th className="pb-2">Ticker</th>
-                                                                <th className="pb-2 text-right">Value</th>
-                                                                <th className="pb-2 text-right">PnL %</th>
-                                                                <th className="pb-2 text-center">Alerts</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-white/5 font-mono">
-                                                            {userPortfolio.map((pos, idx) => {
-                                                                const currentPrice = getTickerPrice(pos.ticker);
-                                                                const totalVal = pos.shares_quantity * currentPrice;
-                                                                const pnl = ((currentPrice - pos.purchase_price) / pos.purchase_price) * 100;
-                                                                const hasAlert = hasTickerAlert(pos.ticker);
-                                                                const isPnlPositive = pnl >= 0;
-                                                                
-                                                                return (
-                                                                    <tr key={pos.id || idx} className="text-xs hover:bg-white/[0.02] transition-colors group">
-                                                                        <td className="py-2.5 font-black text-white group-hover:text-emerald-400 transition-colors">
-                                                                            {pos.ticker}
-                                                                        </td>
-                                                                        <td className="py-2.5 text-right font-bold text-white/80">
+                                                <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                                                    {userPortfolio.map((pos, idx) => {
+                                                        const currentPrice = getTickerPrice(pos.ticker);
+                                                        const totalInvested = pos.shares_quantity * pos.purchase_price;
+                                                        const totalVal = pos.shares_quantity * currentPrice;
+                                                        const absGain = totalVal - totalInvested;
+                                                        const pnl = ((currentPrice - pos.purchase_price) / pos.purchase_price) * 100;
+                                                        const hasAlert = hasTickerAlert(pos.ticker);
+                                                        const isPnlPositive = pnl >= 0;
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={pos.id || idx} 
+                                                                className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:bg-white/[0.04] transition-all relative overflow-hidden group text-left"
+                                                            >
+                                                                {/* Background Glow on Hover */}
+                                                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/[0.01] to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                                                                {/* Row Header */}
+                                                                <div className="flex justify-between items-center relative z-10">
+                                                                    <div>
+                                                                        <span className="font-black text-sm text-white tracking-wide font-mono">{pos.ticker}</span>
+                                                                        <span className="text-[10px] text-white/40 uppercase font-black tracking-widest ml-2.5">
+                                                                            {pos.shares_quantity} Shares
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <span className="text-sm font-black text-white font-mono">
                                                                             ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                                        </td>
-                                                                        <td className={`py-2.5 text-right font-black ${isPnlPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                                            {isPnlPositive ? '+' : ''}{pnl.toFixed(2)}%
-                                                                        </td>
-                                                                        <td className="py-2.5 text-center">
-                                                                            {hasAlert ? (
-                                                                                <span className="inline-flex w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-300 animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.5)]" title="Unread political/sentiment alert" />
-                                                                            ) : (
-                                                                                <span className="text-[10px] text-white/20 font-bold uppercase tracking-wider">-</span>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Row Detailed Metrics */}
+                                                                <div className="flex justify-between items-center text-[10px] text-white/50 font-mono relative z-10 pt-2.5 border-t border-white/5">
+                                                                    <div className="space-y-0.5">
+                                                                        <p className="text-[8px] font-black uppercase text-white/30 tracking-wider">Total Invested</p>
+                                                                        <p className="text-white/80 font-bold">
+                                                                            ${totalInvested.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                            <span className="text-white/40 font-normal ml-1">(@ ${Number(pos.purchase_price).toFixed(2)})</span>
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="text-right space-y-0.5">
+                                                                        <p className="text-[8px] font-black uppercase text-white/30 tracking-wider">Unrealized PnL</p>
+                                                                        <div className="flex items-center justify-end gap-1.5 font-bold">
+                                                                            <span className={isPnlPositive ? 'text-emerald-400' : 'text-red-400'}>
+                                                                                {isPnlPositive ? '+' : ''}${absGain.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                            </span>
+                                                                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-black leading-none ${
+                                                                                isPnlPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                                                                            }`}>
+                                                                                {isPnlPositive ? '+' : ''}{pnl.toFixed(2)}%
+                                                                            </span>
+                                                                            {hasAlert && (
+                                                                                <span className="w-2 h-2 rounded-full bg-amber-400 border border-amber-300 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.6)]" title="Unread political/sentiment alert" />
                                                                             )}
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
+
 
                                                 {/* Portfolio Active Alerts Log */}
                                                 {portfolioAlerts.length > 0 && (
