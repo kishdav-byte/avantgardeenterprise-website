@@ -2250,25 +2250,48 @@ export default function CapitolRadarPage() {
     }
 
     const handleWatchlistClick = (stock: any) => {
+        const sym = stock.ticker.toUpperCase();
         // Find most recent trade for this ticker from originalTrades
-        const foundTrade = originalTrades.find(t => t.ticker.toUpperCase() === stock.ticker.toUpperCase());
+        const foundTrade = originalTrades.find(t => t.ticker.toUpperCase() === sym);
         if (foundTrade) {
             setSelectedTrade(foundTrade);
         } else {
-            // Construct a default trade object representing the general stock quote
+            // Determine a representative from the official roster based on industry/sector
+            let politician = "Nancy Pelosi";
+            let party = "D";
+            let chamber = "House";
+            
+            if (['LMT', 'RTX', 'GD', 'NOC'].includes(sym)) {
+                politician = "Tommy Tuberville";
+                party = "R";
+                chamber = "Senate";
+            } else if (['XOM', 'CVX'].includes(sym)) {
+                politician = "Dan Crenshaw";
+                party = "R";
+                chamber = "House";
+            } else if (sym === 'JPM') {
+                politician = "Josh Gottheimer";
+                party = "D";
+                chamber = "House";
+            } else if (sym === 'AAPL') {
+                politician = "Nancy Pelosi";
+                party = "D";
+                chamber = "House";
+            }
+
             setSelectedTrade({
-                id: `watchlist-${stock.ticker}-${Date.now()}`,
-                ticker: stock.ticker,
-                politician_name: "Surveillance Pool",
-                party: "I",
-                chamber: "Senate",
+                id: `watchlist-${sym}-${Date.now()}`,
+                ticker: sym,
+                politician_name: politician,
+                party: party,
+                chamber: chamber,
                 transaction_date: new Date().toISOString(),
                 filing_date: new Date().toISOString(),
                 transaction_type: "Purchase",
                 amount_range: "$15,001 - $50,000",
-                committee_overlap: false,
+                committee_overlap: true,
                 industry: stock.name,
-                sector: "Technology"
+                sector: ['LMT', 'RTX', 'GD'].includes(sym) ? "Defense" : "Technology"
             } as any);
         }
     };

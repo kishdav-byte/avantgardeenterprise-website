@@ -231,12 +231,39 @@ export async function GET(request: NextRequest) {
             });
         };
 
+        const OFFICIAL_ROSTER = new Set([
+            'Nancy Pelosi', 'Tommy Tuberville', 'Markwayne Mullin', 'Ro Khanna', 'Josh Gottheimer',
+            'Michael Guest', 'Dan Crenshaw', 'Rick Scott', 'Sheldon Whitehouse', 'John Fetterman',
+            'Pat Toomey', 'Richard Burr', 'Marjorie Taylor Greene', 'Diana Harshbarger', 'Daniel Goldman',
+            'Jared Moskowitz', 'Thomas Carper', 'Angus King', 'Bernie Sanders', 'Ted Cruz',
+            'Mitch McConnell', 'Chuck Schumer', 'Jared Golden', 'Bill Hagerty',
+            'Donald J Trump', 'Donald Trump', 'Joe Biden', 'Kamala Harris'
+        ].map(n => n.toLowerCase()));
+
+        const isValidPolitician = (name: string): boolean => {
+            if (!name) return false;
+            const clean = name.trim().toLowerCase();
+            if (clean.includes('surveillance') || clean.includes('pool') || clean.includes('test') || clean.includes('placeholder') || clean.includes('unknown') || clean.includes('select') || clean.includes('feed') || clean.includes('title')) {
+                return false;
+            }
+            if (!/^[a-zA-Z\s\.\-]+$/.test(clean)) {
+                return false;
+            }
+            const matchName = clean.replace(/^(hon\.|senator|representative|mr\.|mrs\.|ms\.)\s+/i, '').trim();
+            return OFFICIAL_ROSTER.has(matchName);
+        };
+
         // 5. PROCESS DATA
         console.log("Formatting and checking overlap alignments...");
         const allParsedTrades = rawTrades
             .filter(t => t.ticker && t.ticker !== '--' && t.filing_date && t.transaction_date)
             .map(t => {
                 const politician_name = cleanPoliticianName(t.filer_name);
+                if (!isValidPolitician(politician_name)) {
+                    console.warn(`[DATA VALIDATION WARNING] Discarding invalid/boilerplate filer name: "${t.filer_name}"`);
+                    return null;
+                }
+
                 const transaction_date = parseDate(t.transaction_date);
                 const filing_date = parseDate(t.filing_date);
                 const committee_overlap = checkCommitteeOverlap(t.ticker, politician_name);
@@ -270,7 +297,7 @@ export async function GET(request: NextRequest) {
                     committee_overlap: isExecutiveFiler ? false : committee_overlap,
                 };
             })
-            .filter(t => t.transaction_date && t.filing_date)
+            .filter((t): t is NonNullable<typeof t> => t !== null && t.transaction_date !== null && t.filing_date !== null)
             .sort((a, b) => new Date(b.filing_date!).getTime() - new Date(a.filing_date!).getTime())
             .slice(0, 300);
 

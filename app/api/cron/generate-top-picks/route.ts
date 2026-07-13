@@ -105,19 +105,47 @@ export async function GET(request: Request) {
             .select('*')
             .order('transaction_date', { ascending: false });
 
-        const trades = (dbTrades || []).map(t => {
-            const nameLower = (t.politician_name || '').toLowerCase();
-            const isExecutiveFiler = nameLower.includes('trump') || nameLower.includes('biden') || nameLower.includes('harris') || nameLower.includes('president') || nameLower.includes('vice president');
-            if (isExecutiveFiler) {
-                return {
-                    ...t,
-                    chamber: 'Executive',
-                    party: nameLower.includes('trump') ? 'R' : 'D',
-                    committee_overlap: false
-                };
+        const OFFICIAL_ROSTER = new Set([
+            'Nancy Pelosi', 'Tommy Tuberville', 'Markwayne Mullin', 'Ro Khanna', 'Josh Gottheimer',
+            'Michael Guest', 'Dan Crenshaw', 'Rick Scott', 'Sheldon Whitehouse', 'John Fetterman',
+            'Pat Toomey', 'Richard Burr', 'Marjorie Taylor Greene', 'Diana Harshbarger', 'Daniel Goldman',
+            'Jared Moskowitz', 'Thomas Carper', 'Angus King', 'Bernie Sanders', 'Ted Cruz',
+            'Mitch McConnell', 'Chuck Schumer', 'Jared Golden', 'Bill Hagerty',
+            'Donald J Trump', 'Donald Trump', 'Joe Biden', 'Kamala Harris'
+        ].map(n => n.toLowerCase()));
+
+        const isValidPolitician = (name: string): boolean => {
+            if (!name) return false;
+            const clean = name.trim().toLowerCase();
+            if (clean.includes('surveillance') || clean.includes('pool') || clean.includes('test') || clean.includes('placeholder') || clean.includes('unknown') || clean.includes('select') || clean.includes('feed') || clean.includes('title')) {
+                return false;
             }
-            return t;
-        });
+            if (!/^[a-zA-Z\s\.\-]+$/.test(clean)) {
+                return false;
+            }
+            const matchName = clean.replace(/^(hon\.|senator|representative|mr\.|mrs\.|ms\.)\s+/i, '').trim();
+            return OFFICIAL_ROSTER.has(matchName);
+        };
+
+        const trades = (dbTrades || [])
+            .map(t => {
+                const nameLower = (t.politician_name || '').toLowerCase();
+                if (!isValidPolitician(t.politician_name)) {
+                    console.error(`[CRITICAL EXCEPTION] Discarded broken row containing boilerplate/placeholder name: "${t.politician_name}"`);
+                    return null;
+                }
+                const isExecutiveFiler = nameLower.includes('trump') || nameLower.includes('biden') || nameLower.includes('harris') || nameLower.includes('president') || nameLower.includes('vice president');
+                if (isExecutiveFiler) {
+                    return {
+                        ...t,
+                        chamber: 'Executive',
+                        party: nameLower.includes('trump') ? 'R' : 'D',
+                        committee_overlap: false
+                    };
+                }
+                return t;
+            })
+            .filter((t): t is NonNullable<typeof t> => t !== null);
 
         // 3. STEP 1: Macro Risk Filter ($SPY and $QQQ moving averages)
         const spyPrices = simulatePriceSeries("SPY", 250);

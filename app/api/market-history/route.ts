@@ -11,7 +11,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Ticker parameter is required' }, { status: 400 });
         }
         
-        const response = await fetch(`https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=6m`, {
+        const response = await fetch(`https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=6mo`, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'application/json',
