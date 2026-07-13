@@ -2123,15 +2123,11 @@ export default function CapitolRadarPage() {
         loadHistory();
     }, [selectedTrade]);
 
-    // Pre-fill Follow Purchase Price with current ticker quote on selection
+    // Close the follow form when selecting a different trade
     useEffect(() => {
-        if (selectedTrade) {
-            const quote = marketQuotes.find(q => q.ticker.toUpperCase() === selectedTrade.ticker.toUpperCase());
-            setFollowPrice(quote ? quote.price.toFixed(2) : "100.00");
-            setFollowShares("100");
-            setShowFollowForm(false);
-        }
-    }, [selectedTrade, marketQuotes]);
+        setShowFollowForm(false);
+        setFollowShares("100");
+    }, [selectedTrade]);
 
     // Initial Portfolio & Alerts Mount Fetch
     useEffect(() => {
@@ -4418,7 +4414,11 @@ export default function CapitolRadarPage() {
 
                                 <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
                                     <button 
-                                        onClick={() => setShowFollowForm(true)}
+                                        onClick={() => {
+                                            const quote = marketQuotes.find(q => q.ticker.toUpperCase() === selectedTrade.ticker.toUpperCase());
+                                            setFollowPrice(quote ? quote.price.toFixed(2) : "100.00");
+                                            setShowFollowForm(true);
+                                        }}
                                         className="px-5 py-3 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.05)] hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-lg"
                                     >
                                         <Plus size={12} />
