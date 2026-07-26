@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-const TARGET_BASE_URL = 'https://ai-receptionist-414225355758.us-central1.run.app/api'
+const TARGET_BASE_URL = 'https://ai-admin-414225355758.us-central1.run.app/api'
 
 async function checkAdminAuth() {
     const cookieStore = await cookies()
