@@ -1,10 +1,22 @@
 async function test() {
-  const url = 'https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json';
+  const settingsUrl = 'https://ai-admin-414225355758.us-central1.run.app/api/settings';
+  const callbacksUrl = 'https://ai-admin-414225355758.us-central1.run.app/api/callbacks';
   try {
-    const res = await fetch(url);
-    console.log("Status:", res.status);
-    if (!res.ok) {
-       console.log("Headers:", Object.fromEntries(res.headers.entries()));
+    console.log("Fetching settings from:", settingsUrl);
+    const settingsRes = await fetch(settingsUrl);
+    console.log("Settings status:", settingsRes.status);
+    if (settingsRes.ok) {
+      const data = await settingsRes.json();
+      console.log("Settings data keys:", Object.keys(data));
+      console.log("Current Voice:", data.voice);
+    }
+
+    console.log("Fetching callbacks from:", callbacksUrl);
+    const callbacksRes = await fetch(callbacksUrl);
+    console.log("Callbacks status:", callbacksRes.status);
+    if (callbacksRes.ok) {
+      const data = await callbacksRes.json();
+      console.log("Callbacks count:", data.callbacks ? data.callbacks.length : 0);
     }
   } catch (err) {
     console.error("Fetch error:", err);

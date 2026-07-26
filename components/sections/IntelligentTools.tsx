@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient"
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User, ShieldCheck } from "lucide-react"
+import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User, ShieldCheck, Mic } from "lucide-react"
 interface Tool {
     id: string
     name: string
@@ -59,6 +59,17 @@ const tools: Tool[] = [
         status: "active",
         isFree: false,
         requiresAuth: false
+    },
+    {
+        id: "ai-receptionist",
+        name: "ALBA (AI Receptionist)",
+        description: "An automated 24/7 lead bridge receptionist that handles phone calls and text inquiries in real-time, qualifies leads, and books them on your calendar using voice-AI.",
+        icon: <Mic className="w-8 h-8" />,
+        href: "/admin/ai-receptionist",
+        status: "active",
+        isFree: false,
+        requiresAuth: true,
+        isAdminOnly: true
     },
 ] // Add more tools here as they're developed
 
