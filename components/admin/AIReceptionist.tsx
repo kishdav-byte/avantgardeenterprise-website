@@ -220,13 +220,14 @@ export function AIReceptionist() {
                             {/* Voice Selection */}
                             <div className="space-y-3">
                                 <label className="block text-[10px] font-black uppercase tracking-widest text-white/40">Voice Persona</label>
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                     {[
-                                        { name: "Puck", desc: "Playful & Energetic (Male)" },
-                                        { name: "Charon", desc: "Deep & Authoritative (Male)" },
-                                        { name: "Kore", desc: "Calm & Soothing (Female)" },
-                                        { name: "Fenrir", desc: "Resonant & Strong (Male)" },
-                                        { name: "Aoede", desc: "Expressive & Bright (Female)" }
+                                        { name: "alloy", desc: "Neutral & Balanced (Unisex)" },
+                                        { name: "echo", desc: "Warm & Gentle (Male)" },
+                                        { name: "shimmer", desc: "Professional & Clear (Female)" },
+                                        { name: "ash", desc: "Expressive & Active (Male)" },
+                                        { name: "ballad", desc: "Soft & Conversational (Female)" },
+                                        { name: "coral", desc: "Friendly & Welcoming (Female)" }
                                     ].map(voiceOption => (
                                         <label key={voiceOption.name} className="cursor-pointer">
                                             <input
