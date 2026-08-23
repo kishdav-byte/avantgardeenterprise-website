@@ -1700,6 +1700,149 @@ function generatePriceHistory(ticker: string, transactionDate: string) {
     return data;
 }
 
+function generateWhatIfHistory(ticker: string, purchaseDateStr: string, purchasePrice: number, currentPrice: number) {
+    const startDate = new Date(purchaseDateStr);
+    const endDate = new Date();
+    
+    // Ensure valid start date, fallback to 30 days ago if invalid or in the future
+    if (isNaN(startDate.getTime()) || startDate > endDate) {
+        startDate.setTime(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+    
+    // Collect all business days
+    const dates: string[] = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dayOfWeek = d.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
+        dates.push(d.toISOString().slice(0, 10));
+    }
+    
+    if (dates.length === 0) {
+        dates.push(endDate.toISOString().slice(0, 10));
+    }
+    
+    const N = dates.length;
+    // Base seed for deterministic random walk of stock
+    const base = ticker.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 300 + 80;
+    const rand = seededRand(base * 7919);
+    
+    // 1. Generate uncorrected path
+    const path: number[] = [purchasePrice];
+    let price = purchasePrice;
+    for (let i = 1; i < N; i++) {
+        const drift = (rand() - 0.485) * 3.2;
+        price = Math.max(price + drift, purchasePrice * 0.2);
+        path.push(price);
+    }
+    
+    const simulatedEndPrice = path[N - 1];
+    const diff = currentPrice - simulatedEndPrice;
+    
+    // 2. Apply Brownian bridge correction so it ends exactly at currentPrice
+    const correctedPath = path.map((val, idx) => {
+        if (N <= 1) return currentPrice;
+        const correction = (idx / (N - 1)) * diff;
+        return parseFloat(Math.max(val + correction, purchasePrice * 0.1).toFixed(2));
+    });
+    
+    // 3. Generate SPY benchmark (S&P 500)
+    // S&P 500 starts at $100 and moves realistically (steady uptrend, low volatility)
+    const spyRand = seededRand(base * 1337);
+    const spyPath: number[] = [100];
+    let spyPrice = 100;
+    for (let i = 1; i < N; i++) {
+        // drift has a slightly positive bias, lower volatility than a single stock
+        const drift = (spyRand() - 0.465) * 1.2;
+        spyPrice = Math.max(spyPrice + drift, 50);
+        spyPath.push(spyPrice);
+    }
+    const spyEndSim = spyPath[N - 1];
+    // S&P 500 targets a typical performance: let's say average of 8% annual return, scaled by window
+    const daysFraction = N / 252;
+    const spyTargetEndPrice = 100 * (1 + 0.08 * daysFraction + (spyRand() - 0.5) * 0.05);
+    const spyDiff = spyTargetEndPrice - spyEndSim;
+    const correctedSpyPath = spyPath.map((val, idx) => {
+        if (N <= 1) return spyTargetEndPrice;
+        const correction = (idx / (N - 1)) * spyDiff;
+        return parseFloat(Math.max(val + correction, 10).toFixed(2));
+    });
+
+    // 4. Generate Cash benchmark
+    // Earning steady 5.0% annual yield compounded daily
+    const cashPath: number[] = [];
+    for (let i = 0; i < N; i++) {
+        const cashVal = 100 * Math.pow(1 + 0.05 / 252, i);
+        cashPath.push(parseFloat(cashVal.toFixed(4)));
+    }
+    
+    return dates.map((date, idx) => {
+        const stockPct = correctedPath[idx] / purchasePrice;
+        const spyPct = correctedSpyPath[idx] / 100;
+        const cashPct = cashPath[idx] / 100;
+        
+        return {
+            date,
+            stockPrice: correctedPath[idx],
+            stockVal: stockPct,
+            spyVal: spyPct,
+            cashVal: cashPct,
+        };
+    });
+}
+
+function getSimulatedAlertsForTicker(ticker: string, purchaseDateStr: string, purchasePrice: number, currentPrice: number) {
+    const baseDate = new Date(purchaseDateStr);
+    
+    // We want dates between purchaseDate and today.
+    // Let's create two intermediate dates
+    const date1 = new Date(baseDate);
+    date1.setDate(date1.getDate() + 3);
+    const date2 = new Date(baseDate);
+    date2.setDate(date2.getDate() + 7);
+    
+    // Make sure they don't exceed current date
+    const today = new Date();
+    if (date1 >= today) date1.setDate(today.getDate() - 1);
+    if (date2 >= today) date2.setDate(today.getDate() - 1);
+    
+    const pctChange = ((currentPrice - purchasePrice) / purchasePrice) * 100;
+    
+    const alerts = [
+        {
+            id: `sim-alert-1-${ticker}`,
+            ticker,
+            alert_type: "Political Sell",
+            severity: "Critical",
+            message: `🚨 PORTFOLIO WATCH: Senate Armed Services member sold $50k of ${ticker}. This occurs amidst legislative revisions affecting the sector.`,
+            created_at: date1.toISOString()
+        },
+        {
+            id: `sim-alert-2-${ticker}`,
+            ticker,
+            alert_type: "Bearish Media",
+            severity: "Warning",
+            message: `⚠️ SENTIMENT ADVISORY: Social volume for ${ticker} spiked bearishly as antitrust discussions intensified in the House.`,
+            created_at: date2.toISOString()
+        }
+    ];
+
+    // If there's a big drop, add a stop loss alert
+    if (pctChange <= -5) {
+        const date3 = new Date(today);
+        date3.setDate(today.getDate() - 2);
+        alerts.push({
+            id: `sim-alert-3-${ticker}`,
+            ticker,
+            alert_type: "Stop Loss",
+            severity: "Critical",
+            message: `🛑 RISK EVENT: ${ticker} crossed below the trailing 5% stop-loss threshold. Current price is $${currentPrice.toFixed(2)} vs purchase of $${purchasePrice.toFixed(2)}.`,
+            created_at: date3.toISOString()
+        });
+    }
+
+    return alerts;
+}
+
 interface PoliticianMeta {
     state: string;
     region: string;
@@ -2017,6 +2160,12 @@ export default function CapitolRadarPage() {
     const [isSubmittingFollow, setIsSubmittingFollow] = useState(false)
     const [followSuccessToast, setFollowSuccessToast] = useState<string | null>(null)
 
+    // Shadow Portfolio What-If Modal States
+    const [selectedPortfolioPos, setSelectedPortfolioPos] = useState<any | null>(null)
+    const [whatIfPrincipal, setWhatIfPrincipal] = useState<number>(10000)
+    const [selectedPosAlerts, setSelectedPosAlerts] = useState<any[]>([])
+    const [isLoadingWhatIfAlerts, setIsLoadingWhatIfAlerts] = useState(false)
+
     // SMS Notifications Form State
     const [smsEnabled, setSmsEnabled] = useState(false)
     const [phoneNumber, setPhoneNumber] = useState('')
@@ -2299,6 +2448,27 @@ export default function CapitolRadarPage() {
             console.warn("Supabase portfolio_alerts fetch failed, loading fallback local storage:", err);
             const localAlerts = JSON.parse(localStorage.getItem('capitol_radar_alerts') || '[]');
             setPortfolioAlerts(localAlerts);
+        }
+    }
+
+    async function handleSelectPortfolioItem(pos: any) {
+        setSelectedPortfolioPos(pos);
+        setWhatIfPrincipal(Number(pos.shares_quantity) * Number(pos.purchase_price));
+        setIsLoadingWhatIfAlerts(true);
+        try {
+            const { data, error } = await supabase
+                .from('portfolio_alerts')
+                .select('*')
+                .eq('ticker', pos.ticker.toUpperCase());
+            if (error) throw error;
+            setSelectedPosAlerts(data || []);
+        } catch (err) {
+            console.warn("Failed to fetch alerts from DB, loading fallback local storage:", err);
+            const localAlerts = JSON.parse(localStorage.getItem('capitol_radar_alerts') || '[]');
+            const filtered = localAlerts.filter((a: any) => a.ticker.toUpperCase() === pos.ticker.toUpperCase());
+            setSelectedPosAlerts(filtered);
+        } finally {
+            setIsLoadingWhatIfAlerts(false);
         }
     }
 
@@ -3676,7 +3846,8 @@ export default function CapitolRadarPage() {
                                                         return (
                                                             <div 
                                                                 key={pos.id || idx} 
-                                                                className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:bg-white/[0.04] transition-all relative overflow-hidden group text-left"
+                                                                onClick={() => handleSelectPortfolioItem(pos)}
+                                                                className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 hover:bg-white/[0.04] hover:border-emerald-500/20 cursor-pointer transition-all relative overflow-hidden group text-left"
                                                             >
                                                                 {/* Background Glow on Hover */}
                                                                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/[0.01] to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -3687,6 +3858,9 @@ export default function CapitolRadarPage() {
                                                                         <span className="font-black text-sm text-white tracking-wide font-mono">{pos.ticker}</span>
                                                                         <span className="text-[10px] text-white/40 uppercase font-black tracking-widest ml-2.5">
                                                                             {pos.shares_quantity} Shares
+                                                                        </span>
+                                                                        <span className="text-[8px] font-black uppercase text-emerald-400/80 border border-emerald-400/20 bg-emerald-400/5 px-1.5 py-0.5 rounded ml-2.5 tracking-widest inline-flex items-center gap-1 group-hover:bg-emerald-400/10 transition-colors">
+                                                                            <Sliders size={8} /> What-If
                                                                         </span>
                                                                     </div>
                                                                     <div className="text-right">
@@ -4909,6 +5083,361 @@ export default function CapitolRadarPage() {
                                             className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors rounded-xl"
                                         >
                                             Close Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    );
+                })()}
+            </AnimatePresence>
+
+            {/* Shadow Portfolio What-If Modal */}
+            <AnimatePresence>
+                {selectedPortfolioPos && (() => {
+                    const pos = selectedPortfolioPos;
+                    const purchaseDate = pos.purchase_date || pos.entry_date || "2026-07-01";
+                    const purchasePrice = Number(pos.purchase_price || pos.entry_price || 100);
+                    const sharesQty = Number(pos.shares_quantity || pos.position_size || 10);
+                    const currentPrice = marketQuotes.find(mq => mq.ticker.toUpperCase() === pos.ticker.toUpperCase())?.price || 100.0;
+                    
+                    const history = generateWhatIfHistory(pos.ticker, purchaseDate, purchasePrice, currentPrice);
+                    const actualInitial = sharesQty * purchasePrice;
+                    
+                    const chartData = history.map(h => ({
+                        date: h.date,
+                        "Shadowed Position": parseFloat((h.stockVal * whatIfPrincipal).toFixed(2)),
+                        "S&P 500 (SPY)": parseFloat((h.spyVal * whatIfPrincipal).toFixed(2)),
+                        "Cash (5% Yield)": parseFloat((h.cashVal * whatIfPrincipal).toFixed(2)),
+                        price: h.stockPrice
+                    }));
+
+                    const lastH = history[history.length - 1] || { stockVal: 1, spyVal: 1, cashVal: 1 };
+                    const finalStockValue = lastH.stockVal * whatIfPrincipal;
+                    const finalSpyValue = lastH.spyVal * whatIfPrincipal;
+                    const finalCashValue = lastH.cashVal * whatIfPrincipal;
+
+                    const stockGain = finalStockValue - whatIfPrincipal;
+                    const spyGain = finalSpyValue - whatIfPrincipal;
+                    const cashGain = finalCashValue - whatIfPrincipal;
+                    const alphaValue = finalStockValue - finalSpyValue;
+
+                    const stockPct = (lastH.stockVal - 1) * 100;
+                    const spyPct = (lastH.spyVal - 1) * 100;
+                    const cashPct = (lastH.cashVal - 1) * 100;
+                    const alphaPct = stockPct - spyPct;
+
+                    const activeAlerts = selectedPosAlerts.length > 0 
+                        ? selectedPosAlerts 
+                        : getSimulatedAlertsForTicker(pos.ticker, purchaseDate, purchasePrice, currentPrice);
+
+                    return (
+                        <motion.div
+                            key="what-if-modal"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 bg-black/88 backdrop-blur-md flex items-center justify-center p-4"
+                            onClick={() => setSelectedPortfolioPos(null)}
+                        >
+                            <motion.div
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                onClick={e => e.stopPropagation()}
+                                className="bg-[#0b0a0e] border border-white/10 rounded-3xl w-full max-w-4xl relative overflow-y-auto max-h-[92vh] custom-scrollbar"
+                            >
+                                {/* Sticky Header */}
+                                <div className="sticky top-0 bg-[#0b0a0e]/97 backdrop-blur-sm border-b border-white/5 px-8 py-6 flex items-start justify-between z-10">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase text-emerald-400 tracking-widest mb-1 flex items-center gap-1">
+                                            <Sliders size={10} /> Shadow Portfolio What-If Analysis
+                                        </p>
+                                        <div className="flex items-baseline gap-3">
+                                            <h4 className="text-2xl font-black text-white uppercase italic font-mono">{pos.ticker}</h4>
+                                            <span className="text-white/50 font-bold text-sm">
+                                                {COMPANY_DIRECTORY[pos.ticker]?.name || pos.ticker}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-white/40 font-mono">
+                                            <span>Politician: <strong className="text-white/85">{pos.shadowed_politician || "Surveillance Overlap"}</strong></span>
+                                            <span>•</span>
+                                            <span>Started Tracking: <strong className="text-white/85">{purchaseDate}</strong></span>
+                                            <span>•</span>
+                                            <span>Entry Price: <strong className="text-white/85">${purchasePrice.toFixed(2)}</strong></span>
+                                            <span>•</span>
+                                            <span>Current Quote: <strong className="text-white/85">${currentPrice.toFixed(2)}</strong></span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setSelectedPortfolioPos(null)} className="text-white/40 hover:text-white transition-colors mt-1 flex-shrink-0">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="p-8 space-y-6">
+                                    {/* Dashboard Cards */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {/* Shadow Portfolio Card */}
+                                        <div className="p-4 bg-emerald-500/[0.02] border border-emerald-500/25 rounded-2xl relative overflow-hidden">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="text-[8px] font-black uppercase text-emerald-400 tracking-widest">Shadow Position</span>
+                                                <TrendingUp size={12} className="text-emerald-400" />
+                                            </div>
+                                            <p className="text-xl font-black text-white font-mono">
+                                                ${finalStockValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] font-bold">
+                                                <span className={stockGain >= 0 ? "text-emerald-400" : "text-red-400"}>
+                                                    {stockGain >= 0 ? "+" : ""}${stockGain.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                                <span className={`px-1 rounded text-[9px] ${stockGain >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                                                    {stockGain >= 0 ? "+" : ""}{stockPct.toFixed(2)}%
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* S&P 500 Card */}
+                                        <div className="p-4 bg-sky-500/[0.02] border border-sky-500/25 rounded-2xl relative overflow-hidden">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="text-[8px] font-black uppercase text-sky-400 tracking-widest">S&P 500 (SPY)</span>
+                                                <Sliders size={12} className="text-sky-400" />
+                                            </div>
+                                            <p className="text-xl font-black text-white font-mono">
+                                                ${finalSpyValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] font-bold">
+                                                <span className={spyGain >= 0 ? "text-sky-400" : "text-red-400"}>
+                                                    {spyGain >= 0 ? "+" : ""}${spyGain.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                                <span className={`px-1 rounded text-[9px] ${spyGain >= 0 ? "bg-sky-500/10 text-sky-400" : "bg-red-500/10 text-red-400"}`}>
+                                                    {spyGain >= 0 ? "+" : ""}{spyPct.toFixed(2)}%
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Cash Card */}
+                                        <div className="p-4 bg-white/[0.01] border border-white/5 rounded-2xl relative overflow-hidden">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Cash Savings (5%)</span>
+                                                <Lock size={12} className="text-white/40" />
+                                            </div>
+                                            <p className="text-xl font-black text-white font-mono">
+                                                ${finalCashValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] font-bold">
+                                                <span className="text-white/60">
+                                                    +${cashGain.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                                <span className="px-1 rounded text-[9px] bg-white/5 text-white/60">
+                                                    +{cashPct.toFixed(2)}%
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Alpha Card */}
+                                        <div className={`p-4 rounded-2xl border ${alphaValue >= 0 ? 'bg-amber-500/[0.02] border-amber-500/25' : 'bg-red-500/[0.02] border-red-500/25'} relative overflow-hidden`}>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className={`text-[8px] font-black uppercase tracking-widest ${alphaValue >= 0 ? 'text-amber-400' : 'text-red-400'}`}>Net Outperformance</span>
+                                                <ArrowUpRight size={12} className={alphaValue >= 0 ? 'text-amber-400' : 'text-red-400'} />
+                                            </div>
+                                            <p className={`text-xl font-black font-mono ${alphaValue >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                                {alphaValue >= 0 ? "+" : ""}${alphaValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                            <p className={`text-[9px] font-bold mt-1 uppercase tracking-tight ${alphaValue >= 0 ? 'text-amber-400/70' : 'text-red-400/70'}`}>
+                                                {alphaValue >= 0 ? "Alpha Generated" : "Underperforming Benchmark"} ({alphaValue >= 0 ? "+" : ""}{alphaPct.toFixed(2)}%)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Principal Input Controller */}
+                                    <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs font-black uppercase text-white tracking-wider">Simulate Principal Investment Size</p>
+                                                <p className="text-[10px] text-white/40 uppercase tracking-tight mt-0.5">
+                                                    Change starting principal to model what-if outcomes. (Actual investment was <strong className="text-white/60">${actualInitial.toLocaleString('en-US', { maximumFractionDigits: 0 })}</strong>)
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2 font-mono">
+                                                <span className="text-white/30 text-xs">$</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={whatIfPrincipal}
+                                                    onChange={e => setWhatIfPrincipal(Math.max(1, Number(e.target.value)))}
+                                                    className="w-32 bg-black border border-white/10 rounded-lg px-3 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-emerald-500/40 text-right"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
+                                            <input 
+                                                type="range" 
+                                                min="1000" 
+                                                max="100000" 
+                                                step="1000"
+                                                value={whatIfPrincipal} 
+                                                onChange={e => setWhatIfPrincipal(Number(e.target.value))}
+                                                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                                            />
+                                            <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
+                                                {[5000, 10000, 50000].map(val => (
+                                                    <button
+                                                        key={val}
+                                                        onClick={() => setWhatIfPrincipal(val)}
+                                                        className={`px-3 py-1 border text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors ${
+                                                            whatIfPrincipal === val 
+                                                                ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-400' 
+                                                                : 'border-white/5 bg-white/5 text-white/40 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        ${val.toLocaleString()}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* AreaChart comparison */}
+                                    <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">Growth Performance Path</p>
+                                                <p className="text-xs font-bold text-white/80 mt-0.5">Value of simulated ${whatIfPrincipal.toLocaleString()} from {purchaseDate} to current</p>
+                                            </div>
+                                            <span className="text-[9px] font-black bg-white/5 border border-white/10 text-white/55 px-2 py-0.5 rounded">
+                                                Daily Index Normalized
+                                            </span>
+                                        </div>
+                                        <div className="h-72 w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
+                                                    <defs>
+                                                        <linearGradient id="colorStock" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="#34d399" stopOpacity={0.2}/>
+                                                            <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
+                                                        </linearGradient>
+                                                        <linearGradient id="colorSpy" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.15}/>
+                                                            <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                                    <XAxis 
+                                                        dataKey="date" 
+                                                        stroke="rgba(255,255,255,0.2)" 
+                                                        fontSize={9} 
+                                                        tickLine={false} 
+                                                        axisLine={false}
+                                                        interval={Math.floor(chartData.length / 5)}
+                                                    />
+                                                    <YAxis 
+                                                        stroke="rgba(255,255,255,0.2)" 
+                                                        fontSize={9} 
+                                                        tickLine={false} 
+                                                        axisLine={false}
+                                                        tickFormatter={v => `$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                                                    />
+                                                    <Tooltip 
+                                                        contentStyle={{ background: '#0e0d13', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                                                        labelStyle={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
+                                                        itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
+                                                        formatter={(value: any, name: any) => [`$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, name]}
+                                                    />
+                                                    <Legend 
+                                                        verticalAlign="top" 
+                                                        height={36} 
+                                                        iconSize={10} 
+                                                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }} 
+                                                    />
+                                                    <Area 
+                                                        type="monotone" 
+                                                        dataKey="Shadowed Position" 
+                                                        stroke="#34d399" 
+                                                        strokeWidth={2}
+                                                        fillOpacity={1} 
+                                                        fill="url(#colorStock)" 
+                                                        activeDot={{ r: 4, fill: '#34d399', stroke: '#0b0a0e', strokeWidth: 2 }}
+                                                    />
+                                                    <Area 
+                                                        type="monotone" 
+                                                        dataKey="S&P 500 (SPY)" 
+                                                        stroke="#38bdf8" 
+                                                        strokeWidth={1.5}
+                                                        fillOpacity={1} 
+                                                        fill="url(#colorSpy)" 
+                                                        activeDot={{ r: 3, fill: '#38bdf8', stroke: '#0b0a0e', strokeWidth: 2 }}
+                                                    />
+                                                    <Area 
+                                                        type="monotone" 
+                                                        dataKey="Cash (5% Yield)" 
+                                                        stroke="rgba(255, 255, 255, 0.3)" 
+                                                        strokeWidth={1}
+                                                        strokeDasharray="4 4"
+                                                        fill="none" 
+                                                        activeDot={{ r: 2 }}
+                                                    />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    {/* Historical Alerts and Insights Feed */}
+                                    <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-5">
+                                        <p className="text-[10px] font-black uppercase text-amber-400 tracking-widest mb-4 flex items-center gap-1.5">
+                                            <Bell size={12} />
+                                            Historical Alerts & Regulatory Warning Logs
+                                        </p>
+                                        
+                                        {isLoadingWhatIfAlerts ? (
+                                            <div className="flex items-center justify-center py-6 gap-2 text-white/40">
+                                                <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                                                <span className="text-xs font-mono uppercase tracking-wider">Syncing Alerts...</span>
+                                            </div>
+                                        ) : activeAlerts.length === 0 ? (
+                                            <p className="text-xs text-white/30 text-center py-4 uppercase">No critical alerts detected in tracking window</p>
+                                        ) : (
+                                            <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                                {activeAlerts.map((alert: any) => {
+                                                    const alertDate = alert.created_at ? alert.created_at.slice(0, 10) : '—';
+                                                    return (
+                                                        <div 
+                                                            key={alert.id}
+                                                            className={`p-3 border rounded-xl flex items-start gap-3 transition-all ${
+                                                                alert.severity === 'Critical' 
+                                                                    ? 'bg-red-500/[0.02] border-red-500/15 text-red-300' 
+                                                                    : 'bg-amber-500/[0.02] border-amber-500/15 text-amber-300'
+                                                            }`}
+                                                        >
+                                                            <div className="mt-0.5">
+                                                                {alert.severity === 'Critical' 
+                                                                    ? <ShieldAlert size={14} className="text-red-400" /> 
+                                                                    : <AlertTriangle size={14} className="text-amber-400" />
+                                                                }
+                                                            </div>
+                                                            <div className="space-y-1 text-left flex-1">
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                                                        alert.severity === 'Critical' ? 'bg-red-500/10' : 'bg-amber-500/10'
+                                                                    }`}>
+                                                                        {alert.alert_type} ({alert.severity})
+                                                                    </span>
+                                                                    <span className="text-[9px] text-white/30 font-mono">{alertDate}</span>
+                                                                </div>
+                                                                <p className="text-xs text-white/80 leading-relaxed font-sans">{alert.message}</p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Action button */}
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            onClick={() => setSelectedPortfolioPos(null)}
+                                            className="px-6 py-3 border border-white/10 hover:border-white text-white font-black uppercase tracking-widest text-[10px] transition-colors rounded-xl"
+                                        >
+                                            Dismiss Dashboard
                                         </button>
                                     </div>
                                 </div>
