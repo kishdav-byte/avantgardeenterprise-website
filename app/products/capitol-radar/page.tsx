@@ -7,7 +7,7 @@ import {
     Loader2, Lock, ShieldCheck, ShieldAlert, Search, RefreshCw, 
     TrendingUp, TrendingDown, Bell, Phone, Save, CheckCircle2, 
     ArrowUpRight, AlertOctagon, HelpCircle, ChevronRight, X, Info,
-    Sliders, AlertTriangle, Plus
+    Sliders, AlertTriangle, Plus, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { Navbar } from '@/components/Navbar'
@@ -42,6 +42,14 @@ interface CompanyDetails {
     name: string
     industry: string
     description: string
+}
+
+export type SortColumnKey = 'politician' | 'ticker' | 'industry' | 'action' | 'value' | 'latency' | 'status' | 'filingDate' | 'transactionDate';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortRule {
+    key: SortColumnKey;
+    direction: SortDirection;
 }
 
 const COMPANY_DIRECTORY: Record<string, CompanyDetails> = {
@@ -2115,6 +2123,28 @@ function checkCommitteeConnection(committees: string[], industry: string): { mat
     return { matches: false, reason: 'No explicit committee oversight connection identified' };
 }
 
+export const COLUMN_LABELS: Record<SortColumnKey, string> = {
+    politician: 'Politician',
+    ticker: 'Ticker',
+    industry: 'Industry',
+    action: 'Action',
+    value: 'Est. Value',
+    latency: 'Latency',
+    status: 'Status',
+    filingDate: 'Filing Date',
+    transactionDate: 'Transaction Date'
+};
+
+export const ALL_SORT_COLUMNS: SortColumnKey[] = [
+    'politician',
+    'ticker',
+    'industry',
+    'action',
+    'value',
+    'latency',
+    'status'
+];
+
 export default function CapitolRadarPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
@@ -2133,7 +2163,10 @@ export default function CapitolRadarPage() {
     const [selectedChamber, setSelectedChamber] = useState<'all' | 'House' | 'Senate' | 'Executive'>('all')
     const [selectedActionFilter, setSelectedActionFilter] = useState<'all' | 'Purchase' | 'Sale' | 'Exchange'>('all')
     const [selectedValueFilter, setSelectedValueFilter] = useState<'all' | 'small' | 'medium' | 'large'>('all')
-    const [sortBy, setSortBy] = useState<'filingDateDesc' | 'filingDateAsc' | 'transactionDateDesc' | 'transactionDateAsc' | 'latencyDesc' | 'latencyAsc' | 'nameAsc' | 'tickerAsc'>('filingDateDesc')
+    const [sortRules, setSortRules] = useState<SortRule[]>([
+        { key: 'filingDate', direction: 'desc' }
+    ])
+    const [multiSortMode, setMultiSortMode] = useState<boolean>(true)
     
     // Interactive Features
     const [newsIndex, setNewsIndex] = useState(0)
@@ -2656,7 +2689,168 @@ export default function CapitolRadarPage() {
         return diffDays;
     };
 
-    // Handles filtering in state
+    const parseAmountToNumeric = (range: string): number => {
+        if (!range || range === 'Unknown' || range.includes('••••')) return 0;
+        const clean = range.replace(/[\$,]/g, '').toLowerCase();
+        if (clean.includes('over') || clean.includes('million')) {
+            const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
+            return isNaN(num) ? 1000000 : num;
+        }
+        const parts = clean.split('-');
+        if (parts.length === 2) {
+            const low = parseFloat(parts[0].replace(/[^0-9.]/g, ''));
+            const high = parseFloat(parts[1].replace(/[^0-9.]/g, ''));
+            if (!isNaN(low) && !isNaN(high)) {
+                return (low + high) / 2;
+            }
+        }
+        const single = parseFloat(clean.replace(/[^0-9.]/g, ''));
+        return isNaN(single) ? 0 : single;
+    };
+
+    const getColumnSortValue = (trade: Trade, key: SortColumnKey): string | number => {
+        switch (key) {
+            case 'politician':
+                return (trade.politician_name || '').toLowerCase();
+            case 'ticker':
+                return (trade.ticker || '').toUpperCase();
+            case 'industry': {
+                const sym = (trade.ticker || '').toUpperCase();
+                return (COMPANY_DIRECTORY[sym]?.industry || 'Standard Market Listing').toLowerCase();
+            }
+            case 'action':
+                return (trade.transaction_type || '').toLowerCase();
+            case 'value':
+                return parseAmountToNumeric(trade.amount_range);
+            case 'latency':
+                return calculateFilingLatency(trade.transaction_date, trade.filing_date);
+            case 'status':
+                return trade.committee_overlap ? 1 : 0;
+            case 'filingDate':
+                return new Date(trade.filing_date || '').getTime() || 0;
+            case 'transactionDate':
+                return new Date(trade.transaction_date || '').getTime() || 0;
+            default:
+                return '';
+        }
+    };
+
+    const compareTradesByRule = (a: Trade, b: Trade, rule: SortRule): number => {
+        const valA = getColumnSortValue(a, rule.key);
+        const valB = getColumnSortValue(b, rule.key);
+
+        let diff = 0;
+        if (typeof valA === 'number' && typeof valB === 'number') {
+            diff = valA - valB;
+        } else {
+            diff = String(valA).localeCompare(String(valB));
+        }
+
+        return rule.direction === 'desc' ? -diff : diff;
+    };
+
+    const handleHeaderClick = (key: SortColumnKey, isShiftPressed: boolean) => {
+        const isMulti = isShiftPressed || multiSortMode;
+
+        setSortRules(prevRules => {
+            const existingIndex = prevRules.findIndex(r => r.key === key);
+
+            // Case 1: Column already in active sort rules
+            if (existingIndex !== -1) {
+                const currentRule = prevRules[existingIndex];
+                if (currentRule.direction === 'asc') {
+                    // Toggle to desc
+                    const next = [...prevRules];
+                    next[existingIndex] = { ...currentRule, direction: 'desc' };
+                    return next;
+                } else {
+                    // Current is desc -> remove from sort rules if multiple rules exist, else reset to default
+                    if (prevRules.length > 1) {
+                        return prevRules.filter(r => r.key !== key);
+                    } else {
+                        return [{ key: 'filingDate', direction: 'desc' }];
+                    }
+                }
+            }
+
+            // Case 2: Column is not yet in sort rules
+            const defaultDirection: SortDirection = (key === 'value' || key === 'latency' || key === 'status' || key === 'filingDate' || key === 'transactionDate') ? 'desc' : 'asc';
+            const newRule: SortRule = { key, direction: defaultDirection };
+
+            if (isMulti) {
+                const filtered = prevRules.filter(r => r.key !== 'filingDate' && r.key !== 'transactionDate');
+                return [...filtered, newRule];
+            } else {
+                return [newRule];
+            }
+        });
+    };
+
+    const getDropdownSortValue = (): string => {
+        if (sortRules.length === 1) {
+            const r = sortRules[0];
+            if (r.key === 'filingDate' && r.direction === 'desc') return 'filingDateDesc';
+            if (r.key === 'filingDate' && r.direction === 'asc') return 'filingDateAsc';
+            if (r.key === 'transactionDate' && r.direction === 'desc') return 'transactionDateDesc';
+            if (r.key === 'transactionDate' && r.direction === 'asc') return 'transactionDateAsc';
+            if (r.key === 'latency' && r.direction === 'desc') return 'latencyDesc';
+            if (r.key === 'latency' && r.direction === 'asc') return 'latencyAsc';
+            if (r.key === 'politician' && r.direction === 'asc') return 'nameAsc';
+            if (r.key === 'ticker' && r.direction === 'asc') return 'tickerAsc';
+            if (r.key === 'action' && r.direction === 'asc') return 'actionAsc';
+            if (r.key === 'action' && r.direction === 'desc') return 'actionDesc';
+            if (r.key === 'value' && r.direction === 'desc') return 'valueDesc';
+            if (r.key === 'value' && r.direction === 'asc') return 'valueAsc';
+            if (r.key === 'industry' && r.direction === 'asc') return 'industryAsc';
+        }
+        return 'custom';
+    };
+
+    const handleDropdownSortChange = (val: string) => {
+        switch (val) {
+            case 'filingDateDesc':
+                setSortRules([{ key: 'filingDate', direction: 'desc' }]);
+                break;
+            case 'filingDateAsc':
+                setSortRules([{ key: 'filingDate', direction: 'asc' }]);
+                break;
+            case 'transactionDateDesc':
+                setSortRules([{ key: 'transactionDate', direction: 'desc' }]);
+                break;
+            case 'transactionDateAsc':
+                setSortRules([{ key: 'transactionDate', direction: 'asc' }]);
+                break;
+            case 'latencyDesc':
+                setSortRules([{ key: 'latency', direction: 'desc' }]);
+                break;
+            case 'latencyAsc':
+                setSortRules([{ key: 'latency', direction: 'asc' }]);
+                break;
+            case 'nameAsc':
+                setSortRules([{ key: 'politician', direction: 'asc' }]);
+                break;
+            case 'tickerAsc':
+                setSortRules([{ key: 'ticker', direction: 'asc' }]);
+                break;
+            case 'actionAsc':
+                setSortRules([{ key: 'action', direction: 'asc' }]);
+                break;
+            case 'actionDesc':
+                setSortRules([{ key: 'action', direction: 'desc' }]);
+                break;
+            case 'valueDesc':
+                setSortRules([{ key: 'value', direction: 'desc' }]);
+                break;
+            case 'valueAsc':
+                setSortRules([{ key: 'value', direction: 'asc' }]);
+                break;
+            case 'industryAsc':
+                setSortRules([{ key: 'industry', direction: 'asc' }]);
+                break;
+        }
+    };
+
+    // Handles filtering and multi-column sorting in state
     useEffect(() => {
         let filtered = [...originalTrades];
 
@@ -2699,56 +2893,23 @@ export default function CapitolRadarPage() {
             });
         }
 
-        // Sorting
+        // Multi-Column Priority Sorting
         filtered.sort((a, b) => {
-            if (sortBy === 'filingDateDesc') {
-                return new Date(b.filing_date || '').getTime() - new Date(a.filing_date || '').getTime();
+            for (const rule of sortRules) {
+                const diff = compareTradesByRule(a, b, rule);
+                if (diff !== 0) {
+                    return diff;
+                }
             }
-            if (sortBy === 'filingDateAsc') {
-                return new Date(a.filing_date || '').getTime() - new Date(b.filing_date || '').getTime();
-            }
-            if (sortBy === 'transactionDateDesc') {
-                return new Date(b.transaction_date || '').getTime() - new Date(a.transaction_date || '').getTime();
-            }
-            if (sortBy === 'transactionDateAsc') {
-                return new Date(a.transaction_date || '').getTime() - new Date(b.transaction_date || '').getTime();
-            }
-            if (sortBy === 'latencyDesc') {
-                return calculateFilingLatency(b.transaction_date, b.filing_date) - calculateFilingLatency(a.transaction_date, a.filing_date);
-            }
-            if (sortBy === 'latencyAsc') {
-                return calculateFilingLatency(a.transaction_date, a.filing_date) - calculateFilingLatency(b.transaction_date, b.filing_date);
-            }
-            if (sortBy === 'nameAsc') {
-                return a.politician_name.localeCompare(b.politician_name);
-            }
-            if (sortBy === 'tickerAsc') {
-                return a.ticker.localeCompare(b.ticker);
-            }
-            return 0;
+            // Tie-breaker: filing date descending, then id
+            const dateA = new Date(a.filing_date || '').getTime() || 0;
+            const dateB = new Date(b.filing_date || '').getTime() || 0;
+            if (dateB !== dateA) return dateB - dateA;
+            return (b.id || '').localeCompare(a.id || '');
         });
 
         setTrades(filtered);
-    }, [searchQuery, selectedChamber, selectedOverlapFilter, selectedActionFilter, selectedValueFilter, sortBy, originalTrades]);
-
-    const parseAmountToNumeric = (range: string): number => {
-        if (!range || range === 'Unknown' || range.includes('••••')) return 0;
-        const clean = range.replace(/[\$,]/g, '').toLowerCase();
-        if (clean.includes('over') || clean.includes('million')) {
-            const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
-            return isNaN(num) ? 1000000 : num;
-        }
-        const parts = clean.split('-');
-        if (parts.length === 2) {
-            const low = parseFloat(parts[0].replace(/[^0-9.]/g, ''));
-            const high = parseFloat(parts[1].replace(/[^0-9.]/g, ''));
-            if (!isNaN(low) && !isNaN(high)) {
-                return (low + high) / 2;
-            }
-        }
-        const single = parseFloat(clean.replace(/[^0-9.]/g, ''));
-        return isNaN(single) ? 0 : single;
-    };
+    }, [searchQuery, selectedChamber, selectedOverlapFilter, selectedActionFilter, selectedValueFilter, sortRules, originalTrades]);
 
     const formatVolume = (val: number): string => {
         if (val === 0) return 'N/A';
@@ -2759,6 +2920,28 @@ export default function CapitolRadarPage() {
             return `$${(val / 1000).toFixed(0)}K`;
         }
         return `$${val}`;
+    };
+
+    const getSortRuleIndex = (key: SortColumnKey) => sortRules.findIndex(r => r.key === key);
+
+    const availableSortColumns = useMemo(() => {
+        return ALL_SORT_COLUMNS.filter(col => !sortRules.some(r => r.key === col));
+    }, [sortRules]);
+
+    const renderSortBadge = (key: SortColumnKey) => {
+        const idx = getSortRuleIndex(key);
+        if (idx !== -1) {
+            const rule = sortRules[idx];
+            return (
+                <span className="inline-flex items-center gap-0.5 text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-1 py-0.5 rounded text-[8px] font-black leading-none shadow-[0_0_6px_rgba(52,211,153,0.25)]">
+                    {rule.direction === 'asc' ? <ArrowUp size={9} className="stroke-[3]" /> : <ArrowDown size={9} className="stroke-[3]" />}
+                    {sortRules.length > 1 && <span className="ml-0.5 font-mono">{idx + 1}</span>}
+                </span>
+            );
+        }
+        return (
+            <ArrowUpDown size={10} className="text-white/20 opacity-0 group-hover/th:opacity-100 transition-opacity" />
+        );
     };
 
     // Compute grouped ticker activity
@@ -3147,8 +3330,8 @@ export default function CapitolRadarPage() {
                                     <div>
                                         <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">Sort Disclosures</label>
                                         <select
-                                            value={sortBy}
-                                            onChange={e => setSortBy(e.target.value as any)}
+                                            value={getDropdownSortValue()}
+                                            onChange={e => handleDropdownSortChange(e.target.value)}
                                             className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-accent focus:outline-none transition-colors"
                                         >
                                             <option value="filingDateDesc">Filing Date (Newest)</option>
@@ -3159,6 +3342,16 @@ export default function CapitolRadarPage() {
                                             <option value="latencyAsc">Filing Lag (Lowest)</option>
                                             <option value="nameAsc">Politician (A-Z)</option>
                                             <option value="tickerAsc">Ticker (A-Z)</option>
+                                            <option value="actionAsc">Action (A-Z)</option>
+                                            <option value="actionDesc">Action (Z-A)</option>
+                                            <option value="valueDesc">Est. Value (Highest)</option>
+                                            <option value="valueAsc">Est. Value (Lowest)</option>
+                                            <option value="industryAsc">Industry (A-Z)</option>
+                                            {getDropdownSortValue() === 'custom' && (
+                                                <option value="custom" disabled>
+                                                    Custom Multi-Sort ({sortRules.length} columns)
+                                                </option>
+                                            )}
                                         </select>
                                     </div>
 
@@ -3201,7 +3394,7 @@ export default function CapitolRadarPage() {
                                                 setSelectedOverlapFilter('all');
                                                 setSelectedActionFilter('all');
                                                 setSelectedValueFilter('all');
-                                                setSortBy('filingDateDesc');
+                                                setSortRules([{ key: 'filingDate', direction: 'desc' }]);
                                             }}
                                             className="w-full py-2.5 text-[10px] font-black uppercase tracking-wider rounded-xl border border-white/10 hover:border-white/30 text-white/60 hover:text-white bg-white/[0.02] transition-all"
                                         >
@@ -3257,20 +3450,215 @@ export default function CapitolRadarPage() {
                                         <p className="text-xs uppercase tracking-tight mt-1 opacity-60">Adjust filters or trigger a live sync</p>
                                     </div>
                                 ) : viewTab === 'individual' ? (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="border-b border-white/5 text-[10px] font-black uppercase text-white/40 tracking-wider">
-                                                    <th className="py-4 pl-6">POLITICIAN</th>
-                                                    <th className="py-4">TICKER</th>
-                                                    <th className="py-4">INDUSTRY</th>
-                                                    <th className="py-4">ACTION</th>
-                                                    <th className="py-4">EST. VALUE</th>
-                                                    <th className="py-4 text-center">LATENCY</th>
-                                                    <th className="py-4 text-center">STATUS</th>
-                                                    <th className="py-4 pr-6"></th>
-                                                </tr>
-                                            </thead>
+                                    <>
+                                        {/* Active Multi-Column Sort Bar */}
+                                        <div className="px-6 py-3 bg-black/40 border-b border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mr-1">
+                                                    <Sliders size={12} className="text-emerald-400" />
+                                                    Sort Order:
+                                                </span>
+
+                                                {sortRules.map((rule, idx) => (
+                                                    <div
+                                                        key={rule.key}
+                                                        className="inline-flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1 text-white text-[11px] font-bold transition-all shadow-sm group"
+                                                    >
+                                                        <span className="text-[9px] font-mono font-black text-emerald-400 bg-emerald-500/15 px-1 py-0.5 rounded border border-emerald-500/25">
+                                                            #{idx + 1}
+                                                        </span>
+                                                        <span className="text-white font-black uppercase text-[10px] tracking-wide">
+                                                            {COLUMN_LABELS[rule.key]}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSortRules(prev => prev.map((r, i) => i === idx ? { ...r, direction: r.direction === 'asc' ? 'desc' : 'asc' } : r));
+                                                            }}
+                                                            className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-white/70 hover:text-white bg-white/5 hover:bg-white/20 px-1.5 py-0.5 rounded transition-colors"
+                                                            title="Toggle Ascending / Descending"
+                                                        >
+                                                            {rule.direction === 'asc' ? (
+                                                                <>
+                                                                    <ArrowUp size={10} className="text-emerald-400" />
+                                                                    <span>ASC</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <ArrowDown size={10} className="text-amber-400" />
+                                                                    <span>DESC</span>
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSortRules(prev => {
+                                                                    const filtered = prev.filter((_, i) => i !== idx);
+                                                                    return filtered.length > 0 ? filtered : [{ key: 'filingDate', direction: 'desc' }];
+                                                                });
+                                                            }}
+                                                            className="text-white/30 hover:text-red-400 p-0.5 rounded transition-colors ml-0.5"
+                                                            title={`Remove ${COLUMN_LABELS[rule.key]} from sort`}
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+
+                                                {/* Add Column Dropdown */}
+                                                {availableSortColumns.length > 0 && (
+                                                    <div className="relative inline-block">
+                                                        <select
+                                                            value=""
+                                                            onChange={(e) => {
+                                                                const key = e.target.value as SortColumnKey;
+                                                                if (key) {
+                                                                    handleHeaderClick(key, true);
+                                                                }
+                                                            }}
+                                                            className="bg-white/5 hover:bg-white/10 border border-dashed border-white/20 hover:border-white/40 text-[10px] font-black uppercase tracking-wider text-white/60 hover:text-white px-2.5 py-1 rounded-lg cursor-pointer transition-all focus:outline-none"
+                                                        >
+                                                            <option value="" disabled>+ Add Sort Column</option>
+                                                            {availableSortColumns.map(col => (
+                                                                <option key={col} value={col} className="bg-[#0e0c15] text-white">
+                                                                    {COLUMN_LABELS[col]}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
+
+                                                {/* Reset Sort Button */}
+                                                {(sortRules.length > 1 || (sortRules.length === 1 && sortRules[0].key !== 'filingDate')) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSortRules([{ key: 'filingDate', direction: 'desc' }])}
+                                                        className="text-[9px] font-black uppercase tracking-wider text-white/40 hover:text-white/80 transition-colors ml-1 underline decoration-white/20 hover:decoration-white"
+                                                    >
+                                                        Reset Sort
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Multi-Sort Mode Toggle Button */}
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMultiSortMode(!multiSortMode)}
+                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all ${
+                                                        multiSortMode 
+                                                            ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.15)]' 
+                                                            : 'bg-white/5 border-white/10 text-white/40 hover:text-white/60'
+                                                    }`}
+                                                    title={multiSortMode ? "Multi-Sort is ON: Clicking headers chains sort columns automatically" : "Click to enable Multi-Sort mode (or hold Shift when clicking)"}
+                                                >
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${multiSortMode ? 'bg-emerald-400 animate-pulse' : 'bg-white/20'}`} />
+                                                    <span>Multi-Sort: {multiSortMode ? 'ON' : 'OFF'}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-wider select-none">
+                                                        {/* POLITICIAN */}
+                                                        <th className="py-4 pl-6 text-left">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('politician', e.shiftKey)}
+                                                                className={`inline-flex items-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('politician') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Politician. Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>POLITICIAN</span>
+                                                                {renderSortBadge('politician')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* TICKER */}
+                                                        <th className="py-4 text-left">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('ticker', e.shiftKey)}
+                                                                className={`inline-flex items-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('ticker') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Ticker. Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>TICKER</span>
+                                                                {renderSortBadge('ticker')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* INDUSTRY */}
+                                                        <th className="py-4 text-left">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('industry', e.shiftKey)}
+                                                                className={`inline-flex items-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('industry') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Industry. Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>INDUSTRY</span>
+                                                                {renderSortBadge('industry')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* ACTION */}
+                                                        <th className="py-4 text-left">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('action', e.shiftKey)}
+                                                                className={`inline-flex items-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('action') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Action. Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>ACTION</span>
+                                                                {renderSortBadge('action')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* EST. VALUE */}
+                                                        <th className="py-4 text-left">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('value', e.shiftKey)}
+                                                                className={`inline-flex items-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('value') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Est. Value. Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>EST. VALUE</span>
+                                                                {renderSortBadge('value')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* LATENCY */}
+                                                        <th className="py-4 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('latency', e.shiftKey)}
+                                                                className={`inline-flex items-center justify-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('latency') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Latency (Filing Lag). Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>LATENCY</span>
+                                                                {renderSortBadge('latency')}
+                                                            </button>
+                                                        </th>
+
+                                                        {/* STATUS */}
+                                                        <th className="py-4 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleHeaderClick('status', e.shiftKey)}
+                                                                className={`inline-flex items-center justify-center gap-1.5 uppercase font-black tracking-wider transition-colors hover:text-white group/th ${getSortRuleIndex('status') !== -1 ? 'text-white' : 'text-white/40'}`}
+                                                                title="Sort by Status (COI Overlap). Shift+Click or use Multi-Sort to sort by multiple columns."
+                                                            >
+                                                                <span>STATUS</span>
+                                                                {renderSortBadge('status')}
+                                                            </button>
+                                                        </th>
+
+                                                        <th className="py-4 pr-6"></th>
+                                                    </tr>
+                                                </thead>
                                             <tbody className="divide-y divide-white/5 text-sm">
                                                 {trades.map((trade) => {
                                                     const latency = calculateFilingLatency(trade.transaction_date, trade.filing_date);
@@ -3353,7 +3741,8 @@ export default function CapitolRadarPage() {
                                                 })}
                                             </tbody>
                                         </table>
-                                    </div>
+                                        </div>
+                                    </>
                                 ) : viewTab === 'company' ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
