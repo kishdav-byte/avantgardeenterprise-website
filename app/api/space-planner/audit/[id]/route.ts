@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabaseServer'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabaseServer'
+import { checkIsAdmin } from '@/lib/space-planner-credits'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,15 +11,13 @@ export async function GET(
     try {
         const { id: auditId } = await params
         const supabase = await createServerSupabase()
+        const adminSupabase = createAdminSupabase()
 
-        // 1. Authenticate Requesting User
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-        }
+        // 1. Check optional authenticated session
+        const { data: { user } } = await supabase.auth.getUser()
 
-        // 2. Fetch Audit Record
-        const { data: audit, error: auditError } = await supabase
+        // 2. Fetch Audit Record using privileged client
+        const { data: audit, error: auditError } = await adminSupabase
             .from('space_audits')
             .select('*')
             .eq('id', auditId)
@@ -28,21 +27,25 @@ export async function GET(
             return NextResponse.json({ error: 'Space audit not found' }, { status: 404 })
         }
 
-        // Verify ownership (unless admin)
-        if (audit.user_id !== user.id) {
-            const { data: profile } = await supabase
-                .from('clients')
-                .select('role')
-                .eq('id', user.id)
-                .maybeSingle()
-
-            if (profile?.role !== 'admin') {
-                return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-            }
+        // 3. Verify access authorization
+        let isAdmin = false
+        if (user) {
+            isAdmin = await checkIsAdmin(user.id, user.email)
         }
 
-        // 3. Fetch Audit Results Record
-        const { data: results, error: resultsError } = await supabase
+        const isGuestAudit = !audit.user_id
+        const isOwner = Boolean(user && audit.user_id === user.id)
+
+        // If it's a private user audit and requester is neither owner nor admin:
+        if (!isGuestAudit && !isOwner && !isAdmin) {
+            if (!user) {
+                return NextResponse.json({ error: 'Authentication required to view this audit' }, { status: 401 })
+            }
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        // 4. Fetch Audit Results Record
+        const { data: results, error: resultsError } = await adminSupabase
             .from('space_audit_results')
             .select('*')
             .eq('audit_id', auditId)
@@ -52,6 +55,9 @@ export async function GET(
             success: true,
             audit,
             results: results || null,
+            isGuestAudit,
+            isOwner,
+            isAdmin,
         })
     } catch (err: any) {
         console.error('Error fetching audit details:', err)

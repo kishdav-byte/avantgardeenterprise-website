@@ -1,3 +1,5 @@
+import { getClientFingerprint } from './space-planner-fingerprint-client'
+
 /**
  * Client-side photo compression utility before uploading to Supabase Storage.
  * Resizes large smartphone clutter photos to high-performance dimensions (max 1600px)
@@ -83,8 +85,15 @@ export async function uploadSpacePlannerPhoto(file: File): Promise<string> {
     const formData = new FormData()
     formData.append('file', compressed)
 
+    const headers: Record<string, string> = {}
+    if (typeof window !== 'undefined') {
+        const fp = getClientFingerprint()
+        if (fp) headers['x-space-planner-fingerprint'] = fp
+    }
+
     const response = await fetch('/api/space-planner/upload', {
         method: 'POST',
+        headers,
         body: formData,
     })
 

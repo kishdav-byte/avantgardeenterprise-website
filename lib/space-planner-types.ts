@@ -116,11 +116,21 @@ export type LifestyleMetrics = HomeLifestyleMetrics | ClassroomLifestyleMetrics 
 
 export type AuditStatus = 'draft' | 'queued' | 'processing' | 'completed' | 'failed';
 
+export type MicroAuditSpace =
+    | 'junk_drawer'
+    | 'cutlery_drawer'
+    | 'desk_surface'
+    | 'medicine_cabinet'
+    | 'pantry_shelf'
+    | 'under_sink'
+    | 'entryway_table'
+    | 'nightstand';
+
 export interface SpaceAudit {
     id: string;
-    user_id: string;
+    user_id?: string | null;
     space_context: SpaceContext;
-    room_type: RoomType;
+    room_type: RoomType | MicroAuditSpace;
     title?: string;
     goals: OrganizationGoal[];
     budget_tier: BudgetTier;
@@ -129,6 +139,8 @@ export interface SpaceAudit {
     clutter_photos: string[]; // Supabase storage paths or public URLs
     status: AuditStatus;
     is_free_sample: boolean;
+    is_micro_audit?: boolean;
+    guest_fingerprint?: string;
     error_message?: string;
     created_at: string;
     updated_at: string;
@@ -215,7 +227,7 @@ export interface SpaceDiagnosticMetrics {
 export interface SpaceAuditResult {
     id: string;
     audit_id: string;
-    user_id: string;
+    user_id?: string | null;
     executive_summary: string;
     key_pain_points: string[];
     phases?: OrganizationPhase[];
@@ -231,6 +243,26 @@ export interface SpaceAuditResult {
 // =============================================================================
 // 5. CREDIT & MONETIZATION SYSTEM
 // =============================================================================
+
+export interface CreditStatus {
+    hasCredit: boolean;
+    balance: number;
+    freeSampleAvailable: boolean;
+    lifetimeGranted?: number;
+    lifetimeUsed?: number;
+    isAdmin?: boolean;
+    isGuest?: boolean;
+    isMicroAuditOnly?: boolean;
+    guestLimitReached?: boolean;
+}
+
+export interface GuestUsageRecord {
+    id: string;
+    fingerprint: string;
+    ip_hash: string;
+    audit_id?: string;
+    created_at: string;
+}
 
 export interface SpacePlannerCredits {
     id: string;

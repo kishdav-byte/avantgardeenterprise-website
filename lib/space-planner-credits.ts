@@ -7,12 +7,49 @@ export interface CreditStatus {
     freeSampleAvailable: boolean
     lifetimeGranted: number
     lifetimeUsed: number
+    isAdmin?: boolean
+    isGuest?: boolean
+    isMicroAuditOnly?: boolean
+    guestLimitReached?: boolean
+}
+
+/**
+ * Checks whether a user possesses the administrator role or email.
+ */
+export async function checkIsAdmin(userId: string, email?: string): Promise<boolean> {
+    if (email === 'kishdav@gmail.com') return true
+    try {
+        const adminSupabase = createAdminSupabase()
+        const { data: client } = await adminSupabase
+            .from('clients')
+            .select('role, email')
+            .eq('id', userId)
+            .maybeSingle()
+
+        return client?.role === 'admin' || client?.email === 'kishdav@gmail.com'
+    } catch {
+        return false
+    }
 }
 
 /**
  * Retrieves or initializes the user's credit profile in Supabase.
+ * Admin users automatically receive unlimited bypass status.
  */
-export async function getUserCredits(userId: string): Promise<CreditStatus> {
+export async function getUserCredits(userId: string, email?: string): Promise<CreditStatus> {
+    // 1. Admin Override Check
+    const isAdmin = await checkIsAdmin(userId, email)
+    if (isAdmin) {
+        return {
+            hasCredit: true,
+            balance: 999999,
+            freeSampleAvailable: true,
+            lifetimeGranted: 999999,
+            lifetimeUsed: 0,
+            isAdmin: true,
+        }
+    }
+
     const supabase = await createServerSupabase()
 
     const { data, error } = await supabase.rpc('get_or_create_space_planner_credits', {
@@ -35,6 +72,7 @@ export async function getUserCredits(userId: string): Promise<CreditStatus> {
                 freeSampleAvailable: !record.free_sample_used,
                 lifetimeGranted: record.lifetime_granted,
                 lifetimeUsed: record.lifetime_used,
+                isAdmin: false,
             }
         }
 
@@ -44,6 +82,7 @@ export async function getUserCredits(userId: string): Promise<CreditStatus> {
             freeSampleAvailable: false,
             lifetimeGranted: 0,
             lifetimeUsed: 0,
+            isAdmin: false,
         }
     }
 
@@ -57,17 +96,30 @@ export async function getUserCredits(userId: string): Promise<CreditStatus> {
         freeSampleAvailable,
         lifetimeGranted: credits.lifetime_granted,
         lifetimeUsed: credits.lifetime_used,
+        isAdmin: false,
     }
 }
 
 /**
  * Deducts 1 credit or redeems the free sample for an audit.
  * Uses atomic row locks inside the PostgreSQL RPC.
+ * Admin users bypass deduction automatically.
  */
 export async function deductAuditCredit(
     userId: string,
     auditId?: string
 ): Promise<{ success: boolean; message: string; balance: number; usedFreeSample: boolean }> {
+    // Admin Override: Do not deduct credits
+    const isAdmin = await checkIsAdmin(userId)
+    if (isAdmin) {
+        return {
+            success: true,
+            message: 'Admin unlimited override applied (no deduction)',
+            balance: 999999,
+            usedFreeSample: false,
+        }
+    }
+
     const supabase = await createServerSupabase()
 
     const { data, error } = await supabase.rpc('deduct_space_planner_credit', {

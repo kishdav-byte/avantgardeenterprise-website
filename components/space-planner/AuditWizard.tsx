@@ -20,8 +20,11 @@ import {
     AlertCircle,
     Info,
     ImageIcon,
+    ShieldCheck,
 } from "lucide-react"
+import Link from "next/link"
 import { uploadSpacePlannerPhoto } from "@/lib/space-planner-upload"
+import { getClientFingerprint } from "@/lib/space-planner-fingerprint-client"
 import { PricingCards } from "@/components/space-planner/PricingCards"
 import {
     SpaceContext,
@@ -31,11 +34,16 @@ import {
     HomeLifestyleMetrics,
     ClassroomLifestyleMetrics,
     BusinessLifestyleMetrics,
+    CreditStatus,
 } from "@/lib/space-planner-types"
 
 const HOME_ROOMS: { id: RoomType; label: string }[] = [
     { id: "kitchen_pantry", label: "Kitchen & Pantry" },
     { id: "living_room", label: "Living Room" },
+    { id: "junk_drawer" as any, label: "Junk / Utility Drawer (Micro-Audit)" },
+    { id: "desk_surface" as any, label: "Work Desk / Vanity (Micro-Audit)" },
+    { id: "medicine_cabinet" as any, label: "Medicine Cabinet / Shelf (Micro-Audit)" },
+    { id: "under_sink" as any, label: "Under-Sink Cabinet (Micro-Audit)" },
     { id: "closet_walk_in", label: "Walk-in Closet" },
     { id: "closet_reach_in", label: "Reach-in Closet" },
     { id: "primary_bedroom", label: "Primary Bedroom" },
@@ -139,7 +147,7 @@ export function AuditWizard() {
     })
 
     // Credits & Submission State
-    const [credits, setCredits] = useState<{ hasCredit: boolean; balance: number; freeSampleAvailable: boolean } | null>(null)
+    const [credits, setCredits] = useState<CreditStatus | null>(null)
     const [loadingCredits, setLoadingCredits] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [processingStageIndex, setProcessingStageIndex] = useState(0)
@@ -160,11 +168,7 @@ export function AuditWizard() {
                 const res = await fetch("/api/space-planner/credits")
                 if (res.ok) {
                     const data = await res.json()
-                    setCredits({
-                        hasCredit: data.hasCredit ?? false,
-                        balance: data.balance ?? 0,
-                        freeSampleAvailable: data.freeSampleAvailable ?? false,
-                    })
+                    setCredits(data)
                 }
             } catch (err) {
                 console.error("Failed to load credits:", err)
@@ -238,10 +242,15 @@ export function AuditWizard() {
                         : businessMetrics
 
             const clutterPhotoUrls = photos.map((p) => p.url)
+            const fp = getClientFingerprint()
+            const isMicro = ['junk_drawer', 'desk_surface', 'medicine_cabinet', 'under_sink'].includes(roomType)
 
             const res = await fetch("/api/space-planner/analyze", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-space-planner-fingerprint": fp,
+                },
                 body: JSON.stringify({
                     spaceContext,
                     roomType,
@@ -249,6 +258,7 @@ export function AuditWizard() {
                     goals,
                     budgetTier,
                     budgetLimit: budgetLimit || undefined,
+                    isMicroAudit: isMicro,
                     lifestyleMetrics: {
                         ...activeMetrics,
                         room_notes: roomNotes.trim() || undefined,
@@ -261,8 +271,13 @@ export function AuditWizard() {
             clearInterval(tickerInterval)
 
             if (!res.ok || !data.success) {
+                if (data.code === "GUEST_LIMIT_REACHED") {
+                    setSubmitError("You have used your 1 free micro-audit sample. Please sign in or create an account to unlock additional rooms and save your dashboard.")
+                    setIsSubmitting(false)
+                    return
+                }
                 if (res.status === 402) {
-                    setSubmitError("Insufficient credits. Please purchase a credit pack below to proceed.")
+                    setSubmitError("Insufficient credits. Please purchase a credit pack below or sign in to proceed.")
                     setIsSubmitting(false)
                     return
                 }
@@ -981,16 +996,42 @@ export function AuditWizard() {
                                     {/* Credit Gate Status */}
                                     <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
-                                                <Zap size={20} />
-                                            </div>
+                                            {credits?.isAdmin ? (
+                                                <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                                                    <ShieldCheck size={20} />
+                                                </div>
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                                                    <Zap size={20} />
+                                                </div>
+                                            )}
                                             <div>
                                                 <div className="text-xs font-black uppercase tracking-widest text-white">
-                                                    Audit Cost: 1 Space Credit
+                                                    {credits?.isAdmin ? (
+                                                        <span className="text-amber-300">Admin Pass: 0 Credits (Unlimited Bypass)</span>
+                                                    ) : credits?.isGuest ? (
+                                                        credits.guestLimitReached ? "Sample Consumed (Account Required)" : "Complimentary Micro-Audit (Free Sample)"
+                                                    ) : (
+                                                        "Audit Cost: 1 Space Credit"
+                                                    )}
                                                 </div>
                                                 <div className="text-xs text-white/50 mt-0.5">
                                                     {loadingCredits ? (
                                                         "Checking account balance..."
+                                                    ) : credits?.isAdmin ? (
+                                                        <span className="text-amber-400/80 font-semibold">
+                                                            All credit checks, deductions, and rate-limits are bypassed.
+                                                        </span>
+                                                    ) : credits?.isGuest ? (
+                                                        credits.guestLimitReached ? (
+                                                            <span className="text-amber-400 font-semibold">
+                                                                You have consumed your 1 guest sample. Sign in to audit this space.
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-emerald-400 font-semibold">
+                                                                No account or card required for this trial audit.
+                                                            </span>
+                                                        )
                                                     ) : credits?.freeSampleAvailable ? (
                                                         <span className="text-emerald-400 font-semibold">
                                                             Your 1st room audit is complimentary (Free Sample).
@@ -1008,15 +1049,23 @@ export function AuditWizard() {
                                             </div>
                                         </div>
 
-                                        {credits?.hasCredit ? (
+                                        {credits?.isAdmin || credits?.hasCredit ? (
                                             <button
                                                 type="button"
                                                 onClick={handleSubmitAudit}
                                                 className="w-full sm:w-auto px-8 py-4 rounded-xl bg-accent text-black font-black uppercase text-xs tracking-wider hover:bg-accent/90 transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-2"
                                             >
                                                 <Sparkles size={16} />
-                                                <span>Run Multimodal Audit</span>
+                                                <span>{credits?.isAdmin ? "Run Audit (Admin Pass)" : "Run Multimodal Audit"}</span>
                                             </button>
+                                        ) : credits?.isGuest && credits.guestLimitReached ? (
+                                            <Link
+                                                href="/login?redirect=/tools/space-planner/new"
+                                                className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-accent text-black font-black uppercase text-xs tracking-wider hover:bg-accent/90 transition-all text-center flex items-center justify-center gap-2 shadow-lg shadow-accent/20"
+                                            >
+                                                <span>Sign In to Unlock</span>
+                                                <ArrowRight size={14} />
+                                            </Link>
                                         ) : (
                                             <a
                                                 href="#pricing-packs"

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabaseServer'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabaseServer'
 import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { getUserCredits, deductAuditCredit } from '@/lib/space-planner-credits'
+import { getUserCredits, deductAuditCredit, checkIsAdmin } from '@/lib/space-planner-credits'
+import { getOrDeriveFingerprint, checkGuestMicroAuditLimit, recordGuestMicroAuditUsage } from '@/lib/space-planner-fingerprint'
 import { mapProductsToAmazonAffiliate } from '@/lib/space-planner-affiliate'
 import type {
     SpaceContext,
@@ -11,6 +12,7 @@ import type {
     BudgetTier,
     PhasedStep,
     ProductRecommendation,
+    MicroAuditSpace,
 } from '@/lib/space-planner-types'
 
 export const dynamic = 'force-dynamic'
@@ -34,60 +36,135 @@ const isOpenAIAvailable = Boolean(
 const openai = isOpenAIAvailable ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null
 const genAI = isGeminiAvailable ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY!) : null
 
+const ALLOWED_GUEST_MICRO_SPACES: string[] = [
+    'junk_drawer',
+    'cutlery_drawer',
+    'desk_surface',
+    'medicine_cabinet',
+    'pantry_shelf',
+    'under_sink',
+    'entryway_table',
+    'nightstand',
+    'home_office', // allow quick small desk/workstation audits
+]
+
 export async function POST(req: NextRequest) {
     try {
         const supabase = await createServerSupabase()
+        const adminSupabase = createAdminSupabase()
 
-        // 1. Authenticate Requesting User
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-        }
+        // 1. Identify User or Guest
+        const { data: { user } } = await supabase.auth.getUser()
 
         // 2. Parse Body Inputs
         const body = await req.json()
         const {
             spaceContext = 'home' as SpaceContext,
-            roomType = 'living_room' as RoomType,
+            roomType = 'living_room' as RoomType | MicroAuditSpace,
             title,
             goals = ['organize_categorize'] as OrganizationGoal[],
             budgetTier = 'medium' as BudgetTier,
             budgetLimit,
             lifestyleMetrics = {},
             clutterPhotoUrls = [] as string[],
+            isMicroAudit = false,
         } = body
 
-        // 3. Verify Credit Balance / Free Sample Access
-        const creditStatus = await getUserCredits(user.id)
-        if (!creditStatus.hasCredit) {
-            return NextResponse.json(
-                {
-                    error: 'Insufficient space planner credits. Purchase a credit package or top up to run an audit.',
-                    code: 'PAYMENT_REQUIRED',
-                    balance: creditStatus.balance,
-                    freeSampleAvailable: creditStatus.freeSampleAvailable,
-                },
-                { status: 402 }
-            )
+        let isAdmin = false
+        let isGuest = false
+        let guestFingerprint: string | null = null
+        let guestIpHash: string | null = null
+        let isFreeSample = false
+
+        if (user) {
+            // Check Admin Override
+            isAdmin = await checkIsAdmin(user.id, user.email)
+
+            if (!isAdmin) {
+                // Verify regular user credit balance
+                const creditStatus = await getUserCredits(user.id, user.email)
+                if (!creditStatus.hasCredit) {
+                    return NextResponse.json(
+                        {
+                            error: 'Insufficient space planner credits. Purchase a credit package or top up to run an audit.',
+                            code: 'PAYMENT_REQUIRED',
+                            balance: creditStatus.balance,
+                            freeSampleAvailable: creditStatus.freeSampleAvailable,
+                        },
+                        { status: 402 }
+                    )
+                }
+                isFreeSample = creditStatus.freeSampleAvailable && creditStatus.balance === 0
+            } else {
+                isFreeSample = false
+            }
+        } else {
+            // Unauthenticated Guest Flow
+            isGuest = true
+            isFreeSample = true
+
+            // Rate-limit check by IP + Browser Fingerprint
+            const fpInfo = getOrDeriveFingerprint(req)
+            guestFingerprint = fpInfo.fingerprint
+            guestIpHash = fpInfo.ipHash
+
+            const sampleUsedCookie = req.cookies.get('sp_sample_used')?.value === 'true'
+            const { used } = await checkGuestMicroAuditLimit(guestFingerprint, guestIpHash)
+
+            if (used || sampleUsedCookie) {
+                return NextResponse.json(
+                    {
+                        error: "You have already used your 1 free micro-audit sample. Sign in or create an account to save plans and unlock room audits.",
+                        code: 'GUEST_LIMIT_REACHED',
+                    },
+                    { status: 402 }
+                )
+            }
+
+            // Verify micro-audit scope for guest users
+            const isAllowedMicroSpace = isMicroAudit || ALLOWED_GUEST_MICRO_SPACES.includes(roomType)
+            if (!isAllowedMicroSpace && spaceContext !== 'home') {
+                return NextResponse.json(
+                    {
+                        error: "Unregistered guest audits are restricted to a single Micro-Audit (e.g. drawers, desks, or cabinets). Please select a micro-space or sign in to audit commercial or educational spaces.",
+                        code: 'MICRO_AUDIT_SCOPE_REQUIRED',
+                    },
+                    { status: 400 }
+                )
+            }
+
+            // Cap clutter photos for guests to 2 photos to prevent abuse
+            if (clutterPhotoUrls.length > 2) {
+                clutterPhotoUrls.splice(2)
+            }
         }
 
-        // 4. Create Initial Audit Record in 'processing' State
-        const isFreeSample = creditStatus.freeSampleAvailable && creditStatus.balance === 0
-        const { data: audit, error: auditInsertError } = await supabase
+        // 3. Create Initial Audit Record in 'processing' State (using privileged client)
+        const auditPayload: any = {
+            user_id: user ? user.id : null,
+            space_context: spaceContext,
+            room_type: roomType,
+            title: title || (isGuest ? `Free Micro-Audit (${roomType.replace(/_/g, ' ')})` : `${roomType.replace(/_/g, ' ').toUpperCase()} Audit`),
+            goals,
+            budget_tier: budgetTier,
+            budget_limit: budgetLimit || null,
+            lifestyle_metrics: lifestyleMetrics,
+            clutter_photos: clutterPhotoUrls,
+            status: 'processing',
+            is_free_sample: isFreeSample,
+        }
+
+        // Add guest columns if supported
+        if (guestFingerprint) {
+            auditPayload.guest_fingerprint = guestFingerprint
+            auditPayload.is_micro_audit = true
+        } else if (isMicroAudit) {
+            auditPayload.is_micro_audit = true
+        }
+
+        const { data: audit, error: auditInsertError } = await adminSupabase
             .from('space_audits')
-            .insert({
-                user_id: user.id,
-                space_context: spaceContext,
-                room_type: roomType,
-                title: title || `${roomType.replace(/_/g, ' ').toUpperCase()} Audit`,
-                goals,
-                budget_tier: budgetTier,
-                budget_limit: budgetLimit || null,
-                lifestyle_metrics: lifestyleMetrics,
-                clutter_photos: clutterPhotoUrls,
-                status: 'processing',
-                is_free_sample: isFreeSample,
-            })
+            .insert(auditPayload)
             .select()
             .single()
 
@@ -158,18 +235,30 @@ export async function POST(req: NextRequest) {
             aiOutput.suggested_products
         )
 
-        // 8. Atomically Deduct Credit in Supabase
-        const deductResult = await deductAuditCredit(user.id, audit.id)
-        if (!deductResult.success) {
-            console.warn('Credit deduction returned warning:', deductResult.message)
+        // 8. Atomically Deduct Credit in Supabase (or record Guest usage)
+        let deductResult = {
+            success: true,
+            balance: 0,
+            usedFreeSample: true,
+            message: 'Guest sample consumed',
         }
 
-        // 9. Persist Structured Results in space_audit_results
-        const { data: auditResults, error: resultsError } = await supabase
+        if (user) {
+            deductResult = await deductAuditCredit(user.id, audit.id)
+            if (!deductResult.success) {
+                console.warn('Credit deduction returned warning:', deductResult.message)
+            }
+        } else if (guestFingerprint && guestIpHash) {
+            // Record guest usage to prevent repeat audits
+            await recordGuestMicroAuditUsage(guestFingerprint, guestIpHash, audit.id)
+        }
+
+        // 9. Persist Structured Results in space_audit_results (using privileged client)
+        const { data: auditResults, error: resultsError } = await adminSupabase
             .from('space_audit_results')
             .insert({
                 audit_id: audit.id,
-                user_id: user.id,
+                user_id: user ? user.id : null,
                 executive_summary: aiOutput.executive_summary,
                 key_pain_points: aiOutput.key_pain_points,
                 phased_steps: aiOutput.phased_steps,
@@ -189,12 +278,12 @@ export async function POST(req: NextRequest) {
         }
 
         // 10. Mark Audit Completed
-        await supabase
+        await adminSupabase
             .from('space_audits')
             .update({ status: 'completed' })
             .eq('id', audit.id)
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
             audit: {
                 ...audit,
@@ -203,7 +292,27 @@ export async function POST(req: NextRequest) {
             results: auditResults,
             creditsRemaining: deductResult.balance,
             usedFreeSample: deductResult.usedFreeSample,
+            isGuest,
+            isAdmin,
         })
+
+        // Set persistent cookie on guest browser
+        if (isGuest) {
+            response.cookies.set('sp_sample_used', 'true', {
+                path: '/',
+                maxAge: 365 * 24 * 60 * 60, // 1 year
+                sameSite: 'lax',
+            })
+            if (guestFingerprint) {
+                response.cookies.set('sp_guest_fp', guestFingerprint, {
+                    path: '/',
+                    maxAge: 365 * 24 * 60 * 60,
+                    sameSite: 'lax',
+                })
+            }
+        }
+
+        return response
     } catch (err: any) {
         console.error('Unhandled exception in /api/space-planner/analyze:', err)
         return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabaseServer'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabaseServer'
+import { getOrDeriveFingerprint, checkGuestMicroAuditLimit } from '@/lib/space-planner-fingerprint'
 import { randomUUID } from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -10,11 +11,32 @@ const MAX_FILE_SIZE_BYTES = 12 * 1024 * 1024 // 12 MB
 export async function POST(req: NextRequest) {
     try {
         const supabase = await createServerSupabase()
+        const adminSupabase = createAdminSupabase()
 
-        // 1. Authenticate user
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+        // 1. Identify User or Guest
+        const { data: { user } } = await supabase.auth.getUser()
+
+        let userOrGuestId: string
+
+        if (user) {
+            userOrGuestId = user.id
+        } else {
+            // For unauthenticated guests, verify they haven't already consumed their 1 free micro-audit
+            const { fingerprint, ipHash } = getOrDeriveFingerprint(req)
+            const sampleUsedCookie = req.cookies.get('sp_sample_used')?.value === 'true'
+            const { used } = await checkGuestMicroAuditLimit(fingerprint, ipHash)
+
+            if (used || sampleUsedCookie) {
+                return NextResponse.json(
+                    {
+                        error: 'You have already used your 1 complimentary micro-audit sample. Please sign in to run additional room audits.',
+                        code: 'GUEST_LIMIT_REACHED',
+                    },
+                    { status: 402 }
+                )
+            }
+
+            userOrGuestId = `anon_${fingerprint.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20)}`
         }
 
         // 2. Parse form data
@@ -43,14 +65,14 @@ export async function POST(req: NextRequest) {
         // 4. Determine file extension and storage path
         const ext = file.name.split('.').pop() || 'jpg'
         const sanitizedExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '')
-        const storagePath = `${user.id}/${Date.now()}-${randomUUID()}.${sanitizedExt}`
+        const storagePath = `${userOrGuestId}/${Date.now()}-${randomUUID()}.${sanitizedExt}`
 
         // 5. Convert File to ArrayBuffer/Buffer
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
-        // 6. Upload to Supabase Storage bucket 'space-planner-media'
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        // 6. Upload to Supabase Storage bucket 'space-planner-media' using privileged client
+        const { data: uploadData, error: uploadError } = await adminSupabase.storage
             .from('space-planner-media')
             .upload(storagePath, buffer, {
                 contentType: file.type,
@@ -66,7 +88,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 7. Retrieve public URL
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl } } = adminSupabase.storage
             .from('space-planner-media')
             .getPublicUrl(uploadData.path)
 

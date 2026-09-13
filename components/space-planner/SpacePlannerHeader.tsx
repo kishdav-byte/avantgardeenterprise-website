@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { LayoutGrid, Zap, Plus, ArrowLeft, Loader2, Sparkles } from "lucide-react"
+import { LayoutGrid, Zap, Plus, ArrowLeft, Loader2, Sparkles, ShieldCheck } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import type { CreditStatus } from "@/lib/space-planner-types"
 
 interface SpacePlannerHeaderProps {
     showBack?: boolean
@@ -17,31 +18,26 @@ export function SpacePlannerHeader({
     backLabel = "Overview",
 }: SpacePlannerHeaderProps) {
     const [user, setUser] = useState<any>(null)
-    const [credits, setCredits] = useState<{ balance: number; freeSampleAvailable: boolean } | null>(null)
-    const [loadingCredits, setLoadingCredits] = useState(false)
+    const [credits, setCredits] = useState<CreditStatus | null>(null)
+    const [loadingCredits, setLoadingCredits] = useState(true)
     const [buyingCredits, setBuyingCredits] = useState(false)
 
     useEffect(() => {
         async function loadUserAndCredits() {
-            const { data: { user } } = await supabase.auth.getUser()
-            setUser(user)
+            setLoadingCredits(true)
+            try {
+                const { data: { user } } = await supabase.auth.getUser()
+                setUser(user)
 
-            if (user) {
-                setLoadingCredits(true)
-                try {
-                    const res = await fetch('/api/space-planner/credits')
-                    if (res.ok) {
-                        const data = await res.json()
-                        setCredits({
-                            balance: data.balance ?? 0,
-                            freeSampleAvailable: data.freeSampleAvailable ?? false,
-                        })
-                    }
-                } catch (e) {
-                    console.error("Failed to load credits:", e)
-                } finally {
-                    setLoadingCredits(false)
+                const res = await fetch('/api/space-planner/credits')
+                if (res.ok) {
+                    const data = await res.json()
+                    setCredits(data)
                 }
+            } catch (e) {
+                console.error("Failed to load credits:", e)
+            } finally {
+                setLoadingCredits(false)
             }
         }
 
@@ -97,35 +93,41 @@ export function SpacePlannerHeader({
                     </div>
                 </div>
 
-                {/* Right: Credits & Actions */}
+                {/* Right: Credits, Admin Pass & Actions */}
                 <div className="flex items-center gap-3">
-                    {user ? (
+                    {loadingCredits ? (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs">
+                            <Loader2 size={12} className="animate-spin text-white/50" />
+                            <span className="text-white/40 text-[10px] uppercase font-semibold">Checking...</span>
+                        </div>
+                    ) : credits?.isAdmin ? (
+                        // ADMIN UNLIMITED OVERRIDE BADGE
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                            <ShieldCheck size={14} className="text-amber-400" />
+                            <span className="font-black uppercase tracking-wider text-amber-300 text-[10px]">
+                                Admin Pass <span className="text-amber-400 font-mono font-bold text-xs">∞</span>
+                            </span>
+                        </div>
+                    ) : user ? (
+                        // AUTHENTICATED USER
                         <>
-                            {/* Credit Badge */}
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs">
                                 <Zap size={13} className="text-accent" />
-                                {loadingCredits ? (
-                                    <Loader2 size={12} className="animate-spin text-white/50" />
-                                ) : credits ? (
-                                    credits.balance > 0 ? (
-                                        <span className="font-bold text-white">
-                                            {credits.balance} <span className="text-white/50 text-[10px] uppercase font-semibold">Credit{credits.balance > 1 ? 's' : ''}</span>
-                                        </span>
-                                    ) : credits.freeSampleAvailable ? (
-                                        <span className="font-bold text-emerald-400 flex items-center gap-1">
-                                            <Sparkles size={11} /> 1 Free Audit
-                                        </span>
-                                    ) : (
-                                        <span className="font-bold text-amber-400 text-[11px] uppercase">
-                                            0 Credits
-                                        </span>
-                                    )
+                                {credits && credits.balance > 0 ? (
+                                    <span className="font-bold text-white">
+                                        {credits.balance} <span className="text-white/50 text-[10px] uppercase font-semibold">Credit{credits.balance > 1 ? 's' : ''}</span>
+                                    </span>
+                                ) : credits?.freeSampleAvailable ? (
+                                    <span className="font-bold text-emerald-400 flex items-center gap-1">
+                                        <Sparkles size={11} /> 1 Free Audit
+                                    </span>
                                 ) : (
-                                    <span className="text-white/50 text-[11px]">Ready</span>
+                                    <span className="font-bold text-amber-400 text-[11px] uppercase">
+                                        0 Credits
+                                    </span>
                                 )}
                             </div>
 
-                            {/* Top Up / Get Credits Button */}
                             <button
                                 onClick={handleQuickBuy}
                                 disabled={buyingCredits}
@@ -140,12 +142,31 @@ export function SpacePlannerHeader({
                             </button>
                         </>
                     ) : (
-                        <Link
-                            href="/login?redirect=/tools/space-planner"
-                            className="text-xs font-bold uppercase tracking-wider text-accent hover:underline"
-                        >
-                            Sign In to Audit
-                        </Link>
+                        // GUEST VISITOR
+                        <div className="flex items-center gap-3">
+                            {credits?.guestLimitReached ? (
+                                <Link
+                                    href="/login?redirect=/tools/space-planner"
+                                    className="px-3 py-1.5 rounded-full bg-accent text-black font-black uppercase text-[10px] tracking-wider hover:bg-accent/90 transition-all"
+                                >
+                                    Sign In to Upgrade
+                                </Link>
+                            ) : (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                                    <Sparkles size={12} className="text-emerald-400" />
+                                    <span className="font-bold text-emerald-300 text-[10px] uppercase tracking-wide">
+                                        1 Free Sample Active
+                                    </span>
+                                </div>
+                            )}
+
+                            <Link
+                                href="/login?redirect=/tools/space-planner"
+                                className="text-xs font-bold uppercase tracking-wider text-white/70 hover:text-accent transition-colors"
+                            >
+                                Sign In
+                            </Link>
+                        </div>
                     )}
                 </div>
             </div>

@@ -47,6 +47,7 @@ export default function SpacePlannerAuditResultPage({
     const [error, setError] = useState<string | null>(null)
     const [audit, setAudit] = useState<SpaceAudit | null>(null)
     const [results, setResults] = useState<SpaceAuditResult | null>(null)
+    const [isGuestAudit, setIsGuestAudit] = useState(false)
 
     // Interactive step completion tracking
     const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({})
@@ -66,6 +67,7 @@ export default function SpacePlannerAuditResultPage({
                 const data = await res.json()
                 setAudit(data.audit)
                 setResults(data.results)
+                setIsGuestAudit(Boolean(data.isGuestAudit || !data.audit?.user_id))
             } catch (err: any) {
                 console.error("Error fetching audit:", err)
                 setError(err.message || "An unexpected error occurred.")
@@ -154,6 +156,35 @@ export default function SpacePlannerAuditResultPage({
                 <SpacePlannerHeader backHref="/tools/space-planner" backLabel="Overview" />
 
                 <div className="container mx-auto px-4 max-w-6xl py-10">
+                    {/* Guest Micro-Audit Upgrade Banner */}
+                    {isGuestAudit && (
+                        <div className="mb-8 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-accent/15 via-white/[0.04] to-accent/10 border border-accent/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_4px_30px_rgba(255,107,0,0.12)]">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-xl bg-accent text-black flex items-center justify-center shrink-0 shadow-md shadow-accent/20">
+                                    <Sparkles size={20} />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black uppercase tracking-tight text-white flex items-center gap-2">
+                                        <span>Complimentary Guest Micro-Audit</span>
+                                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
+                                            Active
+                                        </span>
+                                    </h4>
+                                    <p className="text-white/70 text-xs mt-0.5 leading-relaxed max-w-2xl">
+                                        This blueprint is stored in your current session. Sign in or create a free account to permanently save this transformation plan to your dashboard, run full room audits, and purchase credit packs.
+                                    </p>
+                                </div>
+                            </div>
+                            <Link
+                                href={`/login?redirect=/tools/space-planner/audit/${auditId}`}
+                                className="shrink-0 px-6 py-3 rounded-xl bg-accent text-black font-black uppercase text-xs tracking-wider hover:bg-accent/90 transition-all flex items-center gap-2 shadow-lg shadow-accent/25"
+                            >
+                                <span>Save Plan & Sign In</span>
+                                <ArrowRight size={14} />
+                            </Link>
+                        </div>
+                    )}
+
                     {/* Top Action Bar */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
                         <div>
