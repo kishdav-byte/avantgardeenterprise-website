@@ -5,13 +5,15 @@ import { Footer } from "@/components/Footer"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { LayoutGrid, Home, GraduationCap, Building2, CheckCircle2, Sparkles, ArrowRight, ArrowLeft, Layers, Image as ImageIcon, ShoppingBag } from "lucide-react"
+import { PricingCards } from "@/components/space-planner/PricingCards"
+import { FeatureComparison } from "@/components/space-planner/FeatureComparison"
 
 export default function SpacePlannerPage() {
     return (
         <main className="min-h-screen bg-background text-foreground">
             <Navbar />
 
-            <section className="pt-40 pb-24 px-4 relative overflow-hidden">
+            <section className="pt-40 pb-16 px-4 relative overflow-hidden">
                 {/* Background glow */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent/10 blur-[140px] pointer-events-none rounded-full" />
 
@@ -33,7 +35,7 @@ export default function SpacePlannerPage() {
                         className="text-center mb-16"
                     >
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-widest mb-6">
-                            <Sparkles size={14} /> Phase 1 Architecture Ready
+                            <Sparkles size={14} /> Phase 2 Engine & Conversion Active
                         </div>
                         <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6">
                             SpacePlan <span className="text-accent">AI</span>
@@ -132,23 +134,14 @@ export default function SpacePlannerPage() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Monetization & Status Banner */}
-                    <div className="text-center p-8 rounded-2xl bg-accent/5 border border-accent/20 max-w-2xl mx-auto">
-                        <h4 className="text-sm font-black uppercase tracking-widest text-accent mb-2">
-                            Credit Model: 1 Free Room Sample + Pay-Per-Room
-                        </h4>
-                        <p className="text-white/60 text-xs leading-relaxed mb-6">
-                            Every authenticated account receives 1 complimentary room audit. Additional audits available in flexible credit packages with zero recurring subscriptions.
-                        </p>
-                        <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/40">
-                            <span>Phase 1 Staged</span>
-                            <span>•</span>
-                            <span className="text-accent">Phase 2 (API & Multimodal Engine) Next</span>
-                        </div>
-                    </div>
                 </div>
             </section>
+
+            {/* Feature Comparison Matrix */}
+            <FeatureComparison />
+
+            {/* Pricing & Credit Packs */}
+            <PricingCards />
 
             <Footer />
         </main>

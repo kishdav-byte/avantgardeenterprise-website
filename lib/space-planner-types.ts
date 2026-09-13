@@ -176,22 +176,26 @@ export interface OrganizationPhase {
     steps: PhasedStep[];
 }
 
-export type ProductPriority = 'must_have' | 'recommended' | 'optional_upgrade';
+export type ProductPriority = 'must_have' | 'recommended' | 'optional_upgrade' | 'optional';
 
 export interface AmazonProductRecommendation {
-    id: string;
+    id?: string;
     title: string;
     category: string; // e.g., "Clear Acrylic Storage Bins", "Heavy-Duty Utility Cart"
-    rationale: string; // Tailored explanation of why this specific item resolves clutter
-    search_query: string; // Amazon search keywords
+    rationale?: string; // Tailored explanation of why this specific item resolves clutter
+    reasoning?: string;
+    search_query?: string; // Amazon search keywords
     asin?: string; // Amazon standard ID if matched
     affiliate_url: string; // Tagged affiliate link
-    estimated_price_usd: number;
+    estimated_price_usd?: number;
+    price_estimate?: number;
     priority: ProductPriority;
     placement_zone: string; // e.g., "Middle open cubby", "Under-desk rollout"
     dimensions_guide?: string; // e.g., "12\" x 10\" x 6\""
     image_url?: string;
 }
+
+export type ProductRecommendation = AmazonProductRecommendation;
 
 export interface SpaceDiagnosticMetrics {
     estimated_space_reclaimed_pct: number;
@@ -207,13 +211,14 @@ export interface SpaceAuditResult {
     user_id: string;
     executive_summary: string;
     key_pain_points: string[];
-    phases: OrganizationPhase[];
+    phases?: OrganizationPhase[];
+    phased_steps?: PhasedStep[];
     visual_mockup_url?: string;
     visual_mockup_prompt?: string;
     product_recommendations: AmazonProductRecommendation[];
-    space_metrics: SpaceDiagnosticMetrics;
+    space_metrics?: SpaceDiagnosticMetrics;
     created_at: string;
-    updated_at: string;
+    updated_at?: string;
 }
 
 // =============================================================================
@@ -251,45 +256,59 @@ export interface SpacePlannerTransaction {
     created_at: string;
 }
 
+export type CreditPackageId = 'single' | 'standard_3' | 'power_8' | string;
+
 export interface CreditPackage {
-    id: string;
+    id: CreditPackageId;
     name: string;
+    description?: string;
     credits: number;
     price_cents: number;
+    price: number;
     price_display: string;
     unit_price_display: string;
     badge?: string;
     popular?: boolean;
+    isPopular?: boolean;
+    isBestValue?: boolean;
 }
 
 // Standard micro-SaaS Pay-Per-Room packages
 export const SPACE_PLANNER_CREDIT_PACKAGES: CreditPackage[] = [
     {
-        id: 'single_room',
+        id: 'single',
         name: 'Single Room Audit',
+        description: 'Single room assessment with full action plan',
         credits: 1,
-        price_cents: 999, // $9.99
-        price_display: '$9.99',
-        unit_price_display: '$9.99 / room',
+        price_cents: 900, // $9.00
+        price: 9,
+        price_display: '$9',
+        unit_price_display: '$9.00 / room',
     },
     {
-        id: 'home_starter',
-        name: 'Space Transformation Pack',
+        id: 'standard_3',
+        name: '3-Room Project Pack',
+        description: 'Ideal for multi-room revamps or classroom zones',
         credits: 3,
-        price_cents: 2499, // $24.99 ($8.33 / room)
-        price_display: '$24.99',
-        unit_price_display: '$8.33 / room',
-        badge: 'Save 17%',
+        price_cents: 1900, // $19.00 ($6.33 / room)
+        price: 19,
+        price_display: '$19',
+        unit_price_display: '$6.33 / room',
+        badge: 'Save 30%',
         popular: true,
+        isPopular: true,
     },
     {
-        id: 'full_suite_educator',
-        name: 'Complete Space & Classroom Suite',
+        id: 'power_8',
+        name: '8-Room Whole-Facility Pack',
+        description: 'Whole-facility, entire school wing, or whole-home makeover',
         credits: 8,
-        price_cents: 4999, // $49.99 ($6.25 / room)
-        price_display: '$49.99',
-        unit_price_display: '$6.25 / room',
-        badge: 'Best Value - Save 37%',
+        price_cents: 3900, // $39.00 ($4.88 / room)
+        price: 39,
+        price_display: '$39',
+        unit_price_display: '$4.88 / room',
+        badge: 'Best Value • Save 46%',
+        isBestValue: true,
     },
 ];
 
