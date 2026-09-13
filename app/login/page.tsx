@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from "@/lib/supabaseClient"
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
-    const router = useRouter()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -54,8 +52,8 @@ export default function LoginPage() {
                     password,
                 })
                 if (error) throw error
-                router.refresh()
-                router.push('/dashboard')
+                // Full navigation guarantees cookies are committed and prevents aborted transitions
+                window.location.href = '/dashboard'
             }
         } catch (error: any) {
             setError(error.message || 'An error occurred')

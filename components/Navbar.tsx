@@ -30,16 +30,14 @@ export function Navbar() {
         const fetchProfile = async (userId: string, email?: string) => {
             if (!mounted) return
             try {
-                // Use a proper abort signal to prevent long-hanging requests
-                const controller = new AbortController()
-                const timeoutId = setTimeout(() => controller.abort(), 8000)
-
                 // 1. Try by ID
-                let { data, error } = await supabase
+                const { data: initialData, error } = await supabase
                     .from('clients')
                     .select('*')
                     .eq('id', userId)
                     .maybeSingle()
+
+                let data = initialData
 
                 // 2. Try by Email fallback (for re-signed up users)
                 if (!data && !error && email) {
@@ -52,18 +50,28 @@ export function Navbar() {
                     if (emailData) data = emailData
                 }
 
-                clearTimeout(timeoutId)
                 if (mounted && !error && data) setProfile(data)
             } catch (err) {
-                console.warn("Navbar profile fetch failed or timed out.")
+                console.warn("Navbar profile fetch failed:", err)
             }
         }
 
-        // Initial session check using getUser() for server verification
+        // Initial session check using getUser() with local session fallback
         const checkSession = async () => {
             try {
-                // Use getUser() instead of getSession() for more reliable initial state
-                const { data: { user: authUser } } = await supabase.auth.getUser()
+                let authUser = null
+                try {
+                    const { data } = await supabase.auth.getUser()
+                    authUser = data?.user || null
+                } catch (userErr) {
+                    console.warn("Navbar getUser check failed, falling back to local session:", userErr)
+                }
+
+                if (!authUser) {
+                    const { data: sessionData } = await supabase.auth.getSession()
+                    authUser = sessionData?.session?.user || null
+                }
+
                 if (mounted) {
                     setUser(authUser || null)
                     if (authUser && !profile) {
@@ -71,7 +79,7 @@ export function Navbar() {
                     }
                 }
             } catch (err) {
-                console.warn("Navbar initial auth check failed.")
+                console.warn("Navbar initial auth check failed:", err)
                 if (mounted) setUser(null)
             }
         }

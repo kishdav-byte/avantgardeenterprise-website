@@ -22,38 +22,60 @@ export default function DashboardPage() {
     const [user, setUser] = useState<any>(null)
     const [clientData, setClientData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         let mounted = true
 
         const initialize = async () => {
             try {
-                // Single, non-blocking check
-                const { data: { user: currentUser } } = await supabase.auth.getUser()
+                // 1. Try to get verified user from server
+                let currentUser = null
+                try {
+                    const { data } = await supabase.auth.getUser()
+                    currentUser = data?.user || null
+                } catch (userErr) {
+                    console.warn("DASHBOARD: getUser failed, trying local session fallback:", userErr)
+                }
+
+                // 2. Fallback to cached session if getUser was aborted or had a transient network issue
+                if (!currentUser) {
+                    const { data: sessionData } = await supabase.auth.getSession()
+                    currentUser = sessionData?.session?.user || null
+                }
+
                 if (!mounted) return
 
                 if (currentUser) {
                     setUser(currentUser)
                     // Fire-and-forget profile sync
-                    const { data: profile } = await supabase
-                        .from('clients')
-                        .select('*')
-                        .eq('id', currentUser.id)
-                        .maybeSingle()
+                    try {
+                        const { data: profile } = await supabase
+                            .from('clients')
+                            .select('*')
+                            .eq('id', currentUser.id)
+                            .maybeSingle()
 
-                    if (mounted) {
-                        if (profile) setClientData(profile)
-                        setLoading(false)
+                        if (mounted && profile) {
+                            setClientData(profile)
+                        }
+                    } catch (profErr) {
+                        console.warn("DASHBOARD: Profile sync non-fatal error:", profErr)
                     }
+
+                    if (mounted) setLoading(false)
                 } else {
                     // SECURE REDIRECT: Redirect to login if no user session found
                     if (mounted) {
                         router.push('/login')
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("DASHBOARD: Init error:", e)
-                if (mounted) setLoading(false)
+                if (mounted) {
+                    setError(e?.message || "Failed to initialize session.")
+                    setLoading(false)
+                }
             }
         }
 
@@ -62,7 +84,7 @@ export default function DashboardPage() {
         return () => {
             mounted = false
         }
-    }, []) // Run EXACTLY once on mount
+    }, [router]) // Run on mount
 
     const handleSignOut = async () => {
         try {
@@ -95,7 +117,26 @@ export default function DashboardPage() {
         )
     }
 
-    if (!user) return null // Redirection handled by useEffect
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+                <Navbar />
+                <div className="max-w-md bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+                    <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mb-2">Session Error</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tight mb-4">Authentication Required</h2>
+                    <p className="text-white/60 text-sm mb-6 leading-relaxed">
+                        {error ? error : "Your session could not be verified. Please sign in again."}
+                    </p>
+                    <button
+                        onClick={() => { window.location.href = '/login' }}
+                        className="w-full py-3 bg-accent text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-accent/90 transition-colors"
+                    >
+                        Return to Sign In
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <main className="min-h-screen bg-black text-white">
