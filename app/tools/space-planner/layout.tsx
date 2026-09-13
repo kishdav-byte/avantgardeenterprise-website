@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'SpacePlan AI | Avant-Garde Enterprise',
+    title: 'SpaceIQ | Avant-Garde Enterprise',
     description: 'AI-powered multimodal room and space organization planner for home, classroom, and business environments.',
     alternates: {
         canonical: '/tools/space-planner',

@@ -31,8 +31,8 @@ const tools: Tool[] = [
     },
     {
         id: "space-planner",
-        name: "SpacePlan AI",
-        description: "AI-powered multimodal room and space organization planner for home, classroom, and business environments. Generate phased declutter roadmaps, visual after concepts, and itemized product lists.",
+        name: "SpaceIQ",
+        description: "AI-powered multimodal room and space organization planner for home, home office, classroom, and business environments. Generate phased declutter roadmaps, visual after concepts, and itemized product lists.",
         icon: <LayoutGrid className="w-8 h-8" />,
         href: "/tools/space-planner",
         status: "beta",

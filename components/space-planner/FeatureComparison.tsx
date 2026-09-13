@@ -15,9 +15,9 @@ const comparisonFeatures: FeatureRow[] = [
     {
         feature: "Target Spaces",
         description: "Primary room taxonomy supported",
-        home: "Living, Kitchen, Pantry, Closets, Garage, Bedroom",
+        home: "Living, Home Office, Kitchen, Pantry, Closets, Garage, Bedroom",
         classroom: "Elementary, STEM Lab, Sensory Nook, Teacher Prep",
-        business: "Retail Floor, Stockroom, Commercial Office, Kitchen",
+        business: "Commercial Office, Home Office, Retail Floor, Stockroom, Kitchen",
     },
     {
         feature: "Clutter & Spatial Focus",
@@ -83,7 +83,7 @@ export function FeatureComparison() {
                         Tailored for <span className="text-accent">Every Environment</span>
                     </h2>
                     <p className="text-white/60 text-sm md:text-base leading-relaxed">
-                        SpacePlan AI doesn’t just apply a generic template. Our multimodal engine shifts prompt engineering, safety heuristics, and product recommendations to match the exact dynamics of your environment.
+                        SpaceIQ doesn’t just apply a generic template. Our multimodal engine shifts prompt engineering, safety heuristics, and product recommendations to match the exact dynamics of your environment.
                     </p>
                 </div>
 

@@ -31,7 +31,7 @@ export default function SpacePlannerPage() {
                                 <Sparkles size={14} /> Multimodal Room Planner Active
                             </div>
                             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6">
-                                SpacePlan <span className="text-accent">AI</span>
+                                Space<span className="text-accent">IQ</span>
                             </h1>
                             <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
                                 Multimodal AI space organization planner engineered for precision decluttering, photorealistic visual mockups, and curated shopping roadmaps across home, educational, and commercial spaces.
@@ -67,7 +67,7 @@ export default function SpacePlannerPage() {
                             </div>
                             <h3 className="text-xl font-bold uppercase tracking-tight mb-2">Home Spaces</h3>
                             <p className="text-white/60 text-sm leading-relaxed mb-4">
-                                Living rooms, pantries, closets, garages, and bedrooms. Tailored to family size, pet needs, and daily maintenance routines.
+                                Living rooms, home offices, pantries, closets, garages, and bedrooms. Tailored to family size, pet needs, and daily maintenance routines.
                             </p>
                             <span className="text-[10px] font-black uppercase tracking-wider text-blue-400/80 bg-blue-500/10 px-2.5 py-1 rounded-full">
                                 Home Track
@@ -103,7 +103,7 @@ export default function SpacePlannerPage() {
                             </div>
                             <h3 className="text-xl font-bold uppercase tracking-tight mb-2">Business Spaces</h3>
                             <p className="text-white/60 text-sm leading-relaxed mb-4">
-                                Retail floors, stockrooms, commercial offices, and kitchens. Built around foot traffic, OSHA/health code compliance, and turnover.
+                                Commercial offices, executive home offices, retail floors, stockrooms, and kitchens. Built around foot traffic, OSHA/health code compliance, and turnover.
                             </p>
                             <span className="text-[10px] font-black uppercase tracking-wider text-amber-400/80 bg-amber-500/10 px-2.5 py-1 rounded-full">
                                 Enterprise Track

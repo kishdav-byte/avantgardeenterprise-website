@@ -256,7 +256,7 @@ TRACK: BUSINESS & COMMERCIAL ENVIRONMENT
     }
 
     return `
-You are the Avant-Garde Enterprise SpacePlan AI Expert — a world-class professional organization architect and industrial ergonomics consultant.
+You are the Avant-Garde Enterprise SpaceIQ Expert — a world-class professional organization architect and industrial ergonomics consultant.
 Analyze the user's space inputs and provided photos of clutter to generate an actionable, phased spatial transformation plan.
 
 ROOM TYPE: ${roomType.replace(/_/g, ' ').toUpperCase()}

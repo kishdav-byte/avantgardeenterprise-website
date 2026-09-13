@@ -118,7 +118,7 @@ export default function SpacePlannerAuditResultPage({
                             href="/tools/space-planner"
                             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 font-bold uppercase text-xs tracking-wider"
                         >
-                            <ArrowLeft size={14} /> Back to SpacePlan AI
+                            <ArrowLeft size={14} /> Back to SpaceIQ
                         </Link>
                     </div>
                 </div>

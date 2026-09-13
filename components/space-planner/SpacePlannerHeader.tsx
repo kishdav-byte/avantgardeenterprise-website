@@ -89,7 +89,7 @@ export function SpacePlannerHeader({
                             <LayoutGrid size={15} />
                         </div>
                         <span className="text-sm font-black uppercase tracking-tight text-white">
-                            SpacePlan <span className="text-accent">AI</span>
+                            Space<span className="text-accent">IQ</span>
                         </span>
                         <span className="px-2 py-0.5 rounded-full bg-accent/20 text-accent text-[9px] font-black uppercase tracking-widest border border-accent/30 hidden sm:inline-block">
                             Beta

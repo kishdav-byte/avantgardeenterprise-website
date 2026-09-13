@@ -61,9 +61,10 @@ const CLASSROOM_ROOMS: { id: RoomType; label: string }[] = [
 ]
 
 const BUSINESS_ROOMS: { id: RoomType; label: string }[] = [
+    { id: "commercial_office", label: "Commercial Office Suite" },
+    { id: "home_office", label: "Home Office (Remote / Executive)" },
     { id: "retail_sales_floor", label: "Retail Sales Floor" },
     { id: "warehouse_fulfillment", label: "Warehouse & Packing Station" },
-    { id: "commercial_office", label: "Commercial Office Suite" },
     { id: "breakroom_kitchen", label: "Staff Breakroom & Pantry" },
     { id: "restaurant_kitchen_pantry", label: "Commercial Kitchen Dry Storage" },
     { id: "conference_meeting_room", label: "Conference & Meeting Room" },
@@ -351,9 +352,9 @@ export function AuditWizard() {
                                 </label>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     {[
-                                        { id: "home", label: "Home", icon: Home, desc: "Living rooms, pantries, closets, garages" },
+                                        { id: "home", label: "Home", icon: Home, desc: "Living rooms, home offices, pantries, closets, garages" },
                                         { id: "classroom", label: "Classroom", icon: GraduationCap, desc: "Pre-K to high school, STEM labs, sensory" },
-                                        { id: "business", label: "Business", icon: Building2, desc: "Offices, retail, stockrooms, restaurants" },
+                                        { id: "business", label: "Business", icon: Building2, desc: "Commercial offices, home offices, retail, stockrooms" },
                                     ].map((t) => {
                                         const isSelected = spaceContext === t.id
                                         const Icon = t.icon

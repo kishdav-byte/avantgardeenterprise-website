@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `SpacePlan AI: ${selectedPackage.name}`,
+                            name: `SpaceIQ: ${selectedPackage.name}`,
                             description: `${selectedPackage.credits} Space Organization Credit${selectedPackage.credits > 1 ? 's' : ''} — Pay-Per-Room (No Subscription)`,
                         },
                         unit_amount: Math.round(selectedPackage.price * 100), // in cents
