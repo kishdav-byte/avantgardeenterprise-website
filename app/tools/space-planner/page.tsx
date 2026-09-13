@@ -7,43 +7,52 @@ import Link from "next/link"
 import { LayoutGrid, Home, GraduationCap, Building2, CheckCircle2, Sparkles, ArrowRight, ArrowLeft, Layers, Image as ImageIcon, ShoppingBag } from "lucide-react"
 import { PricingCards } from "@/components/space-planner/PricingCards"
 import { FeatureComparison } from "@/components/space-planner/FeatureComparison"
+import { SpacePlannerHeader } from "@/components/space-planner/SpacePlannerHeader"
 
 export default function SpacePlannerPage() {
     return (
         <main className="min-h-screen bg-background text-foreground">
             <Navbar />
+            <div className="pt-24">
+                <SpacePlannerHeader backHref="/services" backLabel="Services" />
 
-            <section className="pt-40 pb-16 px-4 relative overflow-hidden">
-                {/* Background glow */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent/10 blur-[140px] pointer-events-none rounded-full" />
+                <section className="pt-16 pb-16 px-4 relative overflow-hidden">
+                    {/* Background glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent/10 blur-[140px] pointer-events-none rounded-full" />
 
-                <div className="container mx-auto max-w-5xl relative z-10">
-                    {/* Breadcrumb / Back */}
-                    <div className="mb-8">
-                        <Link
-                            href="/services"
-                            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent transition-colors"
+                    <div className="container mx-auto max-w-5xl relative z-10">
+                        {/* Header */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center mb-16"
                         >
-                            <ArrowLeft size={14} /> Back to Services
-                        </Link>
-                    </div>
-
-                    {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center mb-16"
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-widest mb-6">
-                            <Sparkles size={14} /> Phase 2 Engine & Conversion Active
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6">
-                            SpacePlan <span className="text-accent">AI</span>
-                        </h1>
-                        <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                            Multimodal AI space organization planner engineered for precision decluttering, photorealistic visual mockups, and curated shopping roadmaps across home, educational, and commercial spaces.
-                        </p>
-                    </motion.div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-widest mb-6">
+                                <Sparkles size={14} /> Multimodal Room Planner Active
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6">
+                                SpacePlan <span className="text-accent">AI</span>
+                            </h1>
+                            <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+                                Multimodal AI space organization planner engineered for precision decluttering, photorealistic visual mockups, and curated shopping roadmaps across home, educational, and commercial spaces.
+                            </p>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <Link
+                                    href="/tools/space-planner/new"
+                                    className="px-8 py-4 rounded-xl bg-accent text-black font-black uppercase text-xs tracking-wider hover:bg-accent/90 transition-all flex items-center gap-2 shadow-xl shadow-accent/20"
+                                >
+                                    <Sparkles size={16} />
+                                    <span>Start Room Audit</span>
+                                    <ArrowRight size={14} />
+                                </Link>
+                                <a
+                                    href="#pricing"
+                                    className="px-6 py-4 rounded-xl border border-white/10 hover:border-white/25 text-white font-bold uppercase text-xs tracking-wider transition-all"
+                                >
+                                    View Credit Packs
+                                </a>
+                            </div>
+                        </motion.div>
 
                     {/* Context Tracks (Home, Classroom, Business) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
@@ -142,6 +151,7 @@ export default function SpacePlannerPage() {
 
             {/* Pricing & Credit Packs */}
             <PricingCards />
+            </div>
 
             <Footer />
         </main>

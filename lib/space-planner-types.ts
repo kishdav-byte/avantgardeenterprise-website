@@ -161,18 +161,25 @@ export interface UpdateAuditInput {
 
 export interface PhasedStep {
     step_number: number;
-    title: string;
-    instruction: string;
-    estimated_minutes: number;
-    tools_or_materials_needed: string[];
+    title?: string;
+    action?: string;
+    instruction?: string;
+    zone?: string;
+    estimated_minutes?: number;
+    tools_or_materials_needed?: string[];
+    tips?: string;
     pro_tip?: string;
 }
 
 export interface OrganizationPhase {
     phase_number: number;
-    phase_title: string; // e.g., "Phase 1: Rapid Purge & Zone Sorting"
-    phase_objective: string;
-    estimated_duration_minutes: number;
+    phase_title?: string; // e.g., "Phase 1: Rapid Purge & Zone Sorting"
+    title?: string;
+    phase_objective?: string;
+    description?: string;
+    estimated_duration_minutes?: number;
+    time_estimate_minutes?: number;
+    priority?: string;
     steps: PhasedStep[];
 }
 
