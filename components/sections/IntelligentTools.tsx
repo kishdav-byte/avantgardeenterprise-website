@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient"
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User, ShieldCheck, Mic } from "lucide-react"
+import { ChefHat, Lock, Sparkles, ArrowRight, Dog, User, ShieldCheck, Mic, LayoutGrid } from "lucide-react"
 interface Tool {
     id: string
     name: string
@@ -27,6 +27,16 @@ const tools: Tool[] = [
         href: "/tools/meal-planner",
         status: "beta",
         isFree: true,
+        requiresAuth: true
+    },
+    {
+        id: "space-planner",
+        name: "SpacePlan AI",
+        description: "AI-powered multimodal room and space organization planner for home, classroom, and business environments. Generate phased declutter roadmaps, visual after concepts, and itemized product lists.",
+        icon: <LayoutGrid className="w-8 h-8" />,
+        href: "/tools/space-planner",
+        status: "beta",
+        isFree: false,
         requiresAuth: true
     },
     {
