@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createAdminSupabase } from '@/lib/supabaseServer'
 import { checkIsAdmin } from '@/lib/space-planner-credits'
+import { getCachedAudit } from '@/lib/space-planner-cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,14 +17,28 @@ export async function GET(
         // 1. Check optional authenticated session
         const { data: { user } } = await supabase.auth.getUser()
 
-        // 2. Fetch Audit Record using privileged client
-        const { data: audit, error: auditError } = await adminSupabase
-            .from('space_audits')
-            .select('*')
-            .eq('id', auditId)
-            .maybeSingle()
+        // 2. Fetch Audit Record (Database with in-memory fallback)
+        const cached = getCachedAudit(auditId)
+        let audit: any = null
 
-        if (auditError || !audit) {
+        try {
+            const { data, error } = await adminSupabase
+                .from('space_audits')
+                .select('*')
+                .eq('id', auditId)
+                .maybeSingle()
+            if (!error && data) {
+                audit = data
+            }
+        } catch (dbErr) {
+            console.warn('[SpacePlanner] Database fetch error for space_audits:', dbErr)
+        }
+
+        if (!audit && cached?.audit) {
+            audit = cached.audit
+        }
+
+        if (!audit) {
             return NextResponse.json({ error: 'Space audit not found' }, { status: 404 })
         }
 
@@ -44,12 +59,24 @@ export async function GET(
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
-        // 4. Fetch Audit Results Record
-        const { data: results, error: resultsError } = await adminSupabase
-            .from('space_audit_results')
-            .select('*')
-            .eq('audit_id', auditId)
-            .maybeSingle()
+        // 4. Fetch Audit Results Record (Database with in-memory fallback)
+        let results: any = null
+        try {
+            const { data } = await adminSupabase
+                .from('space_audit_results')
+                .select('*')
+                .eq('audit_id', auditId)
+                .maybeSingle()
+            if (data) {
+                results = data
+            }
+        } catch (dbErr) {
+            console.warn('[SpacePlanner] Database fetch error for space_audit_results:', dbErr)
+        }
+
+        if (!results && cached?.results) {
+            results = cached.results
+        }
 
         return NextResponse.json({
             success: true,

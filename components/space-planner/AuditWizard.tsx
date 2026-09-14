@@ -284,6 +284,19 @@ export function AuditWizard() {
                 throw new Error(data.error || "Failed to generate transformation plan.")
             }
 
+            // Cache audit bundle in sessionStorage for resilient zero-flicker loading
+            if (typeof window !== "undefined" && data.audit?.id) {
+                try {
+                    sessionStorage.setItem(`sp_audit_${data.audit.id}`, JSON.stringify({
+                        audit: data.audit,
+                        results: data.results,
+                        isGuestAudit: data.isGuest,
+                    }))
+                } catch (storageErr) {
+                    console.warn("Could not cache audit in sessionStorage:", storageErr)
+                }
+            }
+
             // Successfully analyzed — redirect to the results dashboard
             router.push(`/tools/space-planner/audit/${data.audit.id}`)
         } catch (err: any) {

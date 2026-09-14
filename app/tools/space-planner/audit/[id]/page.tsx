@@ -59,24 +59,41 @@ export default function SpacePlannerAuditResultPage({
         async function fetchAudit() {
             try {
                 const res = await fetch(`/api/space-planner/audit/${auditId}`)
-                if (!res.ok) {
-                    const errData = await res.json().catch(() => ({}))
-                    throw new Error(errData.error || "Failed to load audit results")
+                if (res.ok) {
+                    const data = await res.json()
+                    setAudit(data.audit)
+                    setResults(data.results)
+                    setIsGuestAudit(Boolean(data.isGuestAudit || !data.audit?.user_id))
+                    return
                 }
-
-                const data = await res.json()
-                setAudit(data.audit)
-                setResults(data.results)
-                setIsGuestAudit(Boolean(data.isGuestAudit || !data.audit?.user_id))
             } catch (err: any) {
-                console.error("Error fetching audit:", err)
-                setError(err.message || "An unexpected error occurred.")
-            } finally {
-                setLoading(false)
+                console.warn("API fetch error, checking local session cache:", err)
             }
+
+            // Client-side fallback check (loads instantly from sessionStorage if available)
+            if (typeof window !== "undefined") {
+                const sessionCached = sessionStorage.getItem(`sp_audit_${auditId}`)
+                if (sessionCached) {
+                    try {
+                        const parsed = JSON.parse(sessionCached)
+                        if (parsed.audit) {
+                            setAudit(parsed.audit)
+                            setResults(parsed.results)
+                            setIsGuestAudit(Boolean(parsed.isGuestAudit || !parsed.audit?.user_id))
+                            return
+                        }
+                    } catch (e) {
+                        console.warn("Failed to parse sessionStorage audit:", e)
+                    }
+                }
+            }
+
+            setError("Failed to load audit results.")
         }
 
-        fetchAudit()
+        fetchAudit().finally(() => {
+            setLoading(false)
+        })
     }, [auditId])
 
     function toggleStep(phaseNum: number, stepNum: number) {
