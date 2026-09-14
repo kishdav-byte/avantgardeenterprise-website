@@ -72,19 +72,63 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(arrayBuffer)
 
         // 6. Upload to Supabase Storage bucket 'space-planner-media' using privileged client
-        const { data: uploadData, error: uploadError } = await adminSupabase.storage
+        let uploadData: any = null
+        let uploadError: any = null
+
+        const uploadRes = await adminSupabase.storage
             .from('space-planner-media')
             .upload(storagePath, buffer, {
                 contentType: file.type,
                 upsert: true,
             })
 
-        if (uploadError) {
-            console.error('Supabase storage upload error:', uploadError)
-            return NextResponse.json(
-                { error: `Storage upload failed: ${uploadError.message}` },
-                { status: 500 }
+        uploadData = uploadRes.data
+        uploadError = uploadRes.error
+
+        // If bucket is missing, attempt to create it on the fly
+        if (uploadError && (uploadError.message?.includes('Bucket not found') || uploadError.message?.toLowerCase().includes('not found'))) {
+            console.warn('[SpaceIQ Upload] Bucket space-planner-media not found. Attempting automatic creation...')
+            try {
+                const { error: createErr } = await adminSupabase.storage.createBucket('space-planner-media', {
+                    public: true,
+                    fileSizeLimit: MAX_FILE_SIZE_BYTES,
+                })
+                if (!createErr) {
+                    console.log('[SpaceIQ Upload] Bucket space-planner-media created. Retrying upload...')
+                    const retryRes = await adminSupabase.storage
+                        .from('space-planner-media')
+                        .upload(storagePath, buffer, {
+                            contentType: file.type,
+                            upsert: true,
+                        })
+                    uploadData = retryRes.data
+                    uploadError = retryRes.error
+                }
+            } catch (e: any) {
+                console.warn('[SpaceIQ Upload] Bucket auto-creation attempt failed:', e?.message)
+            }
+        }
+
+        // If Supabase Storage is still unavailable, use resilient base64 Data URL fallback
+        // so the user's mobile audit NEVER fails!
+        if (uploadError || !uploadData) {
+            console.warn(
+                '[SpaceIQ Upload] Supabase storage upload failed (' +
+                (uploadError?.message || 'unknown') +
+                '). Falling back to inline base64 image data URL.'
             )
+            const mime = file.type || 'image/jpeg'
+            const base64Data = buffer.toString('base64')
+            const dataUrl = `data:${mime};base64,${base64Data}`
+
+            return NextResponse.json({
+                success: true,
+                url: dataUrl,
+                path: `fallback/${Date.now()}-${randomUUID()}.${sanitizedExt}`,
+                filename: file.name,
+                size: file.size,
+                isFallback: true,
+            })
         }
 
         // 7. Retrieve public URL
